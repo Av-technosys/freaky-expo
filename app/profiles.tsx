@@ -11,6 +11,7 @@ import { RootState, AppDispatch } from "@/store";
 import { deleteProfileAsync, startEditing, resetDraft, loadProfiles } from "@/store/profileSlice";
 import { format } from "date-fns";
 import { User, Edit, Trash2, Calendar, Plus, Mail, MapPin, UserCircle } from "lucide-react-native";
+import RazorpayCheckout from "react-native-razorpay";
 
 // Helper function to get icon color based on theme
 const useIconColor = () => {
@@ -24,7 +25,7 @@ export default function Profiles() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const iconColor = useIconColor();
   const { colorScheme } = useColorScheme();
-
+const price = 500; // or dynamic later
   const handleEdit = async (id: string) => {
     await dispatch(startEditing(id));
     dispatch(resetDraft()); 
@@ -55,6 +56,35 @@ export default function Profiles() {
     );
   };
 
+
+
+
+const handlePayment = () => {
+  const options = {
+    description: "Profile Purchase",
+    currency: "INR",
+    key: "rzp_test_SIfn57v23nUkvK",
+    amount: "50000",
+    name: "scam",
+    prefill: {
+      email: "test@example.com",
+      contact: "9999999999",
+      name: "User",
+    },
+    theme: { color: "#3399cc" },
+  };
+
+ RazorpayCheckout.open(options as any)
+    .then((data: any) => {
+      router.replace({
+        pathname: "/success",
+        params: { amount: "500" },
+      });
+    })
+    .catch((error: any) => {
+      router.replace("/failed");
+    });
+};
   const renderProfileItem = ({ item }: { item: any }) => (
     <Card className="mb-4 overflow-hidden">
       <View className="p-5 gap-5">
@@ -119,36 +149,50 @@ export default function Profiles() {
         </View>
 
         {/* Actions */}
-        <View className="flex-row gap-3 pt-3">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onPress={() => handleEdit(item.id)}
-            disabled={loading && deletingId !== item.id}
-          >
-            <Edit size={18} color={iconColor} className="mr-2" />
-            <Text className="font-medium">Edit</Text>
-          </Button>
-          
-          <Button
-            variant="destructive"
-            className="flex-1"
-            onPress={() => handleDelete(item.id)}
-            disabled={loading || deletingId === item.id}
-          >
-            {deletingId === item.id ? (
-              <View className="flex-row items-center justify-center">
-                <ActivityIndicator size="small" color="white" className="mr-2" />
-                <Text className="font-medium">Deleting</Text>
-              </View>
-            ) : (
-              <>
-                <Trash2 size={18} color="white" className="mr-2" />
-                <Text className="font-medium">Delete</Text>
-              </>
-            )}
-          </Button>
+     <View className="flex-col gap-3 pt-3">
+  
+  {/* Existing buttons */}
+  <View className="flex-row gap-3">
+    <Button
+      variant="outline"
+      className="flex-1"
+      onPress={() => handleEdit(item.id)}
+      disabled={loading && deletingId !== item.id}
+    >
+      <Edit size={18} color={iconColor} className="mr-2" />
+      <Text className="font-medium">Edit</Text>
+    </Button>
+    
+    <Button
+      variant="destructive"
+      className="flex-1"
+      onPress={() => handleDelete(item.id)}
+      disabled={loading || deletingId === item.id}
+    >
+      {deletingId === item.id ? (
+        <View className="flex-row items-center justify-center">
+          <ActivityIndicator size="small" color="white" className="mr-2" />
+          <Text className="font-medium">Deleting</Text>
         </View>
+      ) : (
+        <>
+          <Trash2 size={18} color="white" className="mr-2" />
+          <Text className="font-medium">Delete</Text>
+        </>
+      )}
+    </Button>
+  </View>
+
+  {/* 💰 Buy Button */}
+  <Button
+    className="w-full bg-green-600"
+    onPress={handlePayment}
+  >
+    <Text className="text-primary-foreground  font-semibold">
+      Buy for ₹500
+    </Text>
+  </Button>
+</View>
       </View>
     </Card>
   );
