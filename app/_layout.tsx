@@ -7,26 +7,34 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { Provider } from 'react-redux';
-import { store } from '@/store';
-import Bootstrap from "@/app/bootstrap";
+import RootProvider from './provider/RootProvider';
+import { useEffect } from 'react';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from '@/store';
+import Toast from 'react-native-toast-message';
 
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
-  const { colorScheme } = useColorScheme();
+  const { setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    setColorScheme('light');
+  }, []);
 
   return (
-        <Provider store={store}>
-<Bootstrap />
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack />
-      <PortalHost />
-    </ThemeProvider>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <RootProvider>
+          <ThemeProvider value={NAV_THEME['light']}>
+            {/* <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} /> */}
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false }} />
+            <Toast />
+            <PortalHost />
+          </ThemeProvider>
+        </RootProvider>
+      </PersistGate>
     </Provider>
   );
 }
