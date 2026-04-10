@@ -1,9 +1,11 @@
+
+
 import '@/global.css';
 
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from '@react-navigation/native';
 import { PortalHost } from '@rn-primitives/portal';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { Provider } from 'react-redux';
@@ -12,7 +14,9 @@ import { useEffect } from 'react';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from '@/store';
 import Toast from 'react-native-toast-message';
-
+import { AppState } from 'react-native'; // 👈 ADD THIS
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import 'react-native-reanimated';
 export { ErrorBoundary } from 'expo-router';
 
 export default function RootLayout() {
@@ -22,18 +26,36 @@ export default function RootLayout() {
     setColorScheme('light');
   }, []);
 
+  // 🔥 ADD THIS BLOCK
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        router.replace('/'); // 👈 forces app to restart flow
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
+           <GestureHandlerRootView style={{ flex: 1 }}>
         <RootProvider>
           <ThemeProvider value={NAV_THEME['light']}>
-            {/* <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} /> */}
             <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false }} />
+
+            {/* 👇 also add this */}
+            <Stack
+              initialRouteName="index"
+              screenOptions={{ headerShown: false }}
+            />
+
             <Toast />
             <PortalHost />
           </ThemeProvider>
         </RootProvider>
+        </GestureHandlerRootView>
       </PersistGate>
     </Provider>
   );

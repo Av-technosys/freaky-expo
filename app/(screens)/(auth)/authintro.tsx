@@ -1,32 +1,29 @@
 import React from 'react';
 import { View, Text, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import { Button } from '@/components/ui/button'; // your reusable button
+import Screen from '@/app/provider/Screen';
+import { useRouter } from 'expo-router';
+import { AppButton } from '@/components/common/AppButton';
 
 export default function AuthIntroScreen() {
-  const navigation = useNavigation();
+  const router = useRouter();
 
   return (
-    <SafeAreaView edges={['left', 'right', 'bottom']} className="flex-1 bg-background">
-      <StatusBar style="dark" />
-
+    <Screen scroll>
       {/* HERO */}
-      <View className="relative w-full h-[45%]">
+      <View className="relative h-[45%] w-full">
         {/* BG IMAGE */}
         <Image
           source={require('@/assets/images/login-bg-bottom.png')}
           resizeMode="cover"
-          className="absolute w-full h-full"
+          className="absolute h-full w-full"
         />
 
         {/* TOP IMAGE */}
         <Image
           source={require('@/assets/images/login-bg-top.png')}
           resizeMode="contain"
-          className="absolute w-full h-full"
+          className="absolute h-full w-full"
         />
 
         {/* GRADIENT FADE */}
@@ -34,58 +31,41 @@ export default function AuthIntroScreen() {
           colors={['transparent', 'rgba(255,255,255,0.9)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          className="absolute bottom-0 w-full h-32"
+          className="absolute bottom-0 h-32 w-full"
         />
       </View>
 
       {/* CONTENT */}
       <View className="flex-1 px-6 pt-4">
         {/* LOGO */}
-        <View className="items-center mb-4">
+        <View className="mb-4 items-center">
           <Image
             source={require('@/assets/images/freeky-icon.png')}
             resizeMode="contain"
-            className="w-48 h-20"
+            className="h-20 w-48"
           />
         </View>
 
         {/* TEXT */}
-        <Text className="text-2xl font-semibold text-center text-foreground mb-3">
+        <Text className="mb-3 text-center text-2xl font-semibold text-foreground">
           Make your events unforgettable
         </Text>
 
-        <Text className="text-base text-center text-muted-foreground leading-6 mb-8">
-          Discover curated services for birthdays, parties, weddings
-          and more — all in one place.
+        <Text className="mb-8 text-center text-base leading-6 text-muted-foreground">
+          Discover curated services for birthdays, parties, weddings and more — all in one place.
         </Text>
 
         {/* ACTIONS */}
-        <View className="mt-8 pb-6 space-y-4">
-          <Button
-            variant="default" // gradient-filled
-            size="lg"
-            onPress={() =>
-              navigation.getParent()?.navigate('AuthStack', {
-                screen: 'SignUp',
-              })
-            }
-          >
+        <View className="mt-8 w-full gap-4 px-6 pb-6">
+          <AppButton size="lg" onPress={() => router.replace('/signUp')}>
             Sign Up
-          </Button>
+          </AppButton>
 
-          <Button
-            variant="outline"
-            size="lg"
-            onPress={() =>
-              navigation.getParent()?.navigate('AuthStack', {
-                screen: 'Login',
-              })
-            }
-          >
+          <AppButton variant="outline" size="lg" onPress={() => router.replace('/login')}>
             Log In
-          </Button>
+          </AppButton>
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }

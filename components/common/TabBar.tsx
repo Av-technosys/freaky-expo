@@ -35,7 +35,8 @@ export default function MyTabBar({ state, navigation }: BottomTabBarProps) {
         >
           {state.routes.map((route, index) => {
             const isFocused = state.index === index;
-            const iconName = ICONS[route.name];
+           const routeName = route.name.split('/').pop() as keyof typeof ICONS;
+          const iconName = ICONS[routeName];
 
             // animations
             const translateY = useRef(new Animated.Value(0)).current;

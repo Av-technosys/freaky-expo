@@ -1,23 +1,30 @@
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import { useColorScheme } from 'nativewind';
-import { Image, Platform, View } from 'react-native';
+import { Platform, View, Text } from 'react-native';
+import { AppButton } from './common/AppButton';
+import { FontAwesome, AntDesign } from '@expo/vector-icons';
 
 const SOCIAL_CONNECTION_STRATEGIES = [
   {
     type: 'oauth_apple',
-    source: { uri: 'https://img.clerk.com/static/apple.png?width=160' },
-    useTint: true,
+    icon: (color: string) => (
+      <FontAwesome name="apple" size={18} color={color} />
+    ),
+    name: 'Apple',
+    hideOnAndroid: true,
   },
   {
     type: 'oauth_google',
-    source: { uri: 'https://img.clerk.com/static/google.png?width=160' },
-    useTint: false,
+    icon: () => (
+      <AntDesign name="google" size={18} color="#DB4437" />
+    ),
+    name: 'Google',
   },
   {
-    type: 'oauth_github',
-    source: { uri: 'https://img.clerk.com/static/github.png?width=160' },
-    useTint: true,
+    type: 'oauth_facebook',
+    icon: () => (
+      <FontAwesome name="facebook" size={18} color="#1877F2" />
+    ),
+    name: 'Facebook',
   },
 ];
 
@@ -25,25 +32,31 @@ export function SocialConnections() {
   const { colorScheme } = useColorScheme();
 
   return (
-    <View className="gap-2 sm:flex-row sm:gap-3">
+    <View className="gap-3">
       {SOCIAL_CONNECTION_STRATEGIES.map((strategy) => {
+        // if (strategy.hideOnAndroid && Platform.OS !== 'ios') return null;
+
+        const iconColor =
+          colorScheme === 'dark' ? '#fff' : '#000';
+
         return (
-          <Button
+          <AppButton
             key={strategy.type}
             variant="outline"
-            size="sm"
-            className="sm:flex-1"
+            className="flex-row items-center justify-center h-11"
             onPress={() => {
-              // TODO: Authenticate with social provider and navigate to protected screen if successful
-            }}>
-            <Image
-              className={cn('size-4', strategy.useTint && Platform.select({ web: 'dark:invert' }))}
-              tintColor={Platform.select({
-                native: strategy.useTint ? (colorScheme === 'dark' ? 'white' : 'black') : undefined,
-              })}
-              source={strategy.source}
-            />
-          </Button>
+              console.log(`Login with ${strategy.type}`);
+            }}
+          >
+            {/* ✅ FIXED ICON BOX */}
+            <View className="w-5 items-center mr-2">
+              {strategy.icon(iconColor)}
+            </View>
+
+            <Text className="text-sm font-medium">
+              Continue with {strategy.name}
+            </Text>
+          </AppButton>
         );
       })}
     </View>

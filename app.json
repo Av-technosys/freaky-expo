@@ -4,7 +4,7 @@
     "slug": "my-app-new",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/freeky-icon.png",
     "scheme": "my-app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

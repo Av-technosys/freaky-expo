@@ -48,26 +48,32 @@ export default function ScreenHeader({
     }
   };
 
-  return (
-    <View className="flex-row items-center justify-between bg-background px-4 py-3">
-      {/* LEFT */}
-      <View className="flex-row items-center">
-        {showBack ? (
-          <Pressable
-            onPress={() => {
-              navigation.goBack();
-            }}>
-            <Feather name="arrow-left" size={24} color="#000" />
-          </Pressable>
-        ) : (
-          <View />
-        )}
+return (
+  <View className=" justify-center bg-background ">
+    
+    {/* TITLE (perfect center) */}
+    <Text className="absolute self-center text-2xl font-semibold text-foreground">
+      {title}
+    </Text>
 
-        <Text className="ml-3 text-xl font-semibold text-foreground">{title}</Text>
-      </View>
+    {/* LEFT + RIGHT */}
+    <View className="flex-row items-center justify-between">
+      
+      {/* LEFT */}
+      {showBack ? (
+        <Pressable onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={24} color="#000" />
+        </Pressable>
+      ) : (
+        <View className="w-6" />
+      )}
 
       {/* RIGHT */}
       {renderRight()}
     </View>
-  );
+  </View>
+);
 }
+
+
+
