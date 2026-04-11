@@ -20,6 +20,7 @@ import { Text } from '@/components/ui/text';
 import { Separator } from '@/components/ui/separator';
 import { SocialConnections } from '@/components/social-connections';
 import { AppButton } from './common/AppButton';
+import { setGlobalToken } from '@/api/interceptors';
 
 export function SignInForm() {
   const passwordRef = useRef<TextInput>(null);
@@ -48,7 +49,7 @@ export function SignInForm() {
         ['refreshToken', data.refreshToken],
         ['idToken', data.idToken],
       ]);
-
+     setGlobalToken(data.accessToken); // 👈 important
       const user = decodeIdToken(data.idToken);
       await AsyncStorage.setItem('username', user?.username);
 

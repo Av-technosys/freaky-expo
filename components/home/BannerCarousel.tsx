@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Dimensions } from 'react-native';
 import   Carousel   from '@/components/common/Carousel';
-import SkeletonContent from 'react-native-skeleton-content';
+// import SkeletonContent from 'react-native-skeleton-content';
 
 
 const S3_BASE_URL =process.env.EXPO_PUBLIC_AWS_IMAGE_URL;
@@ -28,23 +28,23 @@ export default function BannerCarousel({
 }: Props) {
 
   // 🔥 1. LOADING STATE
-  if (loading) {
-    return (
-      <View className="mt-5 px-4">
-        <SkeletonContent
-          isLoading={true}
-          layout={[
-            {
-              key: 'banner',
-              width: width - 32,
-              height: BANNER_HEIGHT,
-              borderRadius: 16,
-            }
-          ]}
-        />
-      </View>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <View className="mt-5 px-4">
+  //       <SkeletonContent
+  //         isLoading={true}
+  //         layout={[
+  //           {
+  //             key: 'banner',
+  //             width: width - 32,
+  //             height: BANNER_HEIGHT,
+  //             borderRadius: 16,
+  //           }
+  //         ]}
+  //       />
+  //     </View>
+  //   );
+  // }
 
   // 🔥 2. NO DATA CASE (API returned empty or failed)
   if (!banners || banners.length === 0) {

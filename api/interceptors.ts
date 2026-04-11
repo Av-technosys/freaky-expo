@@ -5,6 +5,12 @@ import { forceLogout } from '../api/services/forceLogout';
 let isRefreshing = false;
 let subscribers: ((token: string) => void)[] = [];
 
+let cachedToken: string | null = null;
+
+export const setGlobalToken = (token: string) => {
+  cachedToken = token;
+};
+
 const subscribe = (cb: (token: string) => void) => {
   subscribers.push(cb);
 };
@@ -17,8 +23,16 @@ const notify = (token: string) => {
 // REQUEST: attach token
 import { tokenStorage } from '../api/services/tokenStorage';
 
+
 privateApi.interceptors.request.use(async config => {
+
+   if (cachedToken) {
+    config.headers.Authorization = `Bearer ${cachedToken}`;
+  }
+
+  console.log("🔑 TOKEN ATTACHED:", !!cachedToken);
   const token = await tokenStorage.getIdToken();
+console.log("token storage", token)
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

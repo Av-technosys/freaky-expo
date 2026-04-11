@@ -1,43 +1,43 @@
 import { View, FlatList } from 'react-native';
 import { useEffect, useState } from 'react';
-import SkeletonContent from 'react-native-skeleton-content';
+// import SkeletonContent from 'react-native-skeleton-content';
 
 import { Text } from '@/components/ui/text';
 import SectionHeader from '../home/SectionHeader';
 import ServiceCard from '../home/ServiceCard';
 import { getAllFeaturedProducts } from '@/api/product';
 
-function ServiceCardSkeleton() {
-  return (
-    <View className="mt-6 px-4">
-      <SkeletonContent
-        isLoading
-        layout={[
-          {
-            key: 'card',
-            width: 320,
-            height: 140,
-            borderRadius: 16,
-          },
-          {
-            key: 'title',
-            marginTop: 10,
-            width: '80%',
-            height: 16,
-            borderRadius: 6,
-          },
-          {
-            key: 'description',
-            marginTop: 6,
-            width: '60%',
-            height: 14,
-            borderRadius: 6,
-          },
-        ]}
-      />
-    </View>
-  );
-}
+// function ServiceCardSkeleton() {
+//   return (
+//     <View className="mt-6 px-4">
+//       <SkeletonContent
+//         isLoading
+//         layout={[
+//           {
+//             key: 'card',
+//             width: 320,
+//             height: 140,
+//             borderRadius: 16,
+//           },
+//           {
+//             key: 'title',
+//             marginTop: 10,
+//             width: '80%',
+//             height: 16,
+//             borderRadius: 6,
+//           },
+//           {
+//             key: 'description',
+//             marginTop: 6,
+//             width: '60%',
+//             height: 14,
+//             borderRadius: 6,
+//           },
+//         ]}
+//       />
+//     </View>
+//   );
+// }
 
 export default function ServicesBlock() {
   const [sections, setSections] = useState<any[]>([]);
@@ -67,9 +67,9 @@ export default function ServicesBlock() {
   };
 
   // ✅ LOADING
-  if (loading) {
-    return <ServiceCardSkeleton />;
-  }
+  // if (loading) {
+  //   return <ServiceCardSkeleton />;
+  // }
 
   // ✅ NO DATA
   if (!sections || sections.length === 0) {

@@ -31,7 +31,7 @@ export default function HomeScreen() {
       setLoading(true);
 
       const res = await getBanners();
-
+      
       if (res?.data && Array.isArray(res.data)) {
         const sorted = [...res.data].sort(
           (a, b) => a.priority - b.priority
@@ -49,7 +49,7 @@ export default function HomeScreen() {
   };
 
   return (
- <Screen>
+ <Screen scroll>
       {/* STATUS BAR */}
   
         {/* HEADER */}

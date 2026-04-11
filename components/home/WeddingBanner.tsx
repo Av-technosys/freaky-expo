@@ -3,6 +3,7 @@ import { Feather } from '@expo/vector-icons';
 
 import { Text } from '@/components/ui/text';
 import SectionHeader from '../home/SectionHeader';
+import { getImageUrl } from '@/utils/image';
 
 type Props = {
   banner?: {
@@ -36,7 +37,7 @@ export default function WeddingBanner({ banner }: Props) {
       {/* IMAGE */}
       <View className="relative w-full -mt-6">
         <Image
-          source={{ uri: banner.image }}
+          source={{ uri: getImageUrl(banner.image) }}
           className="w-full h-64"
           resizeMode="cover"
         />

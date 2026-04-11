@@ -25,7 +25,7 @@ export default function Screen({
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <Container
-            style={{ flex: 1, padding: 16 }}
+            style={{ flex: 1, padding: 0 }}
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={scroll ? { flexGrow: 1 } : undefined}
           >

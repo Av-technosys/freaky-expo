@@ -7,7 +7,7 @@ import { getProductTypes } from '@/api/product';
 
 import Screen from '@/app/provider/Screen';
 import ScreenHeader from '@/components/common/ScreenHeader';
-// import NotFound from '@/components/common/notFound/NotFound';
+import NotFound from '@/components/common/NotFound';
 
 // UI
 import { Text } from '@/components/ui/text';
@@ -16,7 +16,7 @@ import {
   CardContent,
 } from '@/components/ui/card';
 
-import SkeletonContent from 'react-native-skeleton-content';
+// import SkeletonContent from 'react-native-skeleton-content';
 
 type ProductType = {
   id: number;
@@ -52,7 +52,7 @@ export default function CategoriesScreen() {
       <ScreenHeader title="Categories" rightType="notification" />
 
       {/* 🔄 LOADING */}
-      {loading && (
+      {/* {loading && (
         <View className="px-4 mt-4">
           <SkeletonContent
             isLoading
@@ -70,16 +70,16 @@ export default function CategoriesScreen() {
             }))}
           />
         </View>
-      )}
+      )} */}
 
       {/* ❌ EMPTY */}
-      {/* {!loading && categories.length === 0 && (
+      {!loading && categories.length === 0 && (
         <NotFound
           title="No Category Found"
           description="There are no categories available right now."
           ctaLabel="Explore Services"
         />
-      )} */}
+      )}
 
       {/* ✅ DATA */}
       {!loading && categories.length > 0 && (

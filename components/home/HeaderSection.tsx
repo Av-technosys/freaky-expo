@@ -23,9 +23,10 @@ export default function HeaderSection({ bottomSheetRef }: any) {
       setLoading(true);
 
       const res = await userDetails();
-
+         console.log("res", res)
       if (res?.data) {
         setUserData(res.data);
+        console.log(res?.data)
 
         const addressId = res.data.currentAddressId;
 

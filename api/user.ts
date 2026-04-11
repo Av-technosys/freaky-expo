@@ -20,6 +20,7 @@ export type Address = {
 
 export const userDetails = async () => {
   const response = await privateApi.get('/user/get_personal_info');
+  console.log("response", response)
   return response.data;
 };
 

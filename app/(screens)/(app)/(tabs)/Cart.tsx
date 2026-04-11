@@ -1,12 +1,90 @@
-import ScreenHeader from "@/components/common/ScreenHeader";
-import { View , Text } from "react-native";
-import Screen from "@/app/provider/Screen";
+// app/(tabs)/cart.tsx
+
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
+import { useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
+
+import Screen from '@/app/provider/Screen';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import NotFound from '@/components/common/NotFound';
+
+// keep your existing component
+import CartProductsScreen from '@/components/cart/CartProuctScreen';
+
+// API
+import { fetchCartItems, deleteCartItem } from '@/api/cart';
+
 export default function CartScreen() {
+  const router = useRouter();
+
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCart();
+  }, []);
+
+  const loadCart = async () => {
+    try {
+      setLoading(true);
+      const res = await fetchCartItems();
+      setItems(res.items ?? []);
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to load cart',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (bookingDraftId: number) => {
+    try {
+      // optimistic update
+      setItems((prev) =>
+        prev.filter((i) => i.bookingDraftId !== bookingDraftId)
+      );
+
+      await deleteCartItem(bookingDraftId);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Item removed from cart',
+      });
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to remove item',
+      });
+
+      loadCart(); // rollback
+      throw err;
+    }
+  };
+
+  const hasItems = items.length > 0;
+
   return (
-    <Screen scroll>
-      <ScreenHeader title="Cart" showBack />
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-lg font-medium">Your cart is empty</Text>
+    <Screen>
+      <ScreenHeader title="Cart" rightType="menu" />
+
+      <View className="flex-1">
+        {!loading && !hasItems ? (
+          <NotFound
+            title="Oops! No Booking yet"
+            description="It seems that you’ve got a blank state."
+            ctaLabel="Book Now Event"
+            onPress={() => router.push('/event')} // ✅ Expo navigation
+          />
+        ) : (
+          <CartProductsScreen
+            loading={loading}
+            orders={items}
+            onDelete={handleDelete}
+          />
+        )}
       </View>
     </Screen>
   );

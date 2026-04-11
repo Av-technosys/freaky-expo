@@ -1,7 +1,7 @@
 import { View, FlatList, Dimensions } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Feather } from '@expo/vector-icons';
-import SkeletonContent from 'react-native-skeleton-content';
+// import SkeletonContent from 'react-native-skeleton-content';
 
 import { Text } from '@/components/ui/text';
 import SectionHeader from '../home/SectionHeader';
@@ -59,35 +59,36 @@ export default function ShowCaseList() {
           data={Array.from({ length: 4 })}
           keyExtractor={(_, index) => index.toString()}
           renderItem={() => (
-            <SkeletonContent
-              isLoading
-              containerStyle={{ width: width * 0.75, marginRight: 12 }}
-              layout={[
-                // IMAGE / CARD
-                {
-                  key: 'image',
-                  width: '100%',
-                  height: 180,
-                  borderRadius: 16,
-                },
-                // TITLE
-                {
-                  key: 'title',
-                  marginTop: 10,
-                  width: '70%',
-                  height: 16,
-                  borderRadius: 6,
-                },
-                // SUBTITLE
-                {
-                  key: 'subtitle',
-                  marginTop: 6,
-                  width: '50%',
-                  height: 12,
-                  borderRadius: 6,
-                },
-              ]}
-            />
+            <Text>Loading mate</Text>
+            // <SkeletonContent
+            //   isLoading
+            //   containerStyle={{ width: width * 0.75, marginRight: 12 }}
+            //   layout={[
+            //     // IMAGE / CARD
+            //     {
+            //       key: 'image',
+            //       width: '100%',
+            //       height: 180,
+            //       borderRadius: 16,
+            //     },
+            //     // TITLE
+            //     {
+            //       key: 'title',
+            //       marginTop: 10,
+            //       width: '70%',
+            //       height: 16,
+            //       borderRadius: 6,
+            //     },
+            //     // SUBTITLE
+            //     {
+            //       key: 'subtitle',
+            //       marginTop: 6,
+            //       width: '50%',
+            //       height: 12,
+            //       borderRadius: 6,
+            //     },
+            //   ]}
+            // />
           )}
         />
       ) : !featuredEvents || featuredEvents.length === 0 ? (

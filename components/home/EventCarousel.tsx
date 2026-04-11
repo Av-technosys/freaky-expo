@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Text } from '@/components/ui/text';
 import { getEvents } from '@/api/event'; // 👈 your API
+import { getImageUrl } from '@/utils/image';
 
 export default function EventCarousel() {
   const [events, setEvents] = useState<any[]>([]);
@@ -63,7 +64,7 @@ export default function EventCarousel() {
 
               {/* IMAGE */}
               <Image
-                source={{ uri: imageUrl }}
+                source={{ uri: getImageUrl(item.mediaURL) }}
                 className="w-44 h-36 rounded-3xl"
                 resizeMode="cover"
               />
@@ -82,9 +83,9 @@ export default function EventCarousel() {
                   <Text className="text-xs text-muted-foreground">
                     Starting
                   </Text>
-                  <Text className="text-sm font-semibold text-orange-600">
+                  {/* <Text className="text-sm font-semibold text-orange-600">
                     ₹{price}
-                  </Text>
+                  </Text> */}
                 </View>
               ) : null}
 
