@@ -15,23 +15,32 @@ export default function Screen({
   children: React.ReactNode;
   scroll?: boolean;
 }) {
-  const Container = scroll ? ScrollView : View;
-
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <Container
-            style={{ flex: 1, padding: 0 }}
+        {scroll ? (
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{
+              padding: 10,
+              paddingBottom: 20,
+              flexGrow: 1, // ✅ THIS fixes scroll + layout balance
+            }}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={scroll ? { flexGrow: 1 } : undefined}
+            showsVerticalScrollIndicator={false}
           >
             {children}
-          </Container>
-        </TouchableWithoutFeedback>
+          </ScrollView>
+        ) : (
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1, padding: 10 }}>
+              {children}
+            </View>
+          </TouchableWithoutFeedback>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

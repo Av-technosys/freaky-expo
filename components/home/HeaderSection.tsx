@@ -68,7 +68,7 @@ export default function HeaderSection({ bottomSheetRef }: any) {
   }
 
   return (
-    <View className="px-4 mt-4">
+    <View>
 
       {/* TOP ROW */}
       <View className="flex-row justify-between items-center">

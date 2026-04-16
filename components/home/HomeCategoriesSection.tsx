@@ -94,7 +94,7 @@ export default function HomeCategoriesSection() {
   }
 
   return (
-    <View className="mt-4 px-4">
+    <View className="mt-5">
       <FlatList
         data={events}
         numColumns={4}

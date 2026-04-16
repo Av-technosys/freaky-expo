@@ -48,7 +48,7 @@ export default function CategoriesScreen() {
   }, []);
 
   return (
-    <Screen>
+    <Screen scroll>
       <ScreenHeader title="Categories" rightType="notification" />
 
       {/* 🔄 LOADING */}

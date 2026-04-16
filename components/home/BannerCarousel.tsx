@@ -65,7 +65,7 @@ export default function BannerCarousel({
 
   // 🔥 5. RENDER
   return (
-    <View className="mt-5">
+  <View style={{ marginHorizontal: -10, marginTop: 20 }}>
       <Carousel fullWidth images={images} />
     </View>
   );

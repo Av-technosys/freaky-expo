@@ -18,51 +18,55 @@ import { fetchCartItems, deleteCartItem } from '@/api/cart';
 export default function CartScreen() {
   const router = useRouter();
 
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
+  const [loading, setLoading] = useState(true);
+const [cart, setCart] = useState<any>(null);
+const [items, setItems] = useState<any[]>([]);
   useEffect(() => {
     loadCart();
   }, []);
 
-  const loadCart = async () => {
-    try {
-      setLoading(true);
-      const res = await fetchCartItems();
-      setItems(res.items ?? []);
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load cart',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+ const loadCart = async () => {
+  try {
+    setLoading(true);
 
-  const handleDelete = async (bookingDraftId: number) => {
-    try {
-      // optimistic update
-      setItems((prev) =>
-        prev.filter((i) => i.bookingDraftId !== bookingDraftId)
-      );
+    const res = await fetchCartItems();
 
-      await deleteCartItem(bookingDraftId);
+    console.log("cart", res);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Item removed from cart',
-      });
-    } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to remove item',
-      });
+    setCart(res); // ✅ keep full cart object
+    setItems(res?.items ?? []); // ✅ safe fallback
+  } catch (err) {
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to load cart',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
-      loadCart(); // rollback
-      throw err;
-    }
-  };
+const handleDelete = async (bookingDraftId: number) => {
+  try {
+    setItems((prev) =>
+      prev.filter((i) => i.bookingDraftId !== bookingDraftId)
+    );
+
+    await deleteCartItem(bookingDraftId);
+
+    Toast.show({
+      type: 'success',
+      text1: 'Item removed from cart',
+    });
+  } catch (err) {
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to remove item',
+    });
+
+    loadCart();
+  }
+};
 
   const hasItems = items.length > 0;
 

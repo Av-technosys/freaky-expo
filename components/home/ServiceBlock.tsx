@@ -52,7 +52,6 @@ export default function ServicesBlock() {
       setLoading(true);
 
       const res = await getAllFeaturedProducts();
-
       if (res?.data && Array.isArray(res.data)) {
         setSections(res.data);
       } else {

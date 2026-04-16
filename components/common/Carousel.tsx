@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Image, Dimensions } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
+import { AspectRatio } from '../ui/aspect-ratio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -28,9 +29,7 @@ export default function BannerCarousel({
     return null;
   }
 
-  const ITEM_WIDTH = fullWidth
-    ? SCREEN_WIDTH
-    : SCREEN_WIDTH - itemSpacing * 2;
+  const ITEM_WIDTH = fullWidth ? SCREEN_WIDTH : SCREEN_WIDTH - itemSpacing * 2;
 
   return (
     <View
@@ -38,8 +37,7 @@ export default function BannerCarousel({
       style={{
         width: SCREEN_WIDTH,
         height,
-      }}
-    >
+      }}>
       <Carousel
         width={ITEM_WIDTH}
         height={height}
@@ -56,17 +54,16 @@ export default function BannerCarousel({
             style={{
               width: SCREEN_WIDTH,
               alignItems: 'center',
-            }}
-          >
-            <Image
-              source={item}
+            }}>
+            <AspectRatio
+              ratio={16 / 9}
               style={{
                 width: ITEM_WIDTH,
-                height,
                 borderRadius: fullWidth ? 0 : borderRadius,
-              }}
-              resizeMode="cover"
-            />
+                overflow: 'hidden',
+              }}>
+              <Image source={item} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            </AspectRatio>
           </View>
         )}
       />
@@ -79,8 +76,7 @@ export default function BannerCarousel({
             bottom: 12,
             width: '100%',
             alignItems: 'center',
-          }}
-        >
+          }}>
           <View style={{ flexDirection: 'row' }}>
             {images.map((_, index) => (
               <View
@@ -90,8 +86,7 @@ export default function BannerCarousel({
                   width: 8,
                   height: 8,
                   borderRadius: 4,
-                  backgroundColor:
-                    activeIndex === index ? '#F97316' : '#D1D5DB',
+                  backgroundColor: activeIndex === index ? '#F97316' : '#D1D5DB',
                 }}
               />
             ))}

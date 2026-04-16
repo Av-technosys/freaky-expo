@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Text } from '@/components/ui/text';
 import { getEvents } from '@/api/event'; // 👈 your API
 import { getImageUrl } from '@/utils/image';
+import { AspectRatio } from '../ui/aspect-ratio';
 
 export default function EventCarousel() {
   const [events, setEvents] = useState<any[]>([]);
@@ -44,7 +45,7 @@ export default function EventCarousel() {
   }
 
   return (
-    <View className="mt-4 ml-2">
+    <View className="ml-2 mt-4">
       <FlatList
         horizontal
         data={events}
@@ -61,34 +62,32 @@ export default function EventCarousel() {
 
           return (
             <View className="mr-4 w-44">
-
               {/* IMAGE */}
-              <Image
-                source={{ uri: getImageUrl(item.mediaURL) }}
-                className="w-44 h-36 rounded-3xl"
-                resizeMode="cover"
-              />
+              <AspectRatio
+                ratio={44 / 36} // or 5/4 for cleaner
+                className="w-44 overflow-hidden rounded-3xl">
+                <Image
+                  source={{ uri: getImageUrl(item.mediaURL) }}
+                  className="h-full w-full"
+                  resizeMode="cover"
+                />
+              </AspectRatio>
 
               {/* NAME + ICON */}
-              <View className="mt-2 flex-row gap-2 items-center justify-center">
+              <View className="mt-2 flex-row items-center justify-center gap-2">
                 <Feather name={icon as any} size={16} color="#444" />
-                <Text className="text-sm capitalize">
-                  {name}
-                </Text>
+                <Text className="text-sm capitalize">{name}</Text>
               </View>
 
               {/* PRICE */}
               {price ? (
-                <View className="mt-1 flex-row gap-1 items-center justify-center">
-                  <Text className="text-xs text-muted-foreground">
-                    Starting
-                  </Text>
+                <View className="mt-1 flex-row items-center justify-center gap-1">
+                  <Text className="text-xs text-muted-foreground">Starting</Text>
                   {/* <Text className="text-sm font-semibold text-orange-600">
                     ₹{price}
                   </Text> */}
                 </View>
               ) : null}
-
             </View>
           );
         }}

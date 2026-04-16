@@ -9,6 +9,7 @@ import type { RootState } from '@/store';
 export default function IntroScreen() {
   console.log('IntroScreen rendered');
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
+  
   const isConnected = useNetworkStatus();
   return (
     <View style={styles.container}>

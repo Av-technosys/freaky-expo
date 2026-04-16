@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
 import { getImageUrl } from '@/utils/image';
+import { AspectRatio } from '../ui/aspect-ratio';
 
 export default function ServiceCard({ item }: any) {
   const router = useRouter();
@@ -29,38 +30,34 @@ export default function ServiceCard({ item }: any) {
 
   return (
     <Pressable
-      // onPress={() =>
-      //   router.push({
-      //     // pathname: '/productDetails',
-      //     params: {
-      //       productId: item?.productId,
-      //     },
-      //   })
-      // }
-      className="mr-3"
-    >
-      <Card className="w-[22rem] overflow-hidden rounded-2xl">
-
+      onPress={() =>
+        router.push({
+           pathname: '/ProductDetails',
+          params: {
+            productId: item?.productId,
+          },
+        })
+      }
+      className="mr-3">
+      <Card className="w-72 -py-6 overflow-hidden rounded-2xl">
         {/* IMAGE */}
-        <Image
-          source={{ uri: getImageUrl(imageUrl) }}
-          className="w-full h-44"
-          resizeMode="cover"
-        />
+        <AspectRatio ratio={4 / 3}>
+          <Image
+            source={{ uri: getImageUrl(imageUrl) }}
+            className="h-full w-full"
+            resizeMode="cover"
+          />
+        </AspectRatio>
 
-        <CardContent className="px-4 py-3">
-
+        <CardContent className="px-4 py-2">
           {/* TITLE */}
-          <Text
-            numberOfLines={2}
-            className="text-base font-semibold"
-          >
+          <Text numberOfLines={2} className="text-base font-semibold">
             {title}
           </Text>
 
           {/* RATING */}
           {rating > 0 && (
-            <View className="flex-row items-center mt-2">
+            <View className="mt-2 flex-row items-center">
               {Array.from({ length: rating }).map((_, i) => (
                 <Feather key={i} name="star" size={14} color="#facc15" />
               ))}
@@ -69,11 +66,8 @@ export default function ServiceCard({ item }: any) {
 
           {/* PRICE */}
           {price !== null && price !== undefined && (
-            <Text className="mt-3 text-lg font-bold">
-              ₹{price}
-            </Text>
+            <Text className="mt-3 text-lg font-bold">₹{price}</Text>
           )}
-
         </CardContent>
       </Card>
     </Pressable>

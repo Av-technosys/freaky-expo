@@ -86,49 +86,63 @@ export function VerifyEmailForm() {
     }
   };
 
-  const handleConfirm = async () => {
-    const code = otp.join('');
+const handleConfirm = async () => {
+  const code = otp.join('');
 
-    if (code.length !== OTP_LENGTH) {
-      Toast.show({ type: 'error', text1: 'Enter full OTP' });
-      return;
-    }
+  if (code.length !== OTP_LENGTH) {
+    Toast.show({ type: 'error', text1: 'Enter full OTP' });
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-       const data = await confirmOtp({ email: username, code });
+    // ✅ SIGNUP FLOW (your backend OTP verification)
+    if (flow === 'signup') {
+      const data = await confirmOtp({
+        email: username,
+        code,
+      });
 
       Toast.show({ type: 'success', text1: 'OTP verified 🎉' });
 
-      if (flow === 'signup') {
-        const { accessToken, refreshToken } = data;
+      const { accessToken, refreshToken } = data;
 
-        await AsyncStorage.multiSet([
-          ['accessToken', accessToken],
-          ['refreshToken', refreshToken],
-        ]);
+      await AsyncStorage.multiSet([
+        ['accessToken', accessToken],
+        ['refreshToken', refreshToken],
+      ]);
 
-        const user = decodeIdToken(accessToken);
-        dispatch(loginSuccess(user));
+      const user = decodeIdToken(accessToken);
+      dispatch(loginSuccess(user));
 
-        router.replace('/home');
-        return;
-      }
-
-      if (flow === 'forgotPassword') {
-        router.push({
-          pathname: '/resetPassword',
-          params: { username, code },
-        });
-      }
-    } catch {
-      Toast.show({ type: 'error', text1: 'OTP failed' });
-    } finally {
-      setLoading(false);
+      router.replace('/home');
+      return;
     }
-  };
 
+    // ✅ FORGOT PASSWORD FLOW (NO API CALL HERE)
+    if (flow === 'forgotPassword') {
+      Toast.show({ type: 'success', text1: 'OTP accepted 🎉' });
+
+      router.push({
+        pathname: '/resetPassword',
+        params: {
+          username,
+          code, // just pass OTP forward
+        },
+      });
+
+      return;
+    }
+  } catch (err: any) {
+    Toast.show({
+      type: 'error',
+      text1: err?.message || 'OTP failed',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <View className="mt-12 gap-6">
 

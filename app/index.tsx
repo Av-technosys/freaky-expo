@@ -1,35 +1,51 @@
-import { Redirect } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, StatusBar } from 'react-native';
+import LottieView from 'lottie-react-native';
+import { router } from 'expo-router';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect } from 'react';
 
-
-export default function Index() {
+export default function IntroScreen() {
   const isConnected = useNetworkStatus();
-  useEffect(() => {
-    const checkStorage = async () => {
-      try {
-        const keys = await AsyncStorage.getAllKeys();
-        console.log("ALL KEYS 👉", keys);
 
-        const items = await AsyncStorage.multiGet(keys);
-        console.log("ALL DATA 👉", items);
-      } catch (e) {
-        console.log("Storage error", e);
-      }
-    };
+  const checkAuth = async () => {
+    const accessToken = await AsyncStorage.getItem('accessToken');
+    const idToken = await AsyncStorage.getItem('idToken');
 
-    checkStorage();
-  }, []);
-  if (isConnected === null) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator />
-      </View>
-    );
-  }
+    if (!isConnected) {
+      router.replace('/no-internet');
+      return;
+    }
 
-  // ✅ ALWAYS show intro first
-  return <Redirect href="/intro" />;
+    if (!accessToken || !idToken) {
+      router.replace('/authIntro');
+      return;
+    }
+
+    router.replace('/home');
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar hidden translucent />
+
+      <LottieView
+        source={require('@/assets/intro.json')}
+        autoPlay
+        loop={false}
+        resizeMode="cover"
+        onAnimationFinish={() => {
+          checkAuth();
+        }}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});

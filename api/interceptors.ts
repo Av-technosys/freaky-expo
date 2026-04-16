@@ -32,7 +32,7 @@ privateApi.interceptors.request.use(async config => {
 
   console.log("🔑 TOKEN ATTACHED:", !!cachedToken);
   const token = await tokenStorage.getIdToken();
-console.log("token storage", token)
+//console.log("token storage", token)
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
