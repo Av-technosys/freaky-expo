@@ -37,7 +37,7 @@ export default function HowItWorksCard({ steps }: Props) {
   if (!data || data.length === 0) return null;
 
   return (
-    <View className="mb-16">
+    <View className="mb-16 -mx-2">
 
       {/* HEADER */}
       <SectionHeader

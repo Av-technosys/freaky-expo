@@ -32,3 +32,8 @@ export const addCartItem = async (payload: AddCartItemPayload) => {
   const res = await privateApi.post('user/cart/item', payload);
   return res.data;
 };
+
+export const fetchBookingDetailsById = async (BookingDraftId : number) => {
+  const res = await privateApi.get(`user/cart/${BookingDraftId}`)
+  return res.data
+}

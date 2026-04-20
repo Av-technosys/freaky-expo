@@ -1,217 +1,294 @@
-// import React, { useState } from 'react';
-// import {
-//   View,
-//   Text,
-//   Pressable,
-//   Modal,
-//   KeyboardAvoidingView,
-//   Platform,
-// } from 'react-native';
-// import { Calendar } from 'react-native-calendars';
-// import { TimePickerModal } from 'react-native-paper-dates';
-// import dayjs from 'dayjs';
-// import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, KeyboardAvoidingView, Platform } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import dayjs from 'dayjs';
 
-// // Redux
-// import { useAppDispatch } from '@/store/hooks';
-// import { addToCart } from '@/store/slices/cartSlice';
+// React Native Reusables components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import type { Option } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Text } from '@/components/ui/text';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Card, CardContent } from '@/components/ui/card';
+import { AppButton } from '@/components/common/AppButton';
+import Toast from 'react-native-toast-message';
 
-// // API
-// import { addCartItem } from '@/api/cart';
+// Redux
+import { useAppDispatch } from '@/store/hooks';
+import { addToCart } from '@/store/slices/cartSlice';
 
-// // UI
-// import FloatingInput from '@/components/common/FloatingInput';
-// import Button from '@/components/common/Button';
-// import { showAndroidToast } from '@/components/toast/androidToast';
+// API
+import { addCartItem } from '@/api/cart';
+import { Textarea } from '@/components/ui/textarea';
 
-// type Props = {
-//   product: {
-//     productId: number;
-//     title: string;
-//     vendorName?: string;
-//     price: number;
-//   };
-// };
+type Props = {
+  product: {
+    ProductId: string; // keep consistent
+    title: string;
+    vendorName: string;
+    price: number;
+  };
+  onSuccess?: () => void;
+};
 
-// export default function AddToCartForm({ product }: Props) {
-//   const dispatch = useAppDispatch();
-//   const navigation = useNavigation();
+const GUEST_OPTIONS = [
+  { label: '0-100 guests', value: '0-100' },
+  { label: '101-200 guests', value: '101-200' },
+  { label: '201-350 guests', value: '201-350' },
+  { label: '351-500 guests', value: '351-500' },
+] as const satisfies Option[];
 
-//   const keyboardOffset = Platform.OS === 'ios' ? 40 : 20;
+export default function AddToCartForm({ product, onSuccess }: Props) {
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation();
 
-//   // FORM STATE
-//   const [fullName, setFullName] = useState('');
-//   const [phone, setPhone] = useState('');
-//   const [address, setAddress] = useState('');
+  // FORM STATE
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [guests, setGuests] = useState<Option | undefined>();
+  const [date, setDate] = useState<Date>();
+  const [time, setTime] = useState<Date>();
+const [vendorNote, setVendorNote] = useState('');
+  // UI STATE
+  const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const guestValue = guests?.value; // 👈 extract string
+  const isValid =
+    fullName.trim().length > 0 &&
+    phone.length >= 10 &&
+    address.trim().length > 0 &&
+    !!date &&
+    !!time &&
+    !!guests;
 
-//   const [guests, setGuests] = useState<string | null>(null);
-//   const [date, setDate] = useState<Date | null>(null);
-//   const [time, setTime] = useState<Date | null>(null);
+  const handleSubmit = async () => {
+    if (!date || !time || !guests) return;
 
-//   // UI STATE
-//   const [loading, setLoading] = useState(false);
-//   const [showGuestPicker, setShowGuestPicker] = useState(false);
-//   const [showDatePicker, setShowDatePicker] = useState(false);
-//   const [showTimePicker, setShowTimePicker] = useState(false);
+    try {
+      setLoading(true);
 
-//   const isValid =
-//     fullName && phone.length >= 10 && address && date && time && guests;
+      const eventDate = new Date(date);
+      eventDate.setHours(time.getHours(), time.getMinutes());
 
-//   const parseGuests = (value: string | null) => {
-//     if (!value) return { min: 0, max: 0 };
-//     const [min, max] = value.split('–').map(Number);
-//     return { min, max };
-//   };
+      const [minGuestCount, maxGuestCount] = guestValue?.split('-').map(Number) ?? [0, 0];
 
-//   const handleSubmit = async () => {
-//     if (!date || !time || !guests) return;
+      const payload = {
+        productId: Number(product.ProductId), // ✅ FIXED
+        quantity: 1,
+        name: fullName.trim(),
+        contactNumber: phone.trim(),
+        date: eventDate.toISOString(),
+        minGuestCount,
+        maxGuestCount,
+        latitude: 0,
+        longitude: 0,
+        vendorNote: vendorNote.trim(),
+      };
 
-//     try {
-//       setLoading(true);
+      await addCartItem(payload);
 
-//       const eventDate = new Date(date);
-//       eventDate.setHours(time.getHours(), time.getMinutes());
+      // ✅ FIXED REDUX PAYLOAD
+      dispatch(
+        addToCart({
+          ProductId: product.ProductId ?? '', // must exist
+          title: product.title ?? '',
+          vendorName: product.vendorName ?? '',
+          price: product.price ?? 0,
+          quantity: 1,
+          bookingDetails: {
+            fullName: fullName.trim(),
+            phone: phone.trim(),
+            address: address.trim(),
+            date: eventDate.toISOString(),
+            time: dayjs(time).format('hh:mm A'),
+            guests: guestValue ?? null,
+            vendorNote: vendorNote.trim(),
+          },
+        })
+      );
 
-//       const { min, max } = parseGuests(guests);
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: 'Added to cart successfully!',
+      });
 
-//       // API PAYLOAD
-//       const payload = {
-//         productId: product.productId,
-//         quantity: 1,
-//         name: fullName.trim(),
-//         contactNumber: phone.trim(),
-//         date: eventDate.toISOString(),
-//         minGuestCount: min,
-//         maxGuestCount: max,
-//         latitude: 0,
-//         longitude: 0,
-//       };
+      onSuccess?.();
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add to cart.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-//       await addCartItem(payload);
+  return (
+     <>
+      <View className="gap-4 p-4">
+        <View className="mb-2">
+          <Text className="text-2xl font-bold">Booking Details</Text>
+          <Text className="mt-1 text-sm text-muted-foreground">
+            Complete the form below to book {product.title}
+          </Text>
+        </View>
 
-//       // Redux
-//       dispatch(
-//         addToCart({
-//           productId: product.productId,
-//           title: product.title,
-//           vendorName: product.vendorName,
-//           price: product.price,
-//           quantity: 1,
-//         })
-//       );
+        {/* Full Name */}
+        <View className="gap-2">
+          <Label nativeID="fullName">Full Name</Label>
+          <Input
+            id="fullName"
+            placeholder="Enter your full name"
+            value={fullName}
+            onChangeText={setFullName}
+            className="native:px-4"
+          />
+        </View>
 
-//       showAndroidToast('Added to cart');
+        {/* Phone */}
+        <View className="gap-2">
+          <Label nativeID="phone">Phone Number</Label>
+          <Input
+            id="phone"
+            placeholder="Enter your phone number"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+            className="native:px-4"
+          />
+          {phone.length > 0 && phone.length < 10 && (
+            <Text className="text-sm text-destructive">
+              Phone number must be at least 10 digits
+            </Text>
+          )}
+        </View>
 
-//       setLoading(false);
+        {/* Address */}
+        <View className="gap-2">
+          <Label nativeID="address">Address</Label>
+          <Input
+            id="address"
+            placeholder="Enter your address"
+            value={address}
+            onChangeText={setAddress}
+            className="native:px-4"
+            multiline
+            numberOfLines={2}
+          />
+        </View>
 
-//       // go to cart (clean navigation)
-//       navigation.navigate('Cart' as never);
-//     } catch (err) {
-//       setLoading(false);
-//       showAndroidToast('Failed to add to cart');
-//     }
-//   };
+        {/* Date Picker */}
+        <View className="gap-2">
+          <Label>Select Date</Label>
+          <Button
+            variant="outline"
+            className="justify-start"
+            onPress={() => setShowDatePicker(true)}>
+            <Text>{date ? dayjs(date).format('DD MMM YYYY') : 'Pick a date'}</Text>
+          </Button>
+          {showDatePicker && (
+            <DateTimePicker
+              value={date || new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+                if (selectedDate) {
+                  setDate(selectedDate);
+                }
+              }}
+              minimumDate={new Date()}
+            />
+          )}
+        </View>
 
-//   return (
-//     <KeyboardAvoidingView
-//       behavior="position"
-//       keyboardVerticalOffset={keyboardOffset}
-//     >
-//       <View>
-//         <Text className="text-2xl font-bold mb-6">
-//           Booking Details
-//         </Text>
+        {/* Time Picker */}
+        <View className="gap-2">
+          <Label>Select Time</Label>
+          <Button
+            variant="outline"
+            className="justify-start"
+            onPress={() => setShowTimePicker(true)}>
+            <Text>{time ? dayjs(time).format('hh:mm A') : 'Pick a time'}</Text>
+          </Button>
+          {showTimePicker && (
+            <DateTimePicker
+              value={time || new Date()}
+              mode="time"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedTime) => {
+                setShowTimePicker(false);
+                if (selectedTime) {
+                  setTime(selectedTime);
+                }
+              }}
+            />
+          )}
+        </View>
 
-//         {/* INPUTS */}
-//         <FloatingInput label="Full Name" value={fullName} onChangeText={setFullName} />
-//         <FloatingInput label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-//         <FloatingInput label="Address" value={address} onChangeText={setAddress} />
+        {/* Guests Select */}
+        <View className="gap-2">
+          <Label nativeID="guests">Number of Guests</Label>
+          <Select value={guests} onValueChange={(val) => setGuests(val)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select guest range" />
+            </SelectTrigger>
 
-//         {/* DATE */}
-//         <Pressable onPress={() => setShowDatePicker(true)}>
-//           <FloatingInput
-//             label="Date"
-//             value={date ? dayjs(date).format('DD MMM YYYY') : ''}
-//             editable={false}
-//           />
-//         </Pressable>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Guest Count</SelectLabel>
 
-//         {/* TIME */}
-//         <Pressable onPress={() => setShowTimePicker(true)}>
-//           <FloatingInput
-//             label="Time"
-//             value={time ? dayjs(time).format('hh:mm A') : ''}
-//             editable={false}
-//           />
-//         </Pressable>
+                {GUEST_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} label={option.label} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </View>
+{/* Vendor Note */}
+<View className="gap-2">
+  <Label nativeID="vendorNote">Vendor Note</Label>
+  <Textarea
+    id="vendorNote"
+    placeholder="Hey, please write happy birthday Shampy."
+    value={vendorNote}
+    onChangeText={setVendorNote}
+  />
+</View>
+        {/* Price Summary Card */}
+        <Card className="mt-2">
+          <CardContent className="p-4">
+            <View className="flex-row justify-between">
+              <Text className="font-semibold">Total Price:</Text>
+              <Text className="text-lg font-bold text-primary">${product.price}</Text>
+            </View>
+          </CardContent>
+        </Card>
 
-//         {/* GUESTS */}
-//         <Pressable onPress={() => setShowGuestPicker(true)}>
-//           <FloatingInput
-//             label="Guests"
-//             value={guests ?? ''}
-//             editable={false}
-//           />
-//         </Pressable>
-
-//         {/* BUTTON */}
-//         <Button
-//           label={loading ? 'Adding...' : 'Add to Cart'}
-//           disabled={!isValid || loading}
-//           onPress={handleSubmit}
-//         />
-//       </View>
-
-//       {/* TIME PICKER */}
-//       <TimePickerModal
-//         visible={showTimePicker}
-//         onDismiss={() => setShowTimePicker(false)}
-//         onConfirm={({ hours, minutes }) => {
-//           const base = dayjs(date ?? new Date());
-//           setTime(base.hour(hours).minute(minutes).toDate());
-//           setShowTimePicker(false);
-//         }}
-//       />
-
-//       {/* DATE PICKER */}
-//       <Modal visible={showDatePicker} transparent>
-//         <Pressable
-//           className="flex-1 bg-black/40 justify-center"
-//           onPress={() => setShowDatePicker(false)}
-//         >
-//           <View className="bg-white m-4 rounded-2xl">
-//             <Calendar
-//               minDate={dayjs().format('YYYY-MM-DD')}
-//               onDayPress={(day) => {
-//                 setDate(dayjs(day.dateString).toDate());
-//                 setShowDatePicker(false);
-//               }}
-//             />
-//           </View>
-//         </Pressable>
-//       </Modal>
-
-//       {/* GUESTS */}
-//       <Modal visible={showGuestPicker} transparent>
-//         <Pressable
-//           className="flex-1 bg-black/40 justify-end"
-//           onPress={() => setShowGuestPicker(false)}
-//         >
-//           <View className="bg-white p-4 rounded-t-2xl">
-//             {['0–100', '101–200', '201–350', '351–500'].map((g) => (
-//               <Pressable
-//                 key={g}
-//                 onPress={() => {
-//                   setGuests(g);
-//                   setShowGuestPicker(false);
-//                 }}
-//               >
-//                 <Text className="p-3">{g}</Text>
-//               </Pressable>
-//             ))}
-//           </View>
-//         </Pressable>
-//       </Modal>
-//     </KeyboardAvoidingView>
-//   );
-// }
+        {/* Action Buttons */}
+        <View className="mt-4 flex-row gap-3">
+        
+          <AppButton className="flex-1" onPress={handleSubmit} disabled={!isValid || loading}>
+            {loading ? 'Adding...' : 'Add to Cart'}
+          </AppButton>
+        </View>
+      </View>
+</>
+  );
+}

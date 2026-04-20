@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { userDetails, fetchCurrentAddress } from '@/api/user';
 import Toast from 'react-native-toast-message';
 import HeaderSkeleton from '@/app/skeleton/home/Header';
+import { router } from 'expo-router';
 
 export default function HeaderSection({ bottomSheetRef }: any) {
   const navigation = useNavigation<any>();
@@ -23,10 +24,10 @@ export default function HeaderSection({ bottomSheetRef }: any) {
       setLoading(true);
 
       const res = await userDetails();
-         console.log("res", res)
+      console.log('res', res);
       if (res?.data) {
         setUserData(res.data);
-        console.log(res?.data)
+        console.log(res?.data);
 
         const addressId = res.data.currentAddressId;
 
@@ -48,7 +49,7 @@ export default function HeaderSection({ bottomSheetRef }: any) {
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Failed to load user details.'
+        text1: 'Failed to load user details.',
       });
       setUserData(null);
       setCurrentAddress(null);
@@ -62,46 +63,37 @@ export default function HeaderSection({ bottomSheetRef }: any) {
   }, []);
 
   if (loading) {
-    return (
-      <HeaderSkeleton/>
-    );
+    return <HeaderSkeleton />;
   }
 
   return (
     <View>
-
       {/* TOP ROW */}
-      <View className="flex-row justify-between items-center">
-
+      <View className="flex-row items-center justify-between">
         <View className="gap-1">
           <Text className="text-xl font-semibold">
             Hi, {userData?.firstName ? userData.firstName : 'Guest'} 👋
           </Text>
 
-          <Text className="text-2xl font-semibold">
-            Welcome back
-          </Text>
+          <Text className="text-2xl font-semibold">Welcome back</Text>
         </View>
 
         <View className="flex-row gap-3">
-
           {/* Search */}
-          <Pressable className="w-12 h-12 rounded-full bg-white items-center justify-center shadow">
+          <Pressable className="h-12 w-12 items-center justify-center rounded-full bg-white shadow">
             <Search size={20} color="#5e5e5e" />
           </Pressable>
 
           {/* Bell */}
           <Pressable
             onPress={() =>
-              navigation.getParent()?.navigate('FlowStack', {
-                screen: 'NotificationsScreen',
+              router.push({
+                pathname: '/NotificationsScreen',
               })
             }
-            className="w-12 h-12 rounded-full bg-white items-center justify-center shadow"
-          >
+            className="h-12 w-12 items-center justify-center rounded-full bg-white shadow">
             <Bell size={20} color="#5e5e5e" />
           </Pressable>
-
         </View>
       </View>
 
@@ -114,14 +106,12 @@ export default function HeaderSection({ bottomSheetRef }: any) {
           borderRadius: 40,
           padding: 2,
           marginTop: 16,
-        }}
-      >
+        }}>
         <Pressable
           onPress={() => bottomSheetRef.current?.expand()}
-          className="bg-white rounded-full flex-row items-center justify-between px-4 py-3"
-        >
+          className="flex-row items-center justify-between rounded-full bg-white px-4 py-3">
           {/* LEFT */}
-          <View className="flex-row items-center flex-1">
+          <View className="flex-1 flex-row items-center">
             <MapPin size={16} color="#999" />
 
             <Text className="ml-2 text-sm" numberOfLines={1}>
@@ -135,7 +125,6 @@ export default function HeaderSection({ bottomSheetRef }: any) {
           <ChevronDown size={18} color="#F97316" />
         </Pressable>
       </LinearGradient>
-
     </View>
   );
 }

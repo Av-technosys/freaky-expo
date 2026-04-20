@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Dimensions } from 'react-native';
 import   Carousel   from '@/components/common/Carousel';
+import BannerSkeleton from '@/app/skeleton/home/Banner';
 // import SkeletonContent from 'react-native-skeleton-content';
 
 
@@ -28,23 +29,11 @@ export default function BannerCarousel({
 }: Props) {
 
   // 🔥 1. LOADING STATE
-  // if (loading) {
-  //   return (
-  //     <View className="mt-5 px-4">
-  //       <SkeletonContent
-  //         isLoading={true}
-  //         layout={[
-  //           {
-  //             key: 'banner',
-  //             width: width - 32,
-  //             height: BANNER_HEIGHT,
-  //             borderRadius: 16,
-  //           }
-  //         ]}
-  //       />
-  //     </View>
-  //   );
-  // }
+  if (loading) {
+    return (
+      <BannerSkeleton/>
+    );
+  }
 
   // 🔥 2. NO DATA CASE (API returned empty or failed)
   if (!banners || banners.length === 0) {

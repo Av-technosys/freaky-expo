@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Text } from '@/components/ui/text';
-import { getImageUrl } from '@/utils/image';
+import { getMediaUrl } from '@/utils/image';
 import { AspectRatio } from '../ui/aspect-ratio';
 
 export default function ServiceCard({ item }: any) {
@@ -28,22 +28,24 @@ export default function ServiceCard({ item }: any) {
   // ❌ don't render broken cards
   if (!imageUrl) return null;
 
+  const uri = getMediaUrl(imageUrl);
+
   return (
     <Pressable
       onPress={() =>
         router.push({
-           pathname: '/ProductDetails',
+          pathname: '/ProductDetails',
           params: {
             productId: item?.productId,
           },
         })
       }
       className="mr-3">
-      <Card className="w-72 -py-6 overflow-hidden rounded-2xl">
+      <Card className="-py-6 w-72 overflow-hidden rounded-2xl">
         {/* IMAGE */}
         <AspectRatio ratio={4 / 3}>
           <Image
-            source={{ uri: getImageUrl(imageUrl) }}
+            source={uri ? { uri } : require('@/assets/images/image_not_found.jpg')}
             className="h-full w-full"
             resizeMode="cover"
           />

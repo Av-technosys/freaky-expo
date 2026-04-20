@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { getEventTypes } from '@/api/event';
+import CategoriesSkeleton from '@/app/skeleton/home/Categories';
 
 const { width } = Dimensions.get('window');
 const ITEM_WIDTH = (width - 32) / 4;
@@ -41,46 +42,11 @@ export default function HomeCategoriesSection() {
   };
 
   // ✅ LOADING
-// if (loading) {
-//   return (
-//     <View className="mt-6 px-4">
-//       <SkeletonContent
-//         isLoading
-//         containerStyle={{
-//           flexDirection: 'row',
-//           flexWrap: 'wrap',
-//           justifyContent: 'space-between',
-//         }}
-//         layout={Array.from({ length: 8 }).map((_, i) => ({
-//           key: `item-${i}`,
-//           width: ITEM_WIDTH,
-//           alignItems: 'center',
-//           marginBottom: 24,
-//           children: [
-//             // Circle / image
-//             {
-//               key: `circle-${i}`,
-//               width: ITEM_WIDTH - 16,
-//               height: ITEM_WIDTH - 16,
-//               borderRadius: 24,
-//               alignSelf: 'center',
-//             },
-
-//             // Text
-//             {
-//               key: `text-${i}`,
-//               marginTop: 10,
-//               width: (ITEM_WIDTH - 16) * 0.7,
-//               height: 12,
-//               borderRadius: 6,
-//               alignSelf: 'center',
-//             },
-//           ],
-//         }))}
-//       />
-//     </View>
-//   );
-// }
+if (loading) {
+  return (
+    <CategoriesSkeleton/>
+  );
+}
 
   // ✅ NO DATA
   if (!events || events.length === 0) {
@@ -94,7 +60,7 @@ export default function HomeCategoriesSection() {
   }
 
   return (
-    <View className="mt-5">
+    <View className="mt-5 -mx-2">
       <FlatList
         data={events}
         numColumns={4}

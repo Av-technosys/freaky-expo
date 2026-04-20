@@ -1,9 +1,13 @@
 const BASE_URL = process.env.EXPO_PUBLIC_AWS_IMAGE_URL || '';
 
-export const getImageUrl = (path?: string | null): string | undefined => {
-  if (!path) return undefined;
+export const getMediaUrl = (path?: string | null): string | null => {
+  if (!path) return null;
 
-  if (path.startsWith('http')) return path;
+  const cleanPath = path.trim();
 
-  return `${BASE_URL}/${path}`;
+  if (!cleanPath) return null;
+
+  if (cleanPath.startsWith('http')) return cleanPath;
+
+  return `${BASE_URL}/${cleanPath}`;
 };

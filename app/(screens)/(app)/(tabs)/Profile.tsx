@@ -64,7 +64,7 @@ export default function ProfileScreen() {
       items: [
         { icon: 'star', title: 'Your Reviews', route: '/reviews' },
         { icon: 'list', title: 'Orders', route: '/OrdersScreen' },
-        { icon: 'bookmark', title: 'Manage Booking', route: '/bookings' },
+        { icon: 'bookmark', title: 'Manage Booking', route: '/ManageBookings' },
       ],
     },
     {

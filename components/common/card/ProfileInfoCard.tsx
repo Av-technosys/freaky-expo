@@ -2,7 +2,7 @@ import { View, Image, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Feather } from '@expo/vector-icons';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { getImageUrl } from '@/utils/image';
+import { getMediaUrl } from '@/utils/image';
 
 type Props = {
   name?: string;
@@ -21,7 +21,7 @@ export function ProfileInfoCard({ name, phone, email, profileImage, onEdit }: Pr
           <Image
             source={
               profileImage
-                ? { uri: getImageUrl(profileImage) }
+                ? { uri: getMediaUrl(profileImage) }
                 : require('@/assets/images/default-avtar.jpg')
             }
             className="h-full w-full rounded-full"

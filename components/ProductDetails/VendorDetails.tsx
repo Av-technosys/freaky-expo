@@ -20,7 +20,7 @@ export default function VendorDetailsCard({
   logo,
 }: VendorDetailsCardProps) {
   return (
-    <View className="mb-4 mx-4">
+    <View className="mb-4">
 
       {/* TITLE */}
       <Text className="text-2xl my-3 font-bold text-black">

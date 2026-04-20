@@ -18,7 +18,7 @@ export const addItemToBooking = async (payload: any) => {
   return response.data;
 };
 
-export const fetchBookings = async () => {
+export const fetchBookings = async (pageNumber: number) => {
   const response = await privateApi.get(
     '/booking/'
   );

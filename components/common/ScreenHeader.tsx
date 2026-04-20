@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { router } from 'expo-router';
 
 type RightType = 'notification' | 'menu' | 'none';
 
@@ -25,11 +26,11 @@ export default function ScreenHeader({
       case 'notification':
         return (
           <Pressable
-            onPress={() => {
-              navigation.getParent()?.navigate('FlowStack', {
-                screen: 'NotificationsScreen',
-              });
-            }}
+            onPress={() =>
+              router.push({
+                pathname: '/NotificationsScreen',
+              })
+            }
             className="relative">
             <Feather name="bell" size={22} color="#000" />
             <View className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500" />
@@ -48,32 +49,25 @@ export default function ScreenHeader({
     }
   };
 
-return (
-  <View className=" justify-center bg-background ">
-    
-    {/* TITLE (perfect center) */}
-    <Text className="absolute self-center text-2xl font-semibold text-foreground">
-      {title}
-    </Text>
+  return (
+    <View className="justify-center bg-background">
+      {/* TITLE (perfect center) */}
+      <Text className="absolute self-center text-2xl font-semibold text-foreground">{title}</Text>
 
-    {/* LEFT + RIGHT */}
-    <View className="flex-row items-center justify-between">
-      
-      {/* LEFT */}
-      {showBack ? (
-        <Pressable onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={24} color="#000" />
-        </Pressable>
-      ) : (
-        <View className="w-6" />
-      )}
+      {/* LEFT + RIGHT */}
+      <View className="flex-row items-center justify-between">
+        {/* LEFT */}
+        {showBack ? (
+          <Pressable onPress={() => navigation.goBack()}>
+            <Feather name="arrow-left" size={24} color="#000" />
+          </Pressable>
+        ) : (
+          <View className="w-6" />
+        )}
 
-      {/* RIGHT */}
-      {renderRight()}
+        {/* RIGHT */}
+        {renderRight()}
+      </View>
     </View>
-  </View>
-);
+  );
 }
-
-
-

@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/text';
 import SectionHeader from '../home/SectionHeader';
 import ShowCaseCard from '../home/ShowcaseCard';
 import { getFeaturedEvents } from '@/api/event';
+import ShowcaseSkeleton from '@/app/skeleton/home/Showcase';
 
 const { width } = Dimensions.get('window');
 
@@ -38,7 +39,7 @@ export default function ShowCaseList() {
   };
 
   return (
-    <View className="mt-8">
+    <View className="mt-6 -mx-4">
       {/* HEADER */}
       <SectionHeader
         left={
@@ -59,36 +60,8 @@ export default function ShowCaseList() {
           data={Array.from({ length: 4 })}
           keyExtractor={(_, index) => index.toString()}
           renderItem={() => (
-            <Text>Loading mate</Text>
-            // <SkeletonContent
-            //   isLoading
-            //   containerStyle={{ width: width * 0.75, marginRight: 12 }}
-            //   layout={[
-            //     // IMAGE / CARD
-            //     {
-            //       key: 'image',
-            //       width: '100%',
-            //       height: 180,
-            //       borderRadius: 16,
-            //     },
-            //     // TITLE
-            //     {
-            //       key: 'title',
-            //       marginTop: 10,
-            //       width: '70%',
-            //       height: 16,
-            //       borderRadius: 6,
-            //     },
-            //     // SUBTITLE
-            //     {
-            //       key: 'subtitle',
-            //       marginTop: 6,
-            //       width: '50%',
-            //       height: 12,
-            //       borderRadius: 6,
-            //     },
-            //   ]}
-            // />
+           <ShowcaseSkeleton/>
+          
           )}
         />
       ) : !featuredEvents || featuredEvents.length === 0 ? (

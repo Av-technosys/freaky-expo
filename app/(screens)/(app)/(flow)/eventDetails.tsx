@@ -1,12 +1,30 @@
-import ScreenHeader from "@/components/common/ScreenHeader";
-import { View , Text } from "react-native";
-import Screen from "@/app/provider/Screen";
+import { View } from 'react-native';
+import { router } from 'expo-router';
+import { useAppDispatch } from '@/store/hooks';
+
+import Screen from '@/app/provider/Screen';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import BookingDetailsForm from '@/components/common/form/BookingDetailsForm';
+import { setBookingDetails } from '@/store/slices/eventSlice';
+
 export default function EventDetailsScreen() {
+  const dispatch = useAppDispatch();
+
+  const handleSubmit = (data: any) => {
+    dispatch(setBookingDetails(data));
+
+    router.push('/eventProducts');
+  };
+
   return (
     <Screen scroll>
-      <ScreenHeader title="Event Details" showBack />
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-lg font-medium">Your event details are empty</Text>
+      <ScreenHeader title="Events" showBack rightType="menu" />
+
+      <View className="px-4 mt-4">
+        <BookingDetailsForm
+          onSubmit={handleSubmit}
+          submitLabel="Continue"
+        />
       </View>
     </Screen>
   );

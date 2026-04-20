@@ -15,7 +15,7 @@ type OrderCardVariant = 'default' | 'compact';
 type OrderCardProps = {
   title: string;
   venue?: string;
-  price?: string | null;
+  price?: string | any;
   status?: string;
 
   onPress: () => void;
@@ -33,7 +33,7 @@ export default function OrderCard({
 }: OrderCardProps) {
   return (
     <Pressable onPress={onPress}>
-      <Card className="overflow-hidden rounded-2xl border border-border">
+      <Card className="overflow-hidden -py-4 mt-6  rounded-2xl border border-border">
 
         <View className="flex-row">
 
@@ -54,11 +54,11 @@ export default function OrderCard({
               </Text>
             )}
 
-            {/* {price && (
+            {price && (
               <Text className="mt-1 font-medium">
-                ₹ {price}
+                $ {price}
               </Text>
-            )} */}
+            )}
           </CardContent>
 
           {/* 📌 STATUS STRIP */}

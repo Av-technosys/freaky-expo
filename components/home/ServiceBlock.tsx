@@ -54,6 +54,7 @@ export default function ServicesBlock() {
       const res = await getAllFeaturedProducts();
       if (res?.data && Array.isArray(res.data)) {
         setSections(res.data);
+        console.log(res.data)
       } else {
         setSections([]);
       }
@@ -82,7 +83,7 @@ export default function ServicesBlock() {
   }
 
   return (
-    <View className="mt-6">
+    <View className="mt-6 -mx-2">
 
       {sections.map((section) => {
         const products = section?.products;

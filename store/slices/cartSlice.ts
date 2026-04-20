@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export type CartItem = {
-  ProductId: string; 
-  title: string;
-  vendorName: string;
-  price: number;
-  quantity: number;
+  ProductId?: string; 
+  title?: string;
+  vendorName?: string;
+  price?: number;
+  quantity?: number;
 
   bookingDetails: {
     fullName: string;
@@ -14,6 +14,7 @@ export type CartItem = {
     date: string;
     time: string;
     guests: string | null;
+    vendorNote: string | null;
   };
 };
 

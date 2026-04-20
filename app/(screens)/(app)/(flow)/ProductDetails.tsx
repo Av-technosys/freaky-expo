@@ -3,29 +3,33 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import { useRef, useMemo } from 'react';
 // UI
 import { Text } from '@/components/ui/text';
 import ScreenHeader from '@/components/common/ScreenHeader';
 import { AppButton } from '@/components/common/AppButton';
-import { Dialog } from '@/components/ui/dialog';
-
+import Screen from '@/app/provider/Screen';
 // Sections (reusable components)
 import VendorHeaderCard from '@/components/ProductDetails/Header';
 import Details from '@/components/ProductDetails/Details';
 import VendorDetailsCard from '@/components/ProductDetails/VendorDetails';
-// import ReviewSection from '@/components/ProductDetails/CustomerReviewsSection';
-// import AddToCartForm from '@/components/common/AddToCartForm';
+import ReviewSection from '@/components/ProductDetails/ReviewSection';
+import AddToCartForm from '@/components/common/form/AddToCartForm';
 
 // APIs
 import { getProductsByProductId, fetchProductReview } from '@/api/product';
 import { fetchVendorDetail } from '@/api/vendor';
 
-  const S3_BASE_URL = process.env.EXPO_PUBLIC_AWS_IMAGE_URL;
-  
+const S3_BASE_URL = process.env.EXPO_PUBLIC_AWS_IMAGE_URL;
+
 export default function ProductDetails() {
   const route = useRoute<any>();
   const navigation = useNavigation();
 
+
+const bottomSheetRef = useRef<BottomSheet>(null);
+const snapPoints = useMemo(() => ['80%'], []);
   const { productId } = route.params ?? {};
 
   const [product, setProduct] = useState<any>(null);
@@ -90,10 +94,7 @@ export default function ProductDetails() {
     );
   }
 
-  const price =
-    product?.prices?.[0]?.salePrice ??
-    product?.prices?.[0]?.listPrice ??
-    0;
+  const price = product?.prices?.[0]?.salePrice ?? product?.prices?.[0]?.listPrice ?? 0;
 
   const vendorLogo = vendor?.logoUrl
     ? { uri: `${S3_BASE_URL}/${vendor.logoUrl}` }
@@ -101,95 +102,71 @@ export default function ProductDetails() {
 
   return (
     <>
-      <SafeAreaView className="flex-1 bg-white">
-        <ScreenHeader
-          title={product.title}
-          showBack
-          rightType="notification"
+      <Screen scroll>
+        <ScreenHeader title={product.title} showBack rightType="notification" />
+
+        {/* HEADER */}
+        <VendorHeaderCard
+          name={vendor?.businessName ?? 'Vendor'}
+          location={`${vendor?.city ?? ''} ${vendor?.state ?? ''}`}
+          rating={product.rating}
+          logo={vendorLogo}
+          mediaImages={
+            product.media
+              ?.filter((m: any) => m.mediaType === 'image')
+              ?.map((m: any) => `${S3_BASE_URL}/${m.mediaUrl}`) ?? []
+          }
         />
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* HEADER */}
-          <VendorHeaderCard
-            name={vendor?.businessName ?? 'Vendor'}
-            location={`${vendor?.city ?? ''} ${vendor?.state ?? ''}`}
-            rating={product.rating}
-            logo={vendorLogo}
-            mediaImages={
-              product.media
-                ?.filter((m: any) => m.mediaType === 'image')
-                ?.map((m: any) => `${S3_BASE_URL}/${m.mediaUrl}`) ?? []
-            }
-          />
+        {/* DETAILS */}
+        <Details
+          title={product.title}
+          subtitle={product.pricingType}
+          rating={product.rating}
+          ratingCount={`${product.rating}`}
+          price={price}
+          description={product.description}
+        />
 
-          {/* DETAILS */}
-          <Details
-            title={product.title}
-            subtitle={product.pricingType}
-            rating={product.rating}
-            ratingCount={`${product.rating}`}
-            price={price}
-            description={product.description}
-          />
+        {/* VENDOR */}
+        <VendorDetailsCard
+          logo={vendorLogo}
+          name={vendor?.businessName}
+          location={`${vendor?.streetAddressLine1 ?? ''}, ${vendor?.city ?? ''}`}
+          vendorId={vendor?.vendorId}
+          serviceId={product.productId}
+          email={vendor?.primaryContactEmail}
+        />
 
-          {/* VENDOR */}
-          <VendorDetailsCard
-            logo={vendorLogo}
-            name={vendor?.businessName}
-            location={`${vendor?.streetAddressLine1 ?? ''}, ${
-              vendor?.city ?? ''
-            }`}
-            vendorId={vendor?.vendorId}
-            serviceId={product.productId}
-            email={vendor?.primaryContactEmail}
-          />
+        {/* REVIEWS */}
+        <ReviewSection reviews={reviews} loading={reviewsLoading} />
 
-          {/* REVIEWS */}
-          {/* <ReviewSection
-            reviews={reviews}
-            loading={reviewsLoading}
-          /> */}
+        {/* ADD TO CART BUTTON */}
+     <AppButton variant='default' onPress={() => bottomSheetRef.current?.expand()}>
+  Add To Cart
+</AppButton>
 
-          {/* ADD TO CART BUTTON */}
-          <Pressable
-            className="mt-6 items-center"
-            onPress={() => setCartOpen(true)}
-          >
-            <View className="w-[92%] rounded-xl overflow-hidden">
-              <LinearGradient
-                colors={['#F97316', '#FACC15']}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={{
-                  height: 64,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text className="text-white text-xl font-bold">
-                  Add to Cart
-                </Text>
-              </LinearGradient>
-            </View>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
 
-      {/* ✅ REUSABLE DIALOG (NO BOTTOMSHEET) */}
-      <Dialog
-        open={cartOpen}
-        onOpenChange={setCartOpen}
-        //title="Add to Cart"
-      >
-        {/* <AddToCartForm
-          product={{
-            productId: product.productId,
-            title: product.title,
-            price,
-          }}
-          onSuccess={() => setCartOpen(false)}
-        /> */}
-      </Dialog>
+      </Screen>
+              {/* ✅ REUSABLE DIALOG (NO BOTTOMSHEET) */}
+<BottomSheet
+  ref={bottomSheetRef}
+  index={-1} // closed by default
+  snapPoints={snapPoints}
+  enablePanDownToClose
+>
+  <BottomSheetView style={{ flex: 1 }}>
+    <AddToCartForm
+      product={{
+        ProductId: String(product.productId),
+        title: product.title,
+        vendorName: vendor?.businessName ?? '',
+        price,
+      }}
+      onSuccess={() => bottomSheetRef.current?.close()}
+    />
+  </BottomSheetView>
+</BottomSheet>
     </>
   );
 }

@@ -26,7 +26,7 @@ export default function Details({
   const stars = 5;
 
   return (
-    <View className="mt-4 rounded-xl bg-white p-4">
+    <View className="mt-4 rounded-xl bg-white p-2">
 
       {/* TITLE */}
       <Markdown

@@ -1,22 +1,23 @@
-import { View, ScrollView, StatusBar } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useRef, useState } from 'react';
-import BottomSheet from '@gorhom/bottom-sheet';
-import HeaderSection  from '@/components/home/HeaderSection';
+import { View } from 'react-native';
+import { useEffect, useRef, useState, useMemo } from 'react';
+import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import HeaderSection from '@/components/home/HeaderSection';
 import BannerCarousel from '@/components/home/BannerCarousel';
 import HomeCategoriesSection from '@/components/home/HomeCategoriesSection';
 import ServicesBlock from '@/components/home/ServiceBlock';
 import Showcase from '@/components/home/ShowCaseList';
 import EventCarousel from '@/components/home/EventCarousel';
 import WeddingBanner from '@/components/home/WeddingBanner';
-import BaseBottomSheet from '@/components/common/BaseBottomSheet';
 import AddressSheetContent from '@/components/common/AddressSheetContent';
 import HowItWork from '@/components/home/HowItWork';
 import Screen from '@/app/provider/Screen';
+
 import { getBanners } from '@/api/event';
 
 export default function HomeScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
+
+  const snapPoints = useMemo(() => ['95%'], []);
 
   const [banners, setBanners] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,11 +32,9 @@ export default function HomeScreen() {
       setLoading(true);
 
       const res = await getBanners();
-      
+
       if (res?.data && Array.isArray(res.data)) {
-        const sorted = [...res.data].sort(
-          (a, b) => a.priority - b.priority
-        );
+        const sorted = [...res.data].sort((a, b) => a.priority - b.priority);
         setBanners(sorted);
       } else {
         setBanners([]);
@@ -49,9 +48,8 @@ export default function HomeScreen() {
   };
 
   return (
- <Screen scroll>
-      {/* STATUS BAR */}
-  
+    <>
+      <Screen scroll>
         {/* HEADER */}
         <HeaderSection bottomSheetRef={bottomSheetRef} />
 
@@ -61,13 +59,11 @@ export default function HomeScreen() {
         {/* CATEGORIES */}
         <HomeCategoriesSection />
 
-        {/* WEDDING / SPECIAL */}
-        <WeddingBanner
-          banner={banners?.find((b) => b?.type === 'wedding')}
-        />
+        {/* WEDDING */}
+        <WeddingBanner />
 
-        {/* EVENT CAROUSEL */}
-        <View style={{ marginTop: -40 }}>
+        {/* EVENT */}
+        <View style={{ marginTop: -60 }}>
           <EventCarousel />
         </View>
 
@@ -77,22 +73,24 @@ export default function HomeScreen() {
         {/* SERVICES */}
         <ServicesBlock />
 
-        {/* HOW IT WORKS */}
+        {/* HOW IT WORK */}
         <HowItWork />
+      </Screen>
 
-      {/* BOTTOM SHEET */}
-      <BaseBottomSheet
+      {/* ✅ BOTTOM SHEET */}
+      <BottomSheet
         ref={bottomSheetRef}
-        onChange={(index: number) => {
-          setIsAddressSheetOpen(index >= 0);
-        }}
-      >
-        <AddressSheetContent
-          isOpen={isAddressSheetOpen}
-          onClose={() => bottomSheetRef.current?.close()}
-        />
-      </BaseBottomSheet>
-
-    </Screen>
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        onChange={(index) => setIsAddressSheetOpen(index >= 0)}>
+        <BottomSheetScrollView  contentContainerStyle={{ flexGrow: 1 }}>
+          <AddressSheetContent
+            isOpen={isAddressSheetOpen}
+            onClose={() => bottomSheetRef.current?.close()}
+          />
+        </BottomSheetScrollView>
+      </BottomSheet>
+    </>
   );
 }
