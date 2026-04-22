@@ -13,9 +13,6 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -27,7 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-
+import DateField from '@/components/common/DateField';
+import TimeField from '@/components/common/TimeField';
 // Icons
 import {
   User,
@@ -76,8 +74,6 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
   const [time, setTime] = useState<Date | null>(null);
   const [eventTypes, setEventTypes] = useState<any[]>([]);
   const [showEventDialog, setShowEventDialog] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
 
   useEffect(() => {
     fetchEventType().then((res) => setEventTypes(res.data));
@@ -172,42 +168,17 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
 
             <Separator />
 
-            {/* Date */}
-            <View className="gap-2">
-              <Label>Select Date</Label>
-              <Pressable onPress={() => setShowDatePicker(true)}>
-                <View className="flex-row items-center gap-2 rounded-lg border border-input bg-background p-3">
-                  <CalendarIcon size={18} className="text-muted-foreground" />
-                  <Text className={date ? 'flex-1' : 'flex-1 text-muted-foreground'}>
-                    {date ? dayjs(date).format('DD MMMM YYYY') : 'Choose a date'}
-                  </Text>
-                  <ChevronRight size={16} className="text-muted-foreground" />
-                </View>
-              </Pressable>
-            </View>
+            <DateField value={date || undefined} onChange={(d) => setDate(d)} />
 
-            {/* Time */}
-            <View className="gap-2">
-              <Label>Select Time</Label>
-              <Pressable onPress={() => setShowTimePicker(true)}>
-                <View className="flex-row items-center gap-2 rounded-lg border border-input bg-background p-3">
-                  <Clock size={18} className="text-muted-foreground" />
-                  <Text className={time ? 'flex-1' : 'flex-1 text-muted-foreground'}>
-                    {time ? dayjs(time).format('hh:mm A') : 'Choose a time'}
-                  </Text>
-                  <ChevronRight size={16} className="text-muted-foreground" />
-                </View>
-              </Pressable>
-            </View>
-
+            <TimeField value={time || undefined} onChange={(t) => setTime(t)} />
             {/* Guests - Fixed Select */}
             <View className="gap-2">
               <Label>Number of Guests</Label>
               <Select value={guests} onValueChange={setGuests}>
                 <SelectTrigger className="w-full">
                   <View className="flex-row items-center gap-2">
-                    <Users size={18} className="text-muted-foreground" />
-                    <SelectValue placeholder="Select guest range" />
+                    <Users size={24} className="text-muted-foreground" />
+                    <SelectValue className="px-2 text-base" placeholder="Select guest range" />
                   </View>
                 </SelectTrigger>
                 <SelectContent>
@@ -277,39 +248,6 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
             </ScrollView>
           </DialogContent>
         </Dialog>
-
-        {/* Date Picker Dialog */}
-        <Dialog open={showDatePicker} onOpenChange={setShowDatePicker}>
-          <DialogContent className="p-0">
-            <Calendar
-              onDayPress={(day) => {
-                setDate(dayjs(day.dateString).toDate());
-                setShowDatePicker(false);
-              }}
-              minDate={dayjs().format('YYYY-MM-DD')}
-              theme={{
-                todayTextColor: '#F97316',
-                selectedDayBackgroundColor: '#F97316',
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {/* Time Picker Modal */}
-        <TimePickerModal
-          visible={showTimePicker}
-          onDismiss={() => setShowTimePicker(false)}
-          onConfirm={({ hours, minutes }) => {
-            const base = dayjs(date ?? new Date());
-            setTime(base.hour(hours).minute(minutes).toDate());
-            setShowTimePicker(false);
-          }}
-          hours={12}
-          minutes={0}
-          label="Select time"
-          cancelLabel="Cancel"
-          confirmLabel="OK"
-        />
       </View>
     </ScrollView>
   );

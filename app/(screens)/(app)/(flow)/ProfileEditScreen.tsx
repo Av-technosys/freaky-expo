@@ -3,6 +3,7 @@ import { View, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import { Feather } from '@expo/vector-icons';
+// import * as ImagePicker from 'expo-image-picker';
 import * as ImagePicker from 'expo-image-picker';
 
 import Screen from '@/app/provider/Screen';
@@ -14,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Text } from '@/components/ui/text';
 import { AppButton } from '@/components/common/AppButton';
-
+import { File } from 'expo-file-system';
 import { userDetails, updateUserProfile, getBucketUrl } from '@/api/user';
 import ProfileEditSkeleton from '@/app/skeleton/ProfileEditSkeleton';
 
@@ -59,20 +60,21 @@ export default function ProfileEditScreen() {
   }, []);
 
   // ---------------- IMAGE PICK + UPLOAD ----------------
+
   const handlePickImage = async () => {
     try {
+      // 1️⃣ pick image
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.7, // IMPORTANT: reduces crash risk
+        mediaTypes: ['images'],
+        quality: 0.5, // 🔥 important (avoid crash)
       });
 
       if (result.canceled) return;
 
       const image = result.assets[0];
+      console.log('📸 picked:', image);
 
-      setLoading(true);
-
-      // 1️⃣ get presigned URL
+      // 2️⃣ get presigned URL (⚠️ MUST upload immediately after this)
       const res = await getBucketUrl({
         fileName: `profile-${Date.now()}.jpg`,
         fileType: image.mimeType || 'image/jpeg',
@@ -81,32 +83,35 @@ export default function ProfileEditScreen() {
 
       const { uploadUrl, filePath } = res;
 
-      // 2️⃣ convert to blob safely (Expo way)
-      const response = await fetch(image.uri);
-      const blob = await response.blob();
+      console.log('🔗 presigned received', uploadUrl);
 
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': image.mimeType || 'image/jpeg',
-        },
-        body: blob,
-      });
+      // 🚨 DO NOT DELAY HERE (expiry issue)
+      // no UI pause, no waiting, upload immediately
 
-      if (!uploadRes.ok) throw new Error('Upload failed');
+      // 3️⃣ convert to blob safely
+const file = new File(image.uri);
 
-      // 3️⃣ preview only (DO NOT update main user state)
-      setTempProfileImage(filePath);
+const uploadRes = await fetch(uploadUrl, {
+  method: 'PUT',
+  headers: {
+'Content-Type': 'image/jpeg'  },
+  body: await file.arrayBuffer(),
+});
+      console.log('📦 upload status:', uploadRes.status);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Image uploaded',
-        text2: 'Tap Save to apply changes',
-      });
+      // 5️⃣ handle failure safely (no crash feeling)
+      if (uploadRes.status !== 200) {
+        console.log('❌ S3 ERROR:', uploadRes.body);
+        return;
+      }
+
+      // ✅ success
+      console.log('✅ UPLOADED:', filePath);
+
+      // 👉 save filePath to DB or state here
+      // setProfileImage(filePath);
     } catch (err) {
-      Toast.show({ type: 'error', text1: 'Upload failed' });
-    } finally {
-      setLoading(false);
+      console.log('❌ UPLOAD ERROR:', err);
     }
   };
 

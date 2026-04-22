@@ -18,6 +18,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { userDetails } from '@/api/user';
+import ProfileSkeleton from '@/app/skeleton/Profile';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -125,14 +126,7 @@ export default function ProfileScreen() {
 
       {/* Loading State */}
       {loading && (
-        <View className=" px-4 pt-8">
-          <View className="animate-pulse">
-            <View className="h-32 w-full rounded-2xl bg-gray-200" />
-            <View className="mt-6 h-20 w-full rounded-xl bg-gray-200" />
-            <View className="mt-4 h-20 w-full rounded-xl bg-gray-200" />
-            <View className="mt-4 h-20 w-full rounded-xl bg-gray-200" />
-          </View>
-        </View>
+       <ProfileSkeleton/>
       )}
 
       {/* Empty State */}

@@ -14,6 +14,7 @@ import NotFound from '@/components/common/NotFound';
 import Screen from '@/app/provider/Screen';
 // API
 import { getProductsByProductTypeId } from '@/api/product';
+import CategoryProductsSkeleton from '@/app/skeleton/category/CategoryProducts';
 
 export default function CategoryProducts() {
   const route = useRoute<any>();
@@ -24,7 +25,7 @@ export default function CategoryProducts() {
 
   useEffect(() => {
     const loadProducts = async () => {
-      console.log("type" , typeId , title)
+      console.log('type', typeId, title);
       try {
         const res = await getProductsByProductTypeId(typeId);
         setProducts(res.data);
@@ -44,10 +45,6 @@ export default function CategoryProducts() {
     return words.length > wordLimit ? words.slice(0, wordLimit).join(' ') + '...' : text;
   };
 
-  if (loading) {
-    return <Text> Loading </Text>;
-  }
-
   if (!loading && products.length === 0) {
     return (
       <Screen scroll>
@@ -65,7 +62,7 @@ export default function CategoryProducts() {
   return (
     <Screen scroll>
       <ScreenHeader title={title ?? 'Products'} rightType="notification" showBack />
- 
+      {loading && <CategoryProductsSkeleton />}
       <FlatList
         data={products}
         keyExtractor={(item) => item.productId.toString()}

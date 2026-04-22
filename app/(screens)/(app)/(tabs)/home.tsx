@@ -17,7 +17,7 @@ import { getBanners } from '@/api/event';
 export default function HomeScreen() {
   const bottomSheetRef = useRef<BottomSheet>(null);
 
-  const snapPoints = useMemo(() => ['95%'], []);
+  const snapPoints = useMemo(() => ['94%'], []);
 
   const [banners, setBanners] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,12 +84,10 @@ export default function HomeScreen() {
         snapPoints={snapPoints}
         enablePanDownToClose
         onChange={(index) => setIsAddressSheetOpen(index >= 0)}>
-        <BottomSheetScrollView  contentContainerStyle={{ flexGrow: 1 }}>
           <AddressSheetContent
             isOpen={isAddressSheetOpen}
             onClose={() => bottomSheetRef.current?.close()}
           />
-        </BottomSheetScrollView>
       </BottomSheet>
     </>
   );

@@ -9,18 +9,19 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { useRef } from 'react';
-import { TextInput } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
-
+import BottomSheet from '@gorhom/bottom-sheet';
+import StatePickerSheet from '@/components/common/StatePickerSheet';
 import { Feather } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
 import { addAddress, editAddress } from '@/api/user';
 import { US_STATES } from '@/const/US_STATE';
+import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 
 type Address = {
   id?: number;
@@ -33,6 +34,8 @@ type Address = {
   state: string;
   postalCode: string;
   country: string;
+  latitude?: number | string;
+  longitude?: number | string;
 };
 
 type Props = {
@@ -41,11 +44,12 @@ type Props = {
   onCancel: () => void;
 };
 
-export default function AddressForm({
-  initialData,
-  onSuccess,
-  onCancel,
-}: Props) {
+export default function AddressForm({ initialData, onSuccess, onCancel }: Props) {
+  const sheetRef = useRef<BottomSheetMethods>(null);
+  const options = US_STATES.map((s) => ({
+    label: s,
+    value: s,
+  }));
   const [form, setForm] = useState<Address>({
     title: initialData?.title ?? '',
     addressLineOne: initialData?.addressLineOne ?? '',
@@ -55,11 +59,11 @@ export default function AddressForm({
     city: initialData?.city ?? '',
     state: initialData?.state ?? '',
     postalCode: initialData?.postalCode ?? '',
-    country: initialData?.country ?? 'India',
+    country: initialData?.country ?? 'USA',
     id: initialData?.id,
+    latitude: initialData?.latitude || '0',
+    longitude: initialData?.longitude || '0',
   });
-
-  const [showStatePicker, setShowStatePicker] = useState(false);
 
   const onChange = (key: keyof Address, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -83,10 +87,18 @@ export default function AddressForm({
 
     try {
       if (form.id) {
-        await editAddress(form);
+        await editAddress({
+          ...form,
+          latitude: String(form.latitude ?? ''),
+          longitude: String(form.longitude ?? ''),
+        });
         Toast.show({ type: 'success', text1: 'Address updated' });
       } else {
-        await addAddress(form);
+        await addAddress({
+          ...form,
+          latitude: String(form.latitude ?? ''),
+          longitude: String(form.longitude ?? ''),
+        });
         Toast.show({ type: 'success', text1: 'Address added' });
       }
 
@@ -97,20 +109,16 @@ export default function AddressForm({
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View className="px-4">
-
+    <>
+      <View className="p-2">
         {/* HEADER */}
-        <View className="flex-row items-center gap-2 mb-4">
+        <View className="mb-4 flex-row items-center gap-2">
           <Feather name="map-pin" size={20} />
           <Text className="text-lg font-semibold">Address</Text>
         </View>
 
         <Card>
           <CardContent className="gap-4">
-
             <Input
               placeholder="Title"
               value={form.title}
@@ -118,13 +126,13 @@ export default function AddressForm({
             />
 
             <Input
-              placeholder="Address Line 1"
+              placeholder="Street Address Line 1"
               value={form.addressLineOne}
               onChangeText={(v) => onChange('addressLineOne', v)}
             />
 
             <Input
-              placeholder="Address Line 2"
+              placeholder="Street Address Line 2"
               value={form.addressLineTwo}
               onChangeText={(v) => onChange('addressLineTwo', v)}
             />
@@ -136,17 +144,13 @@ export default function AddressForm({
             />
 
             <Input
-              placeholder="Phone Number"
+              placeholder="Contact Number"
               keyboardType="phone-pad"
               value={form.reciverNumber}
               onChangeText={(v) => onChange('reciverNumber', v)}
             />
 
-            <Input
-              placeholder="City"
-              value={form.city}
-              onChangeText={(v) => onChange('city', v)}
-            />
+            <Input placeholder="City" value={form.city} onChangeText={(v) => onChange('city', v)} />
 
             <Input
               placeholder="Zip Code"
@@ -156,82 +160,31 @@ export default function AddressForm({
             />
 
             {/* STATE PICKER */}
-            <Pressable onPress={() => setShowStatePicker(true)}>
-              <Input
-                placeholder="Select State"
-                value={form.state}
-                editable={false}
-              />
+            <Pressable onPress={() => sheetRef.current?.expand()}>
+              <Input placeholder="Select State" value={form.state} editable={false} />
             </Pressable>
-
             {/* COUNTRY */}
-            <Input value="India" editable={false} />
-
+            <Input value="United States of America" editable={false} />
           </CardContent>
         </Card>
 
         {/* ACTIONS */}
-        <View className="flex-row gap-3 mt-5">
-          <AppButton
-            variant="outline"
-            className="flex-1"
-            onPress={onCancel}
-          >
+        <View className="mt-5 flex-col gap-3">
+          <AppButton variant="outline" className="flex-1" onPress={onCancel}>
             <Text>Cancel</Text>
           </AppButton>
 
-          <AppButton
-            className="flex-1"
-            onPress={onSubmit}
-          >
+          <AppButton className="flex-1" onPress={onSubmit}>
             <Text>{form.id ? 'Update' : 'Save'}</Text>
           </AppButton>
         </View>
-
-        {/* STATE MODAL */}
-        <Modal visible={showStatePicker} transparent animationType="slide">
-          <Pressable
-            className="flex-1 bg-black/40 justify-end"
-            onPress={() => setShowStatePicker(false)}
-          >
-            <View className="bg-white rounded-t-3xl p-5 max-h-[60%]">
-
-              <Text className="text-lg font-semibold mb-4">
-                Select State
-              </Text>
-
-              <ScrollView>
-                {US_STATES.map((state) => {
-                  const selected = form.state === state;
-
-                  return (
-                    <Pressable
-                      key={state}
-                      onPress={() => {
-                        onChange('state', state);
-                        setShowStatePicker(false);
-                      }}
-                      className={`py-3 ${
-                        selected ? 'bg-orange-50' : ''
-                      }`}
-                    >
-                      <Text
-                        className={
-                          selected ? 'text-orange-500 font-semibold' : ''
-                        }
-                      >
-                        {state}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-
-            </View>
-          </Pressable>
-        </Modal>
-
       </View>
-    </KeyboardAvoidingView>
+      <StatePickerSheet
+        sheetRef={sheetRef}
+        value={form.state}
+        options={options}
+        onSelect={(val) => onChange('state', val)}
+      />
+    </>
   );
 }

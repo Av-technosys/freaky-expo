@@ -68,7 +68,7 @@ export default function ServiceCard({ item }: any) {
 
           {/* PRICE */}
           {price !== null && price !== undefined && (
-            <Text className="mt-3 text-lg font-bold">₹{price}</Text>
+            <Text className="mt-3 text-lg font-bold">$ {price}</Text>
           )}
         </CardContent>
       </Card>

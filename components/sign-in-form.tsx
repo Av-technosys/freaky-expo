@@ -110,7 +110,7 @@ export function SignInForm() {
 
             <View>
               <Input
-                // ref={passwordRef }
+                //ref={passwordRef }
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={secure}

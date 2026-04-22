@@ -20,7 +20,7 @@ export default function EventDetailsScreen() {
     <Screen scroll>
       <ScreenHeader title="Events" showBack rightType="menu" />
 
-      <View className="px-4 mt-4">
+      <View className=" mt-2">
         <BookingDetailsForm
           onSubmit={handleSubmit}
           submitLabel="Continue"

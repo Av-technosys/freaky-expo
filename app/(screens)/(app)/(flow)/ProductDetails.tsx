@@ -1,10 +1,9 @@
-import { View, ScrollView, Pressable, Image } from 'react-native';
+import { View, ScrollView, Pressable, Image, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useRef, useMemo } from 'react';
+
 // UI
 import { Text } from '@/components/ui/text';
 import ScreenHeader from '@/components/common/ScreenHeader';
@@ -20,16 +19,14 @@ import AddToCartForm from '@/components/common/form/AddToCartForm';
 // APIs
 import { getProductsByProductId, fetchProductReview } from '@/api/product';
 import { fetchVendorDetail } from '@/api/vendor';
+import ProductDetailsSkeleton from '@/app/skeleton/category/ProductDetail';
+import { router } from 'expo-router';
 
 const S3_BASE_URL = process.env.EXPO_PUBLIC_AWS_IMAGE_URL;
 
 export default function ProductDetails() {
   const route = useRoute<any>();
-  const navigation = useNavigation();
 
-
-const bottomSheetRef = useRef<BottomSheet>(null);
-const snapPoints = useMemo(() => ['80%'], []);
   const { productId } = route.params ?? {};
 
   const [product, setProduct] = useState<any>(null);
@@ -38,7 +35,6 @@ const snapPoints = useMemo(() => ['80%'], []);
   const [loading, setLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
-  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     if (!productId) return;
@@ -85,12 +81,10 @@ const snapPoints = useMemo(() => ['80%'], []);
 
   if (loading || !product) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
-        <ScreenHeader title="Loading..." showBack />
-        <View className="flex-1 items-center justify-center">
-          <Text>Loading product...</Text>
-        </View>
-      </SafeAreaView>
+      <Screen>
+        <ScreenHeader title="Product" showBack />
+        <ProductDetailsSkeleton />
+      </Screen>
     );
   }
 
@@ -141,32 +135,24 @@ const snapPoints = useMemo(() => ['80%'], []);
         {/* REVIEWS */}
         <ReviewSection reviews={reviews} loading={reviewsLoading} />
 
-        {/* ADD TO CART BUTTON */}
-     <AppButton variant='default' onPress={() => bottomSheetRef.current?.expand()}>
-  Add To Cart
-</AppButton>
-
-
+        <View className="px-4 pb-6">
+          <AppButton
+            variant="default"
+            onPress={() =>
+              router.push({
+                pathname: '/AddProduct',
+                params: {
+                  productId: product.productId,
+                  title: product.title,
+                  vendorName: vendor?.businessName,
+                  price: price,
+                },
+              })
+            }>
+            <Text className="font-bold text-white">Add To Cart</Text>
+          </AppButton>
+        </View>
       </Screen>
-              {/* ✅ REUSABLE DIALOG (NO BOTTOMSHEET) */}
-<BottomSheet
-  ref={bottomSheetRef}
-  index={-1} // closed by default
-  snapPoints={snapPoints}
-  enablePanDownToClose
->
-  <BottomSheetView style={{ flex: 1 }}>
-    <AddToCartForm
-      product={{
-        ProductId: String(product.productId),
-        title: product.title,
-        vendorName: vendor?.businessName ?? '',
-        price,
-      }}
-      onSuccess={() => bottomSheetRef.current?.close()}
-    />
-  </BottomSheetView>
-</BottomSheet>
     </>
   );
 }

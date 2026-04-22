@@ -26,7 +26,7 @@ import Toast from 'react-native-toast-message';
 import { getAddresses, deleteAddress, setCurrentAddress } from '@/api/user';
 import AddressForm from '@/components/common/form/AddressForm';
 import AddressListSkeleton from '@/app/skeleton/home/AddressList';
-
+import { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
 type Props = {
   isOpen: boolean;
@@ -166,15 +166,28 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
         </View>
 
         {/* Add Button */}
-        <View className="px-4 pt-3">
+        <View className="gap-4 px-4 py-4">
+          {/* Primary Action: Add New Address */}
           <AppButton
             onPress={() => {
               setSelectedAddress(null);
               setMode('form');
             }}>
             <View className="flex-row items-center gap-2">
-              <Feather name="plus" size={18} color="white" />
-              <Text className="font-semibold text-white">Add New Address</Text>
+              <Feather name="plus" size={24} color="white" />
+              <Text>Add New Address</Text>
+            </View>
+          </AppButton>
+
+          {/* Secondary Action: Use Current Location */}
+          <AppButton
+            variant="outline"
+            onPress={() => {
+              /* handle location */
+            }}>
+            <View className="flex-row items-center gap-2">
+              <Feather name="map-pin" size={18} color="black" /> {/* Match the gradient orange */}
+              <Text className="">Use Current Location</Text>
             </View>
           </AppButton>
         </View>
@@ -182,7 +195,9 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
         <Separator className="my-4" />
 
         {/* Address List */}
-        <View>
+        <BottomSheetScrollView
+          contentContainerStyle={{ paddingBottom: 80 }}
+          keyboardShouldPersistTaps="handled">
           {loading ? (
             <AddressListSkeleton />
           ) : filtered.length === 0 ? (
@@ -271,8 +286,7 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
               );
             })
           )}
-        </View>
-
+        </BottomSheetScrollView>
         {/* Delete Confirmation Dialog */}
         <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
           <DialogContent className="">
@@ -288,7 +302,7 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
               </View>
             </DialogHeader>
 
-            <DialogFooter className="mt-4 flex flex-wrap gap-3">
+            <DialogFooter className="mt-4 flex-row gap-3">
               <DialogClose asChild>
                 <Button variant="outline" className="flex-1">
                   <Text>Cancel</Text>

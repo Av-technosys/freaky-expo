@@ -105,7 +105,9 @@ export default function AddReview() {
   const loadEvent = async () => {
     try {
       const res = await getEventById(eventId);
+      console.log('Event response:', res);
       const eventData = Array.isArray(res?.data) && res.data.length > 0 ? res.data[0] : null;
+
       setEvent(eventData);
     } catch (err) {
       console.error('Failed to load event', err);
@@ -158,16 +160,47 @@ export default function AddReview() {
   const canAddImage = (media: MediaItem[]) => media.length < 4;
   const canAddVideo = (media: MediaItem[]) => media.filter(m => m.mediaType === 'video').length < 1 && media.length < 4;
 
-  const uploadToS3 = async (uploadUrl: string, fileUri: string, mimeType: string) => {
+const uploadToS3 = async (uploadUrl: string, fileUri: string, mimeType: string) => {
+  try {
+    console.log('🚀 START UPLOAD');
+    console.log('📂 FILE URI:', fileUri);
+    console.log('📦 MIME TYPE:', mimeType);
+    console.log('🔗 UPLOAD URL:', uploadUrl);
+
+    // 🔍 Extract time from URL (CRITICAL DEBUG)
+    const url = new URL(uploadUrl);
+    console.log('⏱ X-Amz-Date:', url.searchParams.get('X-Amz-Date'));
+    console.log('⏱ ExpiresIn:', url.searchParams.get('X-Amz-Expires'));
+
     const response = await fetch(fileUri);
     const blob = await response.blob();
-    return fetch(uploadUrl, {
+
+    console.log('📏 BLOB SIZE:', blob.size);
+
+    const res = await fetch(uploadUrl, {
       method: 'PUT',
-      headers: { 'Content-Type': mimeType },
+      headers: {
+        'Content-Type': mimeType,
+      },
       body: blob,
     });
-  };
 
+    console.log('📡 S3 STATUS:', res.status);
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.log('❌ S3 ERROR BODY:', text);
+      throw new Error('S3 upload failed');
+    }
+
+    console.log('✅ UPLOAD SUCCESS');
+
+    return res;
+  } catch (err) {
+    console.log('🔥 UPLOAD ERROR:', err);
+    throw err;
+  }
+};
   const handlePickMedia = async (productId: number) => {
     const service = services.find(s => s.productId === productId);
     if (!service) return;
@@ -201,48 +234,60 @@ export default function AddReview() {
       }
 
       setMediaLoading(true);
-      try {
-        const res = await getBucketUrl({
-          fileName: file.fileName ?? `review-${Date.now()}`,
-          fileType: file.mimeType ?? 'image/jpeg',
-          path: 'reviews',
-        });
+try {
+  console.log('📸 PICKED FILE:', file);
 
-        await uploadToS3(res.uploadUrl, file.uri, file.mimeType!);
+  const res = await getBucketUrl({
+    fileName: file.fileName ?? `review-${Date.now()}`,
+    fileType: file.mimeType ?? 'image/jpeg',
+    path: 'reviews',
+  });
 
-        setServices(prev =>
-          prev.map(s =>
-            s.productId === productId
-              ? {
-                  ...s,
-                  media: [
-                    ...s.media,
-                    {
-                      localUri: file.uri,
-                      mediaUrl: res.filePath,
-                      mediaType: isVideo ? 'video' : 'image',
-                    },
-                  ],
-                }
-              : s
-          )
-        );
-        
-        Toast.show({
-          type: 'success',
-          text1: 'Media uploaded',
-          text2: 'Your media has been added',
-        });
-      } catch (error) {
-        console.error('Upload failed', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Upload failed',
-          text2: 'Please try again',
-        });
-      } finally {
-        setMediaLoading(false);
-      }
+  console.log('🧾 PRESIGNED RESPONSE:', res);
+
+  // 🔥 Validate response
+  if (!res.uploadUrl || !res.filePath) {
+    console.log('❌ INVALID PRESIGNED RESPONSE');
+    throw new Error('Invalid presigned URL');
+  }
+
+  // 🔥 Upload immediately
+  await uploadToS3(res.uploadUrl, file.uri, file.mimeType!);
+
+  console.log('📁 FILE PATH SAVED:', res.filePath);
+
+  setServices(prev =>
+    prev.map(s =>
+      s.productId === productId
+        ? {
+            ...s,
+            media: [
+              ...s.media,
+              {
+                localUri: file.uri,
+                mediaUrl: res.filePath,
+                mediaType: isVideo ? 'video' : 'image',
+              },
+            ],
+          }
+        : s
+    )
+  );
+
+  Toast.show({
+    type: 'success',
+    text1: 'Media uploaded',
+  });
+
+} catch (error) {
+  console.error('❌ Upload failed FULL:', error);
+  Toast.show({
+    type: 'error',
+    text1: 'Upload failed',
+  });
+} finally {
+  setMediaLoading(false);
+}
     }
   };
 

@@ -5,6 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Button } from '@/components/ui/button';
 import Screen from '@/app/provider/Screen';
+import { AppButton } from '@/components/common/AppButton';
 
 const NoInternetScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -47,9 +48,9 @@ const NoInternetScreen = () => {
         {error ? <Text className="mb-4 text-red-500">{error}</Text> : null}
 
         {/* Button */}
-        <Button className="h-10 w-32" onPress={handleRetry} disabled={loading}>
+        <AppButton onPress={handleRetry} disabled={loading}>
           <Text>{loading ? 'Checking...' : 'Reload'}</Text>
-        </Button>
+        </AppButton>
 
         {loading && <ActivityIndicator />}
       </View>

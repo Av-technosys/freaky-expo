@@ -16,7 +16,7 @@ export function AppButton({ variant = 'default', className, ...props }: Props) {
   // ✅ DEFAULT (gradient background)
   if (variant === 'default') {
     return (
-      <View className="w-full h-12 rounded-xl overflow-hidden">
+      <View className="w-full h-12 rounded-xl  overflow-hidden">
         <LinearGradient
           colors={gradientColors}
           start={{ x: 0, y: 0.5 }}

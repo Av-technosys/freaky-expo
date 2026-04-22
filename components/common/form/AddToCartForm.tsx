@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 
@@ -30,6 +30,8 @@ import { addToCart } from '@/store/slices/cartSlice';
 // API
 import { addCartItem } from '@/api/cart';
 import { Textarea } from '@/components/ui/textarea';
+import DateField from '@/components/common/DateField';
+import TimeField from '@/components/common/TimeField';
 
 type Props = {
   product: {
@@ -59,7 +61,7 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
   const [guests, setGuests] = useState<Option | undefined>();
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<Date>();
-const [vendorNote, setVendorNote] = useState('');
+  const [vendorNote, setVendorNote] = useState('');
   // UI STATE
   const [loading, setLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -138,15 +140,8 @@ const [vendorNote, setVendorNote] = useState('');
   };
 
   return (
-     <>
-      <View className="gap-4 p-4">
-        <View className="mb-2">
-          <Text className="text-2xl font-bold">Booking Details</Text>
-          <Text className="mt-1 text-sm text-muted-foreground">
-            Complete the form below to book {product.title}
-          </Text>
-        </View>
-
+    <View style={{ flex: 1 }}>
+      <View className="gap-4 px-4 py-8">
         {/* Full Name */}
         <View className="gap-2">
           <Label nativeID="fullName">Full Name</Label>
@@ -192,54 +187,11 @@ const [vendorNote, setVendorNote] = useState('');
         </View>
 
         {/* Date Picker */}
-        <View className="gap-2">
-          <Label>Select Date</Label>
-          <Button
-            variant="outline"
-            className="justify-start"
-            onPress={() => setShowDatePicker(true)}>
-            <Text>{date ? dayjs(date).format('DD MMM YYYY') : 'Pick a date'}</Text>
-          </Button>
-          {showDatePicker && (
-            <DateTimePicker
-              value={date || new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
-                if (selectedDate) {
-                  setDate(selectedDate);
-                }
-              }}
-              minimumDate={new Date()}
-            />
-          )}
-        </View>
 
+        <DateField value={date} onChange={setDate} />
         {/* Time Picker */}
-        <View className="gap-2">
-          <Label>Select Time</Label>
-          <Button
-            variant="outline"
-            className="justify-start"
-            onPress={() => setShowTimePicker(true)}>
-            <Text>{time ? dayjs(time).format('hh:mm A') : 'Pick a time'}</Text>
-          </Button>
-          {showTimePicker && (
-            <DateTimePicker
-              value={time || new Date()}
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(event, selectedTime) => {
-                setShowTimePicker(false);
-                if (selectedTime) {
-                  setTime(selectedTime);
-                }
-              }}
-            />
-          )}
-        </View>
 
+        <TimeField value={time} onChange={setTime} />
         {/* Guests Select */}
         <View className="gap-2">
           <Label nativeID="guests">Number of Guests</Label>
@@ -261,16 +213,16 @@ const [vendorNote, setVendorNote] = useState('');
             </SelectContent>
           </Select>
         </View>
-{/* Vendor Note */}
-<View className="gap-2">
-  <Label nativeID="vendorNote">Vendor Note</Label>
-  <Textarea
-    id="vendorNote"
-    placeholder="Hey, please write happy birthday Shampy."
-    value={vendorNote}
-    onChangeText={setVendorNote}
-  />
-</View>
+        {/* Vendor Note */}
+        <View className="gap-1.5">
+          <Label>Vendor Note</Label>
+          <Textarea
+            value={vendorNote}
+            onChangeText={setVendorNote}
+            placeholder="Any special requests?"
+            className="min-h-[100px]"
+          />
+        </View>
         {/* Price Summary Card */}
         <Card className="mt-2">
           <CardContent className="p-4">
@@ -283,12 +235,11 @@ const [vendorNote, setVendorNote] = useState('');
 
         {/* Action Buttons */}
         <View className="mt-4 flex-row gap-3">
-        
           <AppButton className="flex-1" onPress={handleSubmit} disabled={!isValid || loading}>
             {loading ? 'Adding...' : 'Add to Cart'}
           </AppButton>
         </View>
       </View>
-</>
+    </View>
   );
 }

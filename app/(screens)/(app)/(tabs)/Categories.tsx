@@ -1,5 +1,3 @@
-// app/(tabs)/categories.tsx
-
 import { useEffect, useState } from 'react';
 import { View, FlatList, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -14,6 +12,8 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 
 import { getProductTypes } from '@/api/product';
 import { getMediaUrl } from '@/utils/image';
+
+import CategoriesSkeleton from '@/app/skeleton/category/CategoriesGrid';
 
 type ProductType = {
   id: number;
@@ -42,83 +42,85 @@ export default function CategoriesScreen() {
     load();
   }, []);
 
-  return (
-    <Screen scroll>
-      <ScreenHeader title="Categories" rightType="notification" />
+  if (loading) {
+    return (
+      <Screen>
+        <ScreenHeader title="Categories" rightType="notification" />
+        <CategoriesSkeleton />
+      </Screen>
+    );
+  }
 
-      {/* ❌ EMPTY */}
-      {!loading && categories.length === 0 && (
+  if (!categories.length) {
+    return (
+      <Screen>
+        <ScreenHeader title="Categories" rightType="notification" />
         <NotFound
           title="No Category Found"
           description="There are no categories available right now."
           ctaLabel="Explore Services"
         />
-      )}
+      </Screen>
+    );
+  }
 
-      {/* ✅ DATA */}
-      {!loading && categories.length > 0 && (
-        <View className='my-6 mb-8'>
-        <FlatList
-          data={categories}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ padding: 16 }}
-          columnWrapperStyle={{ justifyContent: 'space-between' }}
-          renderItem={({ item }) => {
-            const url = getMediaUrl(item.mediaURL);
+  return (
+    <Screen scroll>
+       <ScreenHeader title="Categories" rightType="notification" />
+      <FlatList
+        data={categories}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 16, paddingBottom: 50 }}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
 
-            return (
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: '/CategoryProducts',
-                    params: {
-                      typeId: item.id,
-                      title: item.name,
-                    },
-                  })
-                }
-                className="mb-4 w-[48%]"
-              >
-<Card className="rounded-3xl border border-orange-400 overflow-hidden">
-                  {/* IMAGE */}
-                  <View className="items-center justify-center pt-4">
-                    <AspectRatio ratio={1} className="w-20">
+         renderItem={({ item }) => {
+          const url = getMediaUrl(item.mediaURL);
 
-                      <Image
-                        source={
-                          url
-                            ? { uri: url }
-                            : require('@/assets/images/service2.png')
-                        }
-                        className="w-full h-full"
-                        resizeMode="contain"
-                      />
+          return (
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/CategoryProducts',
+                  params: {
+                    typeId: item.id,
+                    title: item.name,
+                  },
+                })
+              }
+              className="mb-4  w-[48%]"
+            >
+              <Card className="rounded-3xl border border-orange-400 overflow-hidden">
 
-                    </AspectRatio>
-                  </View>
+                <View className="items-center justify-center pt-4">
+                  <AspectRatio ratio={1} className="w-20">
+                    <Image
+                      source={
+                        url
+                          ? { uri: url }
+                          : require('@/assets/images/service2.png')
+                      }
+                      className="w-full h-full"
+                      resizeMode="contain"
+                    />
+                  </AspectRatio>
+                </View>
 
-                  {/* CONTENT */}
-                  <CardContent className="items-center justify-center pb-4 pt-2">
+                <CardContent className="items-center justify-center pb-4 pt-2">
+                  <Text
+                    className="text-sm font-semibold text-center px-2 text-gray-800"
+                    numberOfLines={2}
+                  >
+                    {item.name}
+                  </Text>
+                </CardContent>
 
-                    <Text
-                      className="text-sm font-semibold text-center px-2 text-gray-800"
-                      numberOfLines={2}
-                    >
-                      {item.name}
-                    </Text>
-
-                  </CardContent>
-
-                </Card>
-              </Pressable>
-            );
-          }}
-
-        />
-        </View>
-      )}
+              </Card>
+            </Pressable>
+          );
+        }}
+      />
     </Screen>
   );
 }
