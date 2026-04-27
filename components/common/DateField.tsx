@@ -1,5 +1,3 @@
-// components/common/DateField.tsx
-
 import { useState } from 'react';
 import { View } from 'react-native';
 import { DatePickerModal } from 'react-native-paper-dates';
@@ -23,7 +21,6 @@ export default function DateField({ value, onChange, label = 'Select Date' }: Pr
     <View className="gap-2">
       <Label>{label}</Label>
 
-      {/* 🔥 Single click trigger */}
       <Button
         variant="outline"
         className="h-12 justify-start rounded-xl border border-input bg-background px-4"
@@ -34,7 +31,6 @@ export default function DateField({ value, onChange, label = 'Select Date' }: Pr
           {value ? dayjs(value).format('DD MMM YYYY') : 'Pick a date'}
         </Text>
       </Button>
-      {/* 🔥 BEAUTIFUL CALENDAR MODAL */}
       <DatePickerModal
         locale="en"
         mode="single"

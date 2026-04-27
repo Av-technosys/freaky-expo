@@ -1,11 +1,8 @@
 import {
   View,
   Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  Modal,
-  ScrollView,
+  Pressable
+
 } from 'react-native';
 import { useState } from 'react';
 import { useRef } from 'react';
@@ -14,14 +11,13 @@ import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
-import BottomSheet from '@gorhom/bottom-sheet';
 import StatePickerSheet from '@/components/common/StatePickerSheet';
 import { Feather } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 
 import { addAddress, editAddress } from '@/api/user';
-import { US_STATES } from '@/const/US_STATE';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
+import { US_STATES } from '@/const/global';
 
 type Address = {
   id?: number;

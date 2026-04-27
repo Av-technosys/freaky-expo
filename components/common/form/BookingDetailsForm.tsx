@@ -41,18 +41,14 @@ import { fetchEventType, createEvent } from '@/api/event';
 import { useAppDispatch } from '@/store/hooks';
 import { setEventId, setEventType } from '@/store/slices/eventSlice';
 import { AppButton } from '../AppButton';
+import { GUEST_OPTIONS } from '@/const/global';
 
 type Props = {
   onSubmit: (data: any) => void;
   submitLabel?: string;
 };
 
-const GUEST_OPTIONS = [
-  { label: '0-100 guests', value: '0-100' },
-  { label: '101-200 guests', value: '101-200' },
-  { label: '201-350 guests', value: '201-350' },
-  { label: '351-500 guests', value: '351-500' },
-];
+
 
 const getEventIcon = (eventName: string) => {
   const name = eventName.toLowerCase();

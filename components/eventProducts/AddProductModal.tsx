@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -16,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { LinearGradient } from 'expo-linear-gradient';
 import TimeField from '@/components/common/TimeField';
-import { Clock, Minus, Plus, X } from 'lucide-react-native';
+import {Minus, Plus } from 'lucide-react-native';
 
 
 type Props = {

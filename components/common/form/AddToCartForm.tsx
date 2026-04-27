@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
 import { View, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 
-// React Native Reusables components
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Option } from '@/components/ui/select';
@@ -18,20 +15,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
 import Toast from 'react-native-toast-message';
 
-// Redux
 import { useAppDispatch } from '@/store/hooks';
 import { addToCart } from '@/store/slices/cartSlice';
 
-// API
 import { addCartItem } from '@/api/cart';
 import { Textarea } from '@/components/ui/textarea';
 import DateField from '@/components/common/DateField';
 import TimeField from '@/components/common/TimeField';
+import { GUEST_OPTIONS } from '@/const/global';
 
 type Props = {
   product: {
@@ -43,18 +38,11 @@ type Props = {
   onSuccess?: () => void;
 };
 
-const GUEST_OPTIONS = [
-  { label: '0-100 guests', value: '0-100' },
-  { label: '101-200 guests', value: '101-200' },
-  { label: '201-350 guests', value: '201-350' },
-  { label: '351-500 guests', value: '351-500' },
-] as const satisfies Option[];
+
 
 export default function AddToCartForm({ product, onSuccess }: Props) {
   const dispatch = useAppDispatch();
-  const navigation = useNavigation();
 
-  // FORM STATE
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -62,11 +50,9 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
   const [date, setDate] = useState<Date>();
   const [time, setTime] = useState<Date>();
   const [vendorNote, setVendorNote] = useState('');
-  // UI STATE
   const [loading, setLoading] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const guestValue = guests?.value; // 👈 extract string
+
+  const guestValue = guests?.value; 
   const isValid =
     fullName.trim().length > 0 &&
     phone.length >= 10 &&

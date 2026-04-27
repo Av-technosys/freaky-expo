@@ -51,4 +51,12 @@ export const US_STATES = [
   "Wyoming"
 ];
 
+ export const PAGE_SIZE = 10;
 
+
+export const GUEST_OPTIONS = [
+  { label: '0-100 guests', value: '0-100' },
+  { label: '101-200 guests', value: '101-200' },
+  { label: '201-350 guests', value: '201-350' },
+  { label: '351-500 guests', value: '351-500' },
+];

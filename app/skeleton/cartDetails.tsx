@@ -1,4 +1,3 @@
-// app/skeleton/cart/CartDetail.tsx
 
 import { View } from 'react-native';
 import { Skeleton } from '@/components/ui/skeleton';

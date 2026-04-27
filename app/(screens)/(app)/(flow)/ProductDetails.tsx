@@ -1,22 +1,16 @@
-import { View, ScrollView, Pressable, Image, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { useEffect, useState } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { useRef, useMemo } from 'react';
+import { useRoute } from '@react-navigation/native';
 
 // UI
 import { Text } from '@/components/ui/text';
 import ScreenHeader from '@/components/common/ScreenHeader';
 import { AppButton } from '@/components/common/AppButton';
 import Screen from '@/app/provider/Screen';
-// Sections (reusable components)
 import VendorHeaderCard from '@/components/ProductDetails/Header';
 import Details from '@/components/ProductDetails/Details';
 import VendorDetailsCard from '@/components/ProductDetails/VendorDetails';
 import ReviewSection from '@/components/ProductDetails/ReviewSection';
-import AddToCartForm from '@/components/common/form/AddToCartForm';
-
-// APIs
 import { getProductsByProductId, fetchProductReview } from '@/api/product';
 import { fetchVendorDetail } from '@/api/vendor';
 import ProductDetailsSkeleton from '@/app/skeleton/category/ProductDetail';

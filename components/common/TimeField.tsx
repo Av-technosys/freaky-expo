@@ -16,11 +16,7 @@ type Props = {
   label?: string;
 };
 
-export default function TimeField({
-  value,
-  onChange,
-  label = 'Select Time',
-}: Props) {
+export default function TimeField({ value, onChange, label = 'Select Time' }: Props) {
   const [visible, setVisible] = useState(false);
 
   const onDismiss = () => setVisible(false);
@@ -40,18 +36,16 @@ export default function TimeField({
     <View className="gap-2">
       <Label>{label}</Label>
 
-      {/* 🔥 SAME UI AS DATE FIELD */}
-<Button
-  variant="outline"
-  className="h-12 justify-start px-4 rounded-xl border border-input bg-background"
-  onPress={() => setVisible(true)}
->
-    <Clock size={18} color="#999" />
+      <Button
+        variant="outline"
+        className="h-12 justify-start rounded-xl border border-input bg-background px-4"
+        onPress={() => setVisible(true)}>
+        <Clock size={18} color="#999" />
 
-  <Text className=" ml-2 text-base font-normal text-foreground">
-    {value ? dayjs(value).format('hh:mm A') : 'Pick a time'}
-  </Text>
-</Button>  
+        <Text className="ml-2 text-base font-normal text-foreground">
+          {value ? dayjs(value).format('hh:mm A') : 'Pick a time'}
+        </Text>
+      </Button>
 
       {/* 🔥 BEAUTIFUL MATERIAL TIME PICKER */}
       <TimePickerModal

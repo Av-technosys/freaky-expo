@@ -50,44 +50,35 @@ export default function HomeScreen() {
   return (
     <>
       <Screen scroll>
-        {/* HEADER */}
         <HeaderSection bottomSheetRef={bottomSheetRef} />
 
-        {/* BANNERS */}
         <BannerCarousel banners={banners} loading={loading} />
 
-        {/* CATEGORIES */}
         <HomeCategoriesSection />
 
-        {/* WEDDING */}
         <WeddingBanner />
 
-        {/* EVENT */}
         <View style={{ marginTop: -60 }}>
           <EventCarousel />
         </View>
 
-        {/* SHOWCASE */}
         <Showcase />
 
-        {/* SERVICES */}
         <ServicesBlock />
 
-        {/* HOW IT WORK */}
         <HowItWork />
       </Screen>
 
-      {/* ✅ BOTTOM SHEET */}
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
         snapPoints={snapPoints}
         enablePanDownToClose
         onChange={(index) => setIsAddressSheetOpen(index >= 0)}>
-          <AddressSheetContent
-            isOpen={isAddressSheetOpen}
-            onClose={() => bottomSheetRef.current?.close()}
-          />
+        <AddressSheetContent
+          isOpen={isAddressSheetOpen}
+          onClose={() => bottomSheetRef.current?.close()}
+        />
       </BottomSheet>
     </>
   );

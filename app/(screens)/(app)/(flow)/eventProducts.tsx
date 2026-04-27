@@ -24,6 +24,7 @@ import EmptyProductsState from '@/components/eventProducts/EmptyProductsState';
 import FilterBottomSheet from '@/components/common/form/FilterForm';
 
 import { addProduct, removeProduct } from '@/store/slices/eventSlice';
+import { PAGE_SIZE } from '@/const/global';
 
 type Step = {
   id: number;
@@ -35,11 +36,11 @@ type StepStatus = 'initial' | 'green' | 'yellow' | 'red';
 
 export default function EventProductSection() {
   const navigation = useNavigation();
-  const eventId = useAppSelector(state => state.event.eventId);
-  const bookingDetails = useAppSelector(state => state.event.bookingDetails);
-  const selections = useAppSelector(state => state.event.selections);
-  const eventType = useAppSelector(state => state.event.eventType);
-  const event = useAppSelector(state => state.event);
+  const eventId = useAppSelector((state) => state.event.eventId);
+  const bookingDetails = useAppSelector((state) => state.event.bookingDetails);
+  const selections = useAppSelector((state) => state.event.selections);
+  const eventType = useAppSelector((state) => state.event.eventType);
+  const event = useAppSelector((state) => state.event);
   const dispatch = useAppDispatch();
 
   const [steps, setSteps] = useState<Step[]>([]);
@@ -51,7 +52,6 @@ export default function EventProductSection() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const PAGE_SIZE = 10;
   const [enabledSteps, setEnabledSteps] = useState<string[]>([]);
   const [tempEnabledSteps, setTempEnabledSteps] = useState<string[]>([]);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
@@ -63,7 +63,7 @@ export default function EventProductSection() {
   const [quantity, setQuantity] = useState(1);
   const [showServiceModal, setShowServiceModal] = useState(false);
 
-  const activeProductTypeId = steps.find(step => step.key === activeStep)?.id;
+  const activeProductTypeId = steps.find((step) => step.key === activeStep)?.id;
 
   // Helper functions
   const formatDate = (isoDate?: string) => {
@@ -130,7 +130,7 @@ export default function EventProductSection() {
     try {
       const res = await getProductsByProductTypeId(productTypeId, pageNumber, PAGE_SIZE);
       const newProducts = res.data ?? [];
-      setProducts(prev => pageNumber === 1 ? newProducts : [...prev, ...newProducts]);
+      setProducts((prev) => (pageNumber === 1 ? newProducts : [...prev, ...newProducts]));
       setHasMore(pageNumber < res.pagination.total_pages);
       setPage(pageNumber);
     } catch (error) {
@@ -163,7 +163,7 @@ export default function EventProductSection() {
           label: item.name.charAt(0).toUpperCase() + item.name.slice(1),
         }));
         setSteps(apiSteps);
-        const keys = apiSteps.map(s => s.key);
+        const keys = apiSteps.map((s) => s.key);
         const initialEnabled = keys.slice(0, 4);
         setEnabledSteps(initialEnabled);
         setTempEnabledSteps(initialEnabled);
@@ -178,27 +178,29 @@ export default function EventProductSection() {
   useEffect(() => {
     if (!steps.length) return;
     const initialStatus: Record<string, StepStatus> = {};
-    steps.forEach(step => { initialStatus[step.key] = 'initial'; });
+    steps.forEach((step) => {
+      initialStatus[step.key] = 'initial';
+    });
     setStepStatus(initialStatus);
   }, [steps]);
 
-  const STEPS = steps.filter(step => enabledSteps.includes(step.key));
+  const STEPS = steps.filter((step) => enabledSteps.includes(step.key));
   const activeIndex = STEPS.findIndex((s: { key: string }) => s.key === activeStep);
   const isLastStep = activeIndex === STEPS.length - 1;
 
   const handleContinue = async () => {
     const currentSelections = selections[activeStep] ?? [];
     const hasItems = currentSelections.length > 0;
-    setStepStatus(prev => ({ ...prev, [activeStep]: hasItems ? 'green' : 'red' }));
-    
+    setStepStatus((prev) => ({ ...prev, [activeStep]: hasItems ? 'green' : 'red' }));
+
     if (!isLastStep) {
       setActiveStep(STEPS[activeIndex + 1].key);
       return;
     }
-    
+
     try {
       if (!bookingDetails) throw new Error('Booking details missing');
-      
+
       const bookingRes = await createBooking({
         eventTypeId: bookingDetails.eventTypeId,
         source: 'EVENT',
@@ -212,10 +214,10 @@ export default function EventProductSection() {
         latitude: bookingDetails.latitude,
         longitude: bookingDetails.longitude,
       });
-      
+
       const bookingId = bookingRes.data.bookingId;
       const allProductIds = Object.values(selections).flat();
-      const bookingItems = allProductIds.map(productId => ({
+      const bookingItems = allProductIds.map((productId) => ({
         productId,
         quantity: 1,
         contactName: bookingDetails.contactName,
@@ -227,7 +229,7 @@ export default function EventProductSection() {
         latitude: bookingDetails.latitude,
         longitude: bookingDetails.longitude,
       }));
-      
+
       await addItemToBooking({ bookingId, items: bookingItems });
       navigation.getParent()?.navigate('FlowStack', { screen: 'TestingPayment' });
     } catch (error: any) {
@@ -237,13 +239,16 @@ export default function EventProductSection() {
 
   const handleSkip = () => {
     const currentSelections = selections[activeStep] ?? [];
-    setStepStatus(prev => ({ ...prev, [activeStep]: currentSelections.length > 0 ? 'green' : 'red' }));
+    setStepStatus((prev) => ({
+      ...prev,
+      [activeStep]: currentSelections.length > 0 ? 'green' : 'red',
+    }));
     const next = STEPS[activeIndex + 1];
     setActiveStep(next.key);
   };
 
   return (
-    <Screen >
+    <Screen>
       <EventTopHeader
         title={customerName}
         subtitle={eventName}
@@ -251,7 +256,7 @@ export default function EventProductSection() {
         image={eventImage}
         onPress={() => {}}
       />
-      
+
       <StepsHeader
         steps={STEPS}
         activeStep={activeStep}
@@ -266,62 +271,81 @@ export default function EventProductSection() {
         }}
       />
 
-        {loading && products.length === 0 ? (
-          <ProductSkeleton />
-        ) : products.length === 0 ? (
-          <EmptyProductsState />
-        ) : (
-          <FlatList
-            data={products}
-            keyExtractor={item => item.productId.toString()}
-        contentContainerStyle={{ paddingBottom: 120 }} // 👈 important
-            onEndReached={() => { if (products.length > 0) loadMore(); }}
-            onEndReachedThreshold={0.5}
-            renderItem={({ item }) => (
-              <EventProductCard
-                id={item?.productId}
-                title={item.title}
-                guests={`${item.minQuantity ?? 1} - ${item.maxQuantity ?? '∞'}`}
-                menu={item.pricingType ?? ''}
-                rating={item.rating}
-                price={item.currentPriceBook}
-                image={item.bannerImage ? { uri: `${process.env.EXPO_PUBLIC_AWS_IMAGE_URL}/${item.bannerImage}` } : require('@/assets/images/image_not_found.jpg')}
-                added={(selections[activeStep] ?? []).includes(item.productId)}
-                disabled={!item.isAvailable}
-                onAdd={() => {
-                  setSelectedProductId(item.productId);
-                  setStartTime(null);
-                  setEndTime(null);
-                  setQuantity(1);
-                  setShowAddProductModal(true);
-                }}
-                onRemove={() => {
-                  removeProductFromDraft(item.eventItemId);
-                  dispatch(removeProduct({ step: activeStep, productId: item.productId }));
-                }}
-              />
-            )}
-            ListFooterComponent={loading ? <View className="py-4"><ActivityIndicator size="small" /></View> : null}
-          />
-        )}
+      {loading && products.length === 0 ? (
+        <ProductSkeleton />
+      ) : products.length === 0 ? (
+        <EmptyProductsState />
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.productId.toString()}
+          contentContainerStyle={{ paddingBottom: 120 }} // 👈 important
+          onEndReached={() => {
+            if (products.length > 0) loadMore();
+          }}
+          onEndReachedThreshold={0.5}
+          renderItem={({ item }) => (
+            <EventProductCard
+              id={item?.productId}
+              title={item.title}
+              guests={`${item.minQuantity ?? 1} - ${item.maxQuantity ?? '∞'}`}
+              menu={item.pricingType ?? ''}
+              rating={item.rating}
+              price={item.currentPriceBook}
+              image={
+                item.bannerImage
+                  ? { uri: `${process.env.EXPO_PUBLIC_AWS_IMAGE_URL}/${item.bannerImage}` }
+                  : require('@/assets/images/image_not_found.jpg')
+              }
+              added={(selections[activeStep] ?? []).includes(item.productId)}
+              disabled={!item.isAvailable}
+              onAdd={() => {
+                setSelectedProductId(item.productId);
+                setStartTime(null);
+                setEndTime(null);
+                setQuantity(1);
+                setShowAddProductModal(true);
+              }}
+              onRemove={() => {
+                removeProductFromDraft(item.eventItemId);
+                dispatch(removeProduct({ step: activeStep, productId: item.productId }));
+              }}
+            />
+          )}
+          ListFooterComponent={
+            loading ? (
+              <View className="py-4">
+                <ActivityIndicator size="small" />
+              </View>
+            ) : null
+          }
+        />
+      )}
 
-        <View style={{ paddingBottom: insets.bottom + 20 || 16, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#e5e5e5' }}>
-          <View className="px-4 pt-3">
-            <View className="flex-row justify-between items-center gap-8 pb-3">
-              {!isLastStep && (
-                <Pressable onPress={handleSkip} className="flex-1 h-14 rounded-2xl border-2 bg-white border-yellow-400 justify-center">
-                  <Text className="text-center text-base font-semibold text-black">Skip</Text>
-                </Pressable>
-              )}
-              <Pressable onPress={handleContinue} className="flex-1 h-14 rounded-2xl overflow-hidden">
-                <LinearGradient colors={['#F97316', '#FACC15']} className="flex-1 justify-center">
-                  <Text className="text-white text-center text-lg font-bold">Continue</Text>
-                </LinearGradient>
+      <View
+        style={{
+          paddingBottom: insets.bottom + 20 || 16,
+          backgroundColor: 'white',
+          borderTopWidth: 1,
+          borderTopColor: '#e5e5e5',
+        }}>
+        <View className="px-4 pt-3">
+          <View className="flex-row items-center justify-between gap-8 pb-3">
+            {!isLastStep && (
+              <Pressable
+                onPress={handleSkip}
+                className="h-14 flex-1 justify-center rounded-2xl border-2 border-yellow-400 bg-white">
+                <Text className="text-center text-base font-semibold text-black">Skip</Text>
               </Pressable>
-            </View>
+            )}
+            <Pressable onPress={handleContinue} className="h-14 flex-1 overflow-hidden rounded-2xl">
+              <LinearGradient colors={['#F97316', '#FACC15']} className="flex-1 justify-center">
+                <Text className="text-center text-lg font-bold text-white">Continue</Text>
+              </LinearGradient>
+            </Pressable>
           </View>
         </View>
-      
+      </View>
 
       <AddProductModal
         visible={showAddProductModal}
@@ -345,8 +369,8 @@ export default function EventProductSection() {
         tempEnabledSteps={tempEnabledSteps}
         onClose={() => setShowServiceModal(false)}
         onStepToggle={(stepKey) => {
-          setTempEnabledSteps(prev =>
-            prev.includes(stepKey) ? prev.filter(k => k !== stepKey) : [...prev, stepKey]
+          setTempEnabledSteps((prev) =>
+            prev.includes(stepKey) ? prev.filter((k) => k !== stepKey) : [...prev, stepKey]
           );
         }}
         onConfirm={() => {
