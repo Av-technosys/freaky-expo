@@ -1,4 +1,3 @@
-// components/auth/SignUpForm.tsx
 
 import React, { useState } from 'react';
 import { View, Image, Pressable } from 'react-native';
@@ -9,9 +8,7 @@ import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
 import { Signup } from '@/api';
-import { loginSuccess } from '@/store/slices/authSlice';
 
-// UI
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

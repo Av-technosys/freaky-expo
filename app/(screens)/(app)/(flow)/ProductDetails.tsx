@@ -22,13 +22,14 @@ export default function ProductDetails() {
   const route = useRoute<any>();
 
   const { productId } = route.params ?? {};
-
+const [selectedProduct, setSelectedProduct] = useState<any>(null)
+const [selectedSlabIndex, setSelectedSlabIndex] = useState<number | null>(null)
   const [product, setProduct] = useState<any>(null);
   const [vendor, setVendor] = useState<any>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [reviewsLoading, setReviewsLoading] = useState(true);
-
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     if (!productId) return;
@@ -37,13 +38,13 @@ export default function ProductDetails() {
       try {
         setLoading(true);
 
-        const [productRes, vendorRes] = await Promise.all([
+        const [productRes, vendor] = await Promise.all([
           getProductsByProductId(productId),
-          fetchVendorDetail(),
+          fetchVendorDetail(productId),
         ]);
-
+        console.log(JSON.stringify(productRes, null, 2));
         setProduct(productRes.product);
-        setVendor(vendorRes.data);
+        setVendor(vendor.data);
       } catch (err) {
         console.log('PRODUCT FETCH ERROR', err);
       } finally {
@@ -82,8 +83,13 @@ export default function ProductDetails() {
     );
   }
 
-  const price = product?.prices?.[0]?.salePrice ?? product?.prices?.[0]?.listPrice ?? 0;
+  const validSlabs = product?.priceSlabs?.filter(
+    (s: any) => s.lowerSlab <= (s.upperSlab ?? Infinity)
+  );
+  const safeSlabs = Array.isArray(validSlabs) ? validSlabs : [];
 
+  const price =
+    safeSlabs.length > 0 ? Number(safeSlabs[selectedIndex]?.salePrice ?? 0) : (product?.price ?? 0);
   const vendorLogo = vendor?.logoUrl
     ? { uri: `${S3_BASE_URL}/${vendor.logoUrl}` }
     : require('@/assets/images/vendor-logo.png');
@@ -114,22 +120,28 @@ export default function ProductDetails() {
           ratingCount={`${product.rating}`}
           price={price}
           description={product.description}
+          priceSlabs={product.priceSlabs}
+          selectedIndex={selectedIndex}
+          setSelectedIndex={setSelectedIndex}
         />
 
         {/* VENDOR */}
         <VendorDetailsCard
-          logo={vendorLogo}
-          name={vendor?.businessName}
-          location={`${vendor?.streetAddressLine1 ?? ''}, ${vendor?.city ?? ''}`}
-          vendorId={vendor?.vendorId}
-          serviceId={product.productId}
+          name={vendor?.legalEntityName}
+          location={`${vendor?.streetAddressLine1}, ${vendor?.city}, ${vendor?.state}`}
+          vendorId={vendor?.vendorId?.toString()}
+          serviceId={productId?.toString()}
           email={vendor?.primaryContactEmail}
+          logo={vendor?.logoUrl ? { uri: `${S3_BASE_URL}/${vendor.logoUrl}` } : undefined}
+          facebook={vendor?.facebookURL}
+          instagram={vendor?.instagramURL}
+          youtube={vendor?.youtubeURL}
         />
 
         {/* REVIEWS */}
         <ReviewSection reviews={reviews} loading={reviewsLoading} />
 
-        <View className="px-4 pb-6">
+        <View className="py-6">
           <AppButton
             variant="default"
             onPress={() =>

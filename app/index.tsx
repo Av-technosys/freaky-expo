@@ -35,7 +35,7 @@ export default function IntroScreen() {
         loop={false}
         resizeMode="cover"
         onAnimationFinish={() => {
-          checkAuth();
+           router.replace('/home')
         }}
         style={StyleSheet.absoluteFill}
       />

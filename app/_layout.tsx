@@ -1,5 +1,3 @@
-
-
 import '@/global.css';
 
 import { NAV_THEME } from '@/lib/theme';
@@ -18,43 +16,35 @@ import { AppState } from 'react-native'; // 👈 ADD THIS
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 export { ErrorBoundary } from 'expo-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const { setColorScheme } = useColorScheme();
-
   useEffect(() => {
     setColorScheme('light');
   }, []);
 
-  // 🔥 ADD THIS BLOCK
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        router.replace('/'); // 👈 forces app to restart flow
-      }
-    });
-
-    return () => sub.remove();
-  }, []);
 
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-           <GestureHandlerRootView style={{ flex: 1 }}>
-        <RootProvider>
-          <ThemeProvider value={NAV_THEME['light']}>
-            <StatusBar style="dark" />
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <QueryClientProvider client={queryClient}>
+            <RootProvider>
+              <ThemeProvider value={NAV_THEME['light']}>
+                <StatusBar style="dark" />
 
-            {/* 👇 also add this */}
-            <Stack
-              initialRouteName="index"
-              screenOptions={{ headerShown: false }}
-            />
+                {/* 👇 also add this */}
+                <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
 
-            <Toast />
-            <PortalHost />
-          </ThemeProvider>
-        </RootProvider>
+                <Toast />
+                <PortalHost />
+              </ThemeProvider>
+            </RootProvider>
+          </QueryClientProvider>
         </GestureHandlerRootView>
       </PersistGate>
     </Provider>

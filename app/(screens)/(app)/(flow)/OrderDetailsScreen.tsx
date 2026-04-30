@@ -72,8 +72,8 @@ export default function OrderDetailsScreen() {
       try {
         setLoading(true);
         const res = await fetchBookingbyId(bookingId);
-        setBookingItems(res.data);
-        setBooking(res.data[0]);
+        setBookingItems(res.items || [])
+        setBooking(res.booking || null)
       } catch (err) {
         console.error('Failed to fetch booking details', err);
         Toast.show({
@@ -256,7 +256,7 @@ const handleAddReview = () => {
                       </View>
 
                       <Text className="text-lg font-bold text-primary">
-                        ₹{item.productPrice || '0'}
+                        ${item.productPrice || '0'}
                       </Text>
                     </View>
 

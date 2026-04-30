@@ -18,13 +18,17 @@ export const addItemToBooking = async (payload: any) => {
   return response.data;
 };
 
-export const fetchBookings = async (pageNumber: number) => {
+export const fetchBookings = async () => {
   const response = await privateApi.get(
-    '/booking/'
+    '/booking/my-bookings'
   );
   return response.data;
 };
 
+export const fetchMyBookings = async () => {
+  const res = await privateApi.get('/booking/my-bookings')
+  return res.data
+}
 export const fetchBookingbyId = async (id: string) => {
   const response = await privateApi.get(
     `/booking/${id}`

@@ -1,74 +1,96 @@
-import { publicApi } from './axios';
+import { publicApi } from './axios'
+import { useMutation } from '@tanstack/react-query'
 
 type LoginPayload = {
-  email: string;
-  password: string;
-};
-
+  email: string
+  password: string
+}
 
 type ConfirmOtpPayload = {
-  email: string;
-  code: string;
-};
+  email: string
+  code: string
+}
 
 type ResendOtpPayload = {
-  username: string;
-};
+  username: string
+}
 
 type ForgotPasswordPayload = {
-  email: string;
-};
+  email: string
+}
 
 type ConfirmForgotPasswordPayload = {
-  username: string;
-  code: string;
-  newPassword: string;
-};
-
+  username: string
+  code: string
+  newPassword: string
+}
 
 export const login = async (payload: LoginPayload) => {
-  const response = await publicApi.post('/auth/signin', payload);
-  return response.data;
-};
-
+  const response = await publicApi.post('/auth/signin', payload)
+  return response.data
+}
 
 export const Signup = (payload: {
-  full_name: string;
-  number: string;
-  email: string;
-  password: string;
+  full_name: string
+  number: string
+  email: string
+  password: string
 }) => {
-  return publicApi.post('/auth/signup', payload);
-};
-
+  return publicApi.post('/auth/signup', payload)
+}
 
 export const confirmOtp = async (payload: ConfirmOtpPayload) => {
-  const { data } = await publicApi.post('/auth/confirm', payload);
-  return data;
-};
+  const { data } = await publicApi.post('/auth/confirm', payload)
+  return data
+}
 
 export const resendOtp = async (payload: ResendOtpPayload) => {
-  const { data } = await publicApi.post('/auth/resend-otp', payload);
-  return data;
-};
+  const { data } = await publicApi.post('/auth/resend-otp', payload)
+  return data
+}
 
+export const forgotPassword = async (payload: ForgotPasswordPayload) => {
+  const { data } = await publicApi.post('/auth/forgot-password', payload)
+  return data
+}
 
-export const forgotPassword = async (
-  payload: ForgotPasswordPayload
-) => {
-  const { data } = await publicApi.post(
-    '/auth/forgot-password',
-    payload
-  );
-  return data;
-};
+export const confirmForgotPassword = async (payload: ConfirmForgotPasswordPayload) => {
+  const { data } = await publicApi.post('/auth/confirm_forgot_password', payload)
+  return data
+}
 
-export const confirmForgotPassword = async (
-  payload: ConfirmForgotPasswordPayload
-) => {
-  const { data } = await publicApi.post(
-    '/auth/confirm_forgot_password',
-    payload
-  );
-  return data;
-};
+export const useLogin = () => {
+  return useMutation({
+    mutationFn: login
+  })
+}
+
+export const useSignup = () => {
+  return useMutation({
+    mutationFn: Signup
+  })
+}
+
+export const useConfirmOtp = () => {
+  return useMutation({
+    mutationFn: confirmOtp
+  })
+}
+
+export const useResendOtp = () => {
+  return useMutation({
+    mutationFn: resendOtp
+  })
+}
+
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: forgotPassword
+  })
+}
+
+export const useConfirmForgotPassword = () => {
+  return useMutation({
+    mutationFn: confirmForgotPassword
+  })
+}

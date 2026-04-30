@@ -24,7 +24,7 @@ export default function EventTopHeader({
   return (
     <Pressable
       onPress={onPress}
-      className="mx-4 mt-3 flex-row items-start justify-between"
+      className="mx-4 mt-6 flex-row items-start justify-between"
     >
       {/* TEXT SECTION with Gradient Mask */}
       <View className="flex-1 pr-4">

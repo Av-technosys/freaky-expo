@@ -9,6 +9,9 @@ type VendorDetailsCardProps = {
   serviceId?: string;
   email?: string;
   logo?: any;
+  facebook?: string;
+  instagram?: string;
+  youtube?: string;
 };
 
 export default function VendorDetailsCard({
@@ -18,18 +21,17 @@ export default function VendorDetailsCard({
   serviceId = '',
   email = '',
   logo,
+  facebook,
+  instagram,
+  youtube,
 }: VendorDetailsCardProps) {
   return (
     <View className="mb-4">
-
       {/* TITLE */}
-      <Text className="text-2xl my-3 font-bold text-black">
-        Vendor Details
-      </Text>
+      <Text className="my-3 text-2xl font-bold text-black">Vendor Details</Text>
 
       {/* CARD */}
       <View style={{ borderRadius: 18, overflow: 'hidden' }}>
-
         <LinearGradient
           colors={['#F97316', '#FDBA74']}
           start={{ x: 0, y: 0.5 }}
@@ -39,56 +41,36 @@ export default function VendorDetailsCard({
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-          }}
-        >
-
+          }}>
           {/* LEFT */}
           <View className="flex-1 pr-3">
+            <Text className="text-2xl font-bold text-white">{name}</Text>
 
-            <Text className="text-white text-2xl font-bold">
-              {name}
-            </Text>
+            {!!location && <Text className="mt-1 text-sm text-white/90">{location}</Text>}
 
-            {!!location && (
-              <Text className="text-white/90 text-sm mt-1">
-                {location}
-              </Text>
-            )}
-
-            <Text className="text-white/90 text-sm mt-1">
+            <Text className="mt-1 text-sm text-white/90">
               Vendor ID: {vendorId || '-'} | Service ID: {serviceId || '-'}
             </Text>
 
-            {!!email && (
-              <Text className="text-white/90 text-sm mt-1">
-                {email}
-              </Text>
-            )}
+            {!!email && <Text className="mt-1 text-sm text-white/90">{email}</Text>}
 
             {/* SOCIAL ICONS */}
-            <View className="flex-row mt-3 gap-4">
-              <Feather name="facebook" size={18} color="#fff" />
-              <Feather name="instagram" size={18} color="#fff" />
-              <Feather name="twitter" size={18} color="#fff" />
+            <View className="mt-3 flex-row gap-4">
+              {!!facebook && <Feather name="facebook" size={18} color="#fff" />}
+              {!!instagram && <Feather name="instagram" size={18} color="#fff" />}
+              {!!youtube && <Feather name="youtube" size={18} color="#fff" />}
             </View>
-
           </View>
 
           {/* RIGHT LOGO */}
           <View className="rounded-xl bg-white/10 p-2">
             <Image
-              source={
-                logo?.uri
-                  ? logo
-                  : require('@/assets/images/vendor-logo.png')
-              }
-              className="w-28 h-28"
+              source={logo?.uri ? logo : require('@/assets/images/vendor-logo.png')}
+              className="h-28 w-28"
               resizeMode="contain"
             />
           </View>
-
         </LinearGradient>
-
       </View>
     </View>
   );

@@ -34,6 +34,7 @@ export const addCartItem = async (payload: AddCartItemPayload) => {
 };
 
 export const fetchBookingDetailsById = async (BookingDraftId : number) => {
-  const res = await privateApi.get(`user/cart/${BookingDraftId}`)
+  const res = await privateApi.get(`user/cart/item/${BookingDraftId}`)
+  console.log('booking details', BookingDraftId)
   return res.data
 }

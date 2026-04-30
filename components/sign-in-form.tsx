@@ -6,13 +6,10 @@ import { useDispatch } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Toast from 'react-native-toast-message';
 import { useRouter } from 'expo-router';
-
 import { login } from '@/api/auth';
 import { loginSuccess } from '@/store/slices/authSlice';
 import { decodeIdToken } from '@/utils/decodeToken';
 import { Feather } from '@expo/vector-icons';
-// UI (reusables)
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,7 +46,7 @@ export function SignInForm() {
         ['refreshToken', data.refreshToken],
         ['idToken', data.idToken],
       ]);
-     setGlobalToken(data.accessToken); // 👈 important
+     setGlobalToken(data.accessToken); 
       const user = decodeIdToken(data.idToken);
       await AsyncStorage.setItem('username', user?.username);
 
@@ -73,7 +70,7 @@ export function SignInForm() {
 
   return (
     <View className="mt-12 gap-6">
-      {/* LOGO (keep your branding 🔥) */}
+      
       <View className="items-center">
         <Image
           source={require('@/assets/images/freeky-icon.png')}

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { View, Image, Pressable, ImageSourcePropType } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Star, Users, MapPin } from 'lucide-react-native';
 
 // React Native Reusables components
@@ -39,7 +38,6 @@ export default function ProductCard({
   price,
   image,
 }: ProductCardProps) {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
     <Pressable
@@ -85,7 +83,7 @@ export default function ProductCard({
               {price > 0 && (
                 <View className="mt-3">
                   <Badge variant="secondary" className="self-start">
-                    <Text className="font-bold text-primary">₹{price}</Text>
+                    <Text className="font-bold text-primary">${price}</Text>
                   </Badge>
                 </View>
               )}

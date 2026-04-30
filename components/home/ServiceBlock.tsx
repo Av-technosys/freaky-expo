@@ -54,6 +54,7 @@ export default function ServicesBlock() {
       const res = await getAllFeaturedProducts();
       if (res?.data && Array.isArray(res.data)) {
         setSections(res.data);
+        console.log('Fetched featured products:', res.data);
         console.log(res.data)
       } else {
         setSections([]);

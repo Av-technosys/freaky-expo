@@ -11,6 +11,9 @@ export const refreshIdToken = async () => {
   const username = await tokenStorage.getUsername();
 
 
+   console.log('refreshToken', refreshToken);
+   console.log('username', username);
+
   if (!refreshToken || !username) {
     throw new Error('Missing refresh credentials');
   }
@@ -22,10 +25,13 @@ export const refreshIdToken = async () => {
   const newIdToken =
     data?.response?.AuthenticationResult?.IdToken;
 
+     console.log('newIdToken', newIdToken);
   if (!newIdToken) {
     throw new Error('Invalid refresh response');
   }
 
   await tokenStorage.setIdToken(newIdToken);
+
+  console.log('ID token refreshed successfully');
   return newIdToken;
 };

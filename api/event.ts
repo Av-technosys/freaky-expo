@@ -10,17 +10,7 @@ export const getBanners = async () => {
 
     return response.data;
   } catch (error: any) {
-    console.log("❌ API ERROR:");
-
-    if (error.response) {
-  
-    } else if (error.request) {
-      console.log("🟡 NO RESPONSE RECEIVED:", error.request);
-    } else {
-      console.log("⚠️ ERROR MESSAGE:", error.message);
-    }
-
-    throw error;
+    console.log("❌ API ERROR:" ,error?.response?.data || error.message || error);
   }
 };
 
@@ -57,6 +47,8 @@ export const saveInBookingDraft = async (payload: {
   quantity: any;
   startTime : any;
   endTime : any;
+  slabIndex: any;
+  price: any;
 }) => {
   const response = await privateApi.post('/event/create_eventitem', payload);
   return response.data;

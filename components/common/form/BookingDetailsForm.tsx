@@ -10,10 +10,7 @@ import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -39,24 +36,13 @@ import {
 
 import { fetchEventType, createEvent } from '@/api/event';
 import { useAppDispatch } from '@/store/hooks';
-import { setEventId, setEventType } from '@/store/slices/eventSlice';
+import { resetEvent, setEventId, setEventType } from '@/store/slices/eventSlice';
 import { AppButton } from '../AppButton';
 import { GUEST_OPTIONS } from '@/const/global';
 
 type Props = {
   onSubmit: (data: any) => void;
   submitLabel?: string;
-};
-
-
-
-const getEventIcon = (eventName: string) => {
-  const name = eventName.toLowerCase();
-  if (name.includes('wedding')) return '🎉';
-  if (name.includes('party') || name.includes('birthday')) return '🎈';
-  if (name.includes('concert') || name.includes('music')) return '🎵';
-  if (name.includes('dinner') || name.includes('food')) return '🍽️';
-  return '📸';
 };
 
 export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' }: Props) {
@@ -95,6 +81,8 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
     };
 
     try {
+      dispatch(resetEvent());
+
       dispatch(
         setEventType({
           id: eventTypeItem.id,

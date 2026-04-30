@@ -60,7 +60,7 @@ export default function EventCarousel() {
             <View className="mt-2 flex-row gap-2 items-baseline justify-center">
               <Text className="text-sm text-black">Starting</Text>
               <Text className="text-[14px] font-semibold text-orange-600">
-                ₹{item.price}
+                ${item.price}
               </Text>
             </View>
           </View>

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react';
 import { View, Image, Pressable, ImageSourcePropType } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { Star, Users, Plus, Trash2 } from 'lucide-react-native';
 
 // React Native Reusables components
@@ -29,6 +28,8 @@ type ProductCardProps = {
   disabled?: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
+  pricingType: string;
+  priceSlabs?: any[];
 };
 
 export default function ProductCard({
@@ -43,9 +44,9 @@ export default function ProductCard({
   disabled = false,
   onAdd,
   onRemove,
+  pricingType,
+  priceSlabs = [],
 }: ProductCardProps) {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
   const handleImagePress = () => {
     router.push({
       pathname: '/ProductDetails',
@@ -54,7 +55,8 @@ export default function ProductCard({
   };
 
   return (
-    <Card className={`overflow-hidden border border-border ${disabled ? 'opacity-60' : ''}`}>
+    <Card
+      className={`mt-4 overflow-hidden border border-border py-4 ${disabled ? 'opacity-60' : ''}`}>
       <CardContent className="p-0">
         <View className="flex-row">
           {/* Left Content */}
@@ -83,7 +85,15 @@ export default function ProductCard({
             {/* Price */}
             <View className="mt-2 h-6 justify-center">
               {price != null && price !== 0 ? (
-                <Text className="text-lg font-semibold text-foreground">₹{price}</Text>
+                <>
+                  {pricingType === 'FLAT' && (
+                    <Text className="text-lg font-semibold">$ {price}</Text>
+                  )}
+
+                  {pricingType === 'TIER' && (
+                    <Text className="text-lg font-semibold">Starts from $ {price}</Text>
+                  )}
+                </>
               ) : (
                 <Text className="text-lg font-semibold text-transparent"> </Text>
               )}
@@ -95,8 +105,7 @@ export default function ProductCard({
                 disabled={disabled}
                 onPress={onAdd}
                 size="sm"
-                className={`mt-3 w-24 ${disabled ? 'bg-muted' : 'bg-yellow-500'}`}
-              >
+                className={`mt-3 w-24 ${disabled ? 'bg-muted' : 'bg-yellow-500'}`}>
                 <View className="flex-row items-center gap-1">
                   <Plus size={14} color="white" />
                   <Text className="font-bold text-white">Add</Text>
@@ -108,15 +117,13 @@ export default function ProductCard({
                 onPress={onRemove}
                 className={`mt-3 self-start rounded-md border px-4 py-1.5 ${
                   disabled ? 'border-muted' : 'border-yellow-500'
-                }`}
-              >
+                }`}>
                 <View className="flex-row items-center gap-1">
                   <Trash2 size={14} color={disabled ? '#9CA3AF' : '#F59E0B'} />
                   <Text
                     className={`font-semibold ${
                       disabled ? 'text-muted-foreground' : 'text-yellow-500'
-                    }`}
-                  >
+                    }`}>
                     Remove
                   </Text>
                 </View>

@@ -24,11 +24,17 @@ type EventTypeInfo = {
   image: string | null;
 };
 
+
 type EventState = {
   eventId: number | null;
   eventType: EventTypeInfo | null;
   bookingDetails: BookingDetails | null;
-  selections: Record<string, string[]>;
+  selections: Record<string, {
+  productId: number;
+  slabIndex?: number;
+  price?: number;
+  quantity?: number;
+}[]>;
 };
 
 const initialState: EventState = {
@@ -61,29 +67,37 @@ const eventSlice = createSlice({
     },
 
     addProduct(
-      state,
-      action: PayloadAction<{ step: string; productId: any }>
-    ) {
-      const { step, productId } = action.payload;
+  state,
+  action: PayloadAction<{
+    step: string;
+    productId: number;
+    slabIndex?: number;
+    price?: number;
+    quantity?: number;
+  }>
+) {
+  const { step, productId, slabIndex, price } = action.payload;
 
-      if (!state.selections[step]) {
-        state.selections[step] = [];
-      }
+  if (!state.selections[step]) {
+    state.selections[step] = [];
+  }
 
-      if (!state.selections[step].includes(productId)) {
-        state.selections[step].push(productId);
-      }
-    },
+  const exists = state.selections[step].find(p => p.productId === productId);
+
+  if (!exists) {
+    state.selections[step].push({ productId, slabIndex, price, quantity: action.payload.quantity || 1 });
+  }
+},
 
     removeProduct(
       state,
-      action: PayloadAction<{ step: string; productId: string }>
+      action: PayloadAction<{ step: string; productId: number }>
     ) {
       const { step, productId } = action.payload;
       if (!state.selections[step]) return;
 
       state.selections[step] = state.selections[step].filter(
-        id => id !== productId
+        p => p.productId !== productId
       );
     },
 

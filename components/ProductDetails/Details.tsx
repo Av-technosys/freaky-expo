@@ -1,10 +1,9 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { AntDesign, MaterialIcons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 
-const safeMarkdown = (value?: string | null) =>
-  typeof value === 'string' ? value : '';
+const safeMarkdown = (value?: string | null) => (typeof value === 'string' ? value : '');
 
 type DetailsProps = {
   title?: string;
@@ -13,6 +12,9 @@ type DetailsProps = {
   ratingCount?: string;
   price?: number | null;
   description?: string;
+  priceSlabs?: any[];
+  selectedIndex: number;
+  setSelectedIndex: (index: number) => void;
 };
 
 export default function Details({
@@ -22,12 +24,19 @@ export default function Details({
   ratingCount = '0',
   price,
   description,
+  priceSlabs,
+  selectedIndex,
+  setSelectedIndex,
 }: DetailsProps) {
   const stars = 5;
 
-  return (
-    <View className="mt-4 rounded-xl bg-white p-2">
+  const selectedPrice =
+    subtitle === 'TIER' && priceSlabs?.length
+      ? Number(priceSlabs[selectedIndex]?.salePrice)
+      : price;
 
+  return (
+    <View className="mt-4 rounded-xl bg-white">
       {/* TITLE */}
       <Markdown
         style={{
@@ -38,13 +47,12 @@ export default function Details({
             lineHeight: 28,
           },
           paragraph: { marginBottom: 0 },
-        }}
-      >
+        }}>
         {safeMarkdown(title)}
       </Markdown>
 
       {/* SUBTITLE */}
-      {!!subtitle && (
+      {/* {!!subtitle && (
         <Markdown
           style={{
             body: {
@@ -57,7 +65,7 @@ export default function Details({
         >
           {safeMarkdown(subtitle)}
         </Markdown>
-      )}
+      )} */}
 
       {/* RATING */}
       <View className="mt-3 flex-row items-center">
@@ -71,39 +79,85 @@ export default function Details({
           />
         ))}
 
-        <Text className="ml-2 text-gray-500 text-sm">
-          {ratingCount}
-        </Text>
+        <Text className="ml-2 text-sm text-gray-500">{ratingCount}</Text>
       </View>
 
       {/* PRICE */}
       {typeof price === 'number' && (
         <View className="mt-3 flex-row items-center">
-          <MaterialIcons
-            name="attach-money"
-            size={24}
-            color="#F97316"
-          />
-          <Text className="text-2xl font-bold text-orange-500">
-            {price}
-          </Text>
+          <MaterialIcons name="attach-money" size={24} color="#F97316" />
+          <Text className="text-2xl font-bold text-orange-500">{selectedPrice}</Text>
         </View>
       )}
 
-      {/* CTA */}
-      <Text className="mt-1 text-gray-500">
-        See all options
-      </Text>
+      {subtitle === 'TIER' && priceSlabs?.length ? (
+        <View className="mt-4 px-2">
+          {/* HEADER */}
+          <View className="mb-2 flex-row border-b border-gray-200 pb-2">
+            <Text className="flex-1 font-semibold text-gray-700">Lower bound</Text>
+            <Text className="flex-1 text-center font-semibold text-gray-700">Upper bound</Text>
+            <Text className="flex-1 text-center font-semibold text-gray-700">Price</Text>
+            <View style={{ width: 24 }} /> {/* Space for Radio column */}
+          </View>
+
+          {priceSlabs.map((item: any, index: number) => {
+            if (item.lowerSlab > item.upperSlab) return null;
+            const isSelected = selectedIndex === index;
+
+            return (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setSelectedIndex(index)}
+                className="flex-row items-center border-b border-gray-100 py-4">
+                {/* COLUMN 1: Lower bound */}
+                <Text className="flex-1 font-semibold text-gray-700">{item.lowerSlab}</Text>
+
+                {/* COLUMN 2: Upper bound */}
+                <Text className="flex-1 text-center font-semibold text-gray-700">
+                  {item.upperSlab ?? '-'}
+                </Text>
+
+                {/* COLUMN 3: Price */}
+                <Text className="flex-1 text-center font-semibold text-orange-500">
+                  $ {Number(item.salePrice)}
+                </Text>
+
+                {/* COLUMN 4: RADIO BUTTON */}
+                <View style={{ width: 24, alignItems: 'center' }}>
+                  <View
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      borderWidth: 2,
+                      borderColor: '#F97316',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    {isSelected && (
+                      <View
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          backgroundColor: '#F97316',
+                        }}
+                      />
+                    )}
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ) : null}
 
       {/* DIVIDER */}
-      <View className="my-4 h-px bg-gray-200" />
-
+      <View className="my-2" />
       {/* DESCRIPTION */}
       {!!description && (
         <>
-          <Text className="text-base font-semibold text-black">
-            Description
-          </Text>
+          <Text className="text-base font-semibold text-black">Description</Text>
 
           <Markdown
             style={{
@@ -113,11 +167,31 @@ export default function Details({
                 lineHeight: 22,
                 marginTop: 8,
               },
-              paragraph: { marginBottom: 6 },
-              strong: { fontWeight: '700' },
-              em: { fontStyle: 'italic' },
-            }}
-          >
+
+              paragraph: {
+                marginTop: 10,
+                marginBottom: 10,
+              },
+
+              heading1: {
+                fontSize: 22,
+                fontWeight: '700',
+                marginTop: 16,
+                marginBottom: 12,
+              },
+
+              heading2: {
+                fontSize: 16,
+                fontWeight: '700',
+                marginTop: 16,
+                marginBottom: 10,
+              },
+
+              list_item: {
+                marginTop: 6,
+                marginBottom: 6,
+              },
+            }}>
             {safeMarkdown(description)}
           </Markdown>
         </>

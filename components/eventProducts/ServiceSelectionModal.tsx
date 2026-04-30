@@ -39,35 +39,33 @@ export default function ServiceSelectionModal({
                 <Text className="text-2xl">✕</Text>
               </Pressable>
             </View>
-
-            <View className="relative items-center mb-4">
+            <View className="relative mb-4 items-center">
               <View className="absolute left-0 right-0 top-1/2 h-[1px] bg-orange-400" />
-              <Text className="px-4 text-lg font-semibold text-orange-500 bg-white">Choose Your Services</Text>
+              <Text className="bg-white px-4 text-lg font-semibold text-orange-500">
+                Choose Your Services
+              </Text>
             </View>
-
             <View className="mt-2">
-              {steps.map(step => {
+              {steps.map((step) => {
                 const checked = tempEnabledSteps.includes(step.key);
                 return (
                   <Pressable
                     key={step.id}
                     onPress={() => onStepToggle(step.key)}
-                    className="flex-row items-center justify-between px-3 py-2 rounded-xl mb-2"
-                  >
-                    <Text className={`text-lg font-medium ${checked ? 'text-orange-600' : 'text-orange-500'}`}>
+                    className="mb-2 flex-row items-center justify-between rounded-xl px-3 py-2">
+                    <Text
+                      className={`text-lg font-medium ${checked ? 'text-orange-600' : 'text-orange-500'}`}>
                       {step.label}
                     </Text>
-                    <View className={`w-6 h-6 rounded-md border items-center justify-center ${checked ? 'bg-orange-500 border-orange-500' : 'border-gray-400'}`}>
+                    <View
+                      className={`h-6 w-6 items-center justify-center rounded-md border ${checked ? 'border-orange-500 bg-orange-500' : 'border-gray-400'}`}>
                       {checked && <Feather name="check" size={16} color="#fff" />}
                     </View>
                   </Pressable>
                 );
               })}
             </View>
-           <AppButton>
-            Confirm
-           </AppButton>
-            
+            <AppButton onPress={onConfirm}>Confirm</AppButton> 
           </CardContent>
         </Card>
       </View>

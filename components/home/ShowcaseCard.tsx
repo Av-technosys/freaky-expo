@@ -49,7 +49,7 @@ export default function ShowcaseCard({ item, index }: any) {
             {/* PRICE */}
             {price ? (
               <Text className="mt-1 text-sm text-muted-foreground">
-                Starting <Text className="font-semibold text-orange-500">₹{price}</Text>
+                Starting <Text className="font-semibold text-orange-500">${price}</Text>
               </Text>
             ) : null}
           </View>

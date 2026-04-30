@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/dialog';
 import { LinearGradient } from 'expo-linear-gradient';
 import TimeField from '@/components/common/TimeField';
-import {Minus, Plus } from 'lucide-react-native';
-
+import { Minus, Plus } from 'lucide-react-native';
+import Toast from 'react-native-toast-message';
 
 type Props = {
   visible: boolean;
@@ -32,6 +32,9 @@ type Props = {
   onShowStartPickerChange: (show: boolean) => void;
   onShowEndPickerChange: (show: boolean) => void;
   onConfirm: () => void;
+  product: any;
+  selectedSlabIndex: number | null;
+  setSelectedSlabIndex: (index: number | null) => void;
 };
 
 export default function AddProductModal({
@@ -48,7 +51,11 @@ export default function AddProductModal({
   onShowStartPickerChange,
   onShowEndPickerChange,
   onConfirm,
+  product,
+  selectedSlabIndex,
+  setSelectedSlabIndex,
 }: Props) {
+
   return (
     <Dialog open={visible} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="w-[90%] rounded-2xl sm:max-w-[425px]">
@@ -87,6 +94,57 @@ export default function AddProductModal({
           </View>
         </View>
 
+        {product?.pricingType === 'TIER' && product?.priceSlabs?.length ? (
+          <View className="mt-4 px-2">
+            <View className="mb-2 flex-row border-b border-gray-200 pb-2">
+              <Text className="flex-1 font-semibold text-gray-700">Lower</Text>
+              <Text className="flex-1 text-center font-semibold text-gray-700">Upper</Text>
+              <Text className="flex-1 text-center font-semibold text-gray-700">Price</Text>
+              <View style={{ width: 24 }} />
+            </View>
+
+            {product.priceSlabs.map((item: any, index: number) => {
+              const isSelected = selectedSlabIndex === index;
+
+              return (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => setSelectedSlabIndex(index)}
+                  className="flex-row items-center border-b py-4">
+                  <Text className="flex-1">{item.lowerSlab}</Text>
+                  <Text className="flex-1 text-center">{item.upperSlab ?? '-'}</Text>
+                  <Text className="flex-1 text-center text-orange-500">
+                    ${Number(item.salePrice)}
+                  </Text>
+
+                  <View style={{ width: 24, alignItems: 'center' }}>
+                    <View
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 9,
+                        borderWidth: 2,
+                        borderColor: '#F97316',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                      {isSelected && (
+                        <View
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: 5,
+                            backgroundColor: '#F97316',
+                          }}
+                        />
+                      )}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ) : null}
         <DialogFooter className="mt-4 flex-row gap-3">
           <DialogClose asChild>
             <Button variant="outline" className="flex-1">

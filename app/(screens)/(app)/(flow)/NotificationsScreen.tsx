@@ -78,7 +78,7 @@ const YESTERDAY_NOTIFICATIONS: Notification[] = [
   {
     id: '5',
     title: 'Payment Successful',
-    description: 'Your payment of ₹2,500 has been successfully processed',
+    description: 'Your payment of $2,500 has been successfully processed',
     time: 'Yesterday, 6:30 PM',
     type: 'update',
     read: true,

@@ -25,6 +25,9 @@ import FilterBottomSheet from '@/components/common/form/FilterForm';
 
 import { addProduct, removeProduct } from '@/store/slices/eventSlice';
 import { PAGE_SIZE } from '@/const/global';
+import { router } from 'expo-router';
+import { createPaymentOrder, verifyPayment } from '@/api/payment';
+import ScreenHeader from '@/components/common/ScreenHeader';
 
 type Step = {
   id: number;
@@ -39,10 +42,12 @@ export default function EventProductSection() {
   const eventId = useAppSelector((state) => state.event.eventId);
   const bookingDetails = useAppSelector((state) => state.event.bookingDetails);
   const selections = useAppSelector((state) => state.event.selections);
+  console.log('Current selections from Redux:', selections);
   const eventType = useAppSelector((state) => state.event.eventType);
   const event = useAppSelector((state) => state.event);
   const dispatch = useAppDispatch();
-
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedSlabIndex, setSelectedSlabIndex] = useState<number | null>(null);
   const [steps, setSteps] = useState<Step[]>([]);
   const filterSheetRef = useRef<BottomSheet>(null);
   const [activeStep, setActiveStep] = useState<string>('');
@@ -100,27 +105,62 @@ export default function EventProductSection() {
   };
 
   const handleConfirmAddProduct = async () => {
+    console.log('Adding product with details:', {
+      eventId,
+      selectedProductId,
+    });
     if (!eventId || !selectedProductId) {
       Toast.show({ type: 'error', text1: 'Missing event or product information.' });
       return;
     }
+
     if (!startTime || !endTime) {
       Toast.show({ type: 'error', text1: 'Please select start and end times.' });
       return;
+    }
+
+    if (selectedProduct?.pricingType === 'TIER' && selectedSlabIndex === null) {
+      Toast.show({ type: 'error', text1: 'Please select a price slab.' });
+      return;
+    }
+
+    const slabIndex = selectedSlabIndex ?? undefined;
+
+    let price;
+
+    if (selectedProduct?.pricingType === 'TIER') {
+      price =
+        slabIndex !== undefined
+          ? Number(selectedProduct?.priceSlabs?.[slabIndex]?.salePrice)
+          : undefined;
+    } else {
+      price = Number(selectedProduct?.price);
     }
     try {
       await saveInBookingDraft({
         eventId,
         productId: selectedProductId,
         quantity,
+        slabIndex,
+        price,
         startTime: startTime?.toISOString(),
         endTime: endTime?.toISOString(),
       });
-      dispatch(addProduct({ step: activeStep, productId: selectedProductId }));
+
+      dispatch(
+        addProduct({
+          step: activeStep,
+          productId: selectedProductId,
+          slabIndex,
+          price,
+          quantity,
+        })
+      );
+
       setShowAddProductModal(false);
+
       Toast.show({ type: 'success', text1: 'Product added successfully' });
     } catch (error) {
-      console.error(error);
       Toast.show({ type: 'error', text1: 'Failed to add product' });
     }
   };
@@ -191,7 +231,11 @@ export default function EventProductSection() {
   const handleContinue = async () => {
     const currentSelections = selections[activeStep] ?? [];
     const hasItems = currentSelections.length > 0;
-    setStepStatus((prev) => ({ ...prev, [activeStep]: hasItems ? 'green' : 'red' }));
+
+    setStepStatus((prev) => ({
+      ...prev,
+      [activeStep]: hasItems ? 'green' : 'red',
+    }));
 
     if (!isLastStep) {
       setActiveStep(STEPS[activeIndex + 1].key);
@@ -200,43 +244,60 @@ export default function EventProductSection() {
 
     try {
       if (!bookingDetails) throw new Error('Booking details missing');
+      const allItems = Object.values(selections).flat();
 
-      const bookingRes = await createBooking({
-        eventTypeId: bookingDetails.eventTypeId,
-        source: 'EVENT',
-        contactName: bookingDetails.contactName,
-        contactNumber: bookingDetails.contactNumber,
-        description: bookingDetails.description,
-        startTime: bookingDetails.startTime,
-        endTime: bookingDetails.endTime,
-        minGuestCount: bookingDetails.minGuestCount,
-        maxGuestCount: bookingDetails.maxGuestCount,
-        latitude: bookingDetails.latitude,
-        longitude: bookingDetails.longitude,
+      const totalAmount = allItems.reduce((sum, item) => {
+        const price = Number(item.price || 0);
+        const qty = Number(item.quantity || 1);
+        return sum + price * qty;
+      }, 0);
+
+      const RazorpayCheckout = require('react-native-razorpay').default;
+
+      const order = await createPaymentOrder({
+        amount: totalAmount,
+      });
+      const paymentData = await RazorpayCheckout.open({
+        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY || '',
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.id,
+        name: 'Freaky Chimp',
+        prefill: {
+          contact: bookingDetails.contactNumber,
+          name: bookingDetails.contactName,
+        },
+        theme: { color: '#F97316' },
       });
 
-      const bookingId = bookingRes.data.bookingId;
-      const allProductIds = Object.values(selections).flat();
-      const bookingItems = allProductIds.map((productId) => ({
-        productId,
-        quantity: 1,
-        contactName: bookingDetails.contactName,
-        contactNumber: bookingDetails.contactNumber,
-        startTime: bookingDetails.startTime,
-        endTime: bookingDetails.endTime,
-        minGuestCount: bookingDetails.minGuestCount,
-        maxGuestCount: bookingDetails.maxGuestCount,
-        latitude: bookingDetails.latitude,
-        longitude: bookingDetails.longitude,
-      }));
+      setLoading(true);
 
-      await addItemToBooking({ bookingId, items: bookingItems });
-      navigation.getParent()?.navigate('FlowStack', { screen: 'TestingPayment' });
-    } catch (error: any) {
-      Toast.show({ type: 'error', text1: 'Failed to create booking' });
+      await verifyPayment({
+        razorpay_order_id: paymentData.razorpay_order_id,
+        razorpay_payment_id: paymentData.razorpay_payment_id,
+        razorpay_signature: paymentData.razorpay_signature,
+        amount: order.amount,
+        source: 'EVENT',
+        sourceId: eventId || 0,
+        bookingDetails,
+      });
+
+      // if (!verifyRes?.success) {
+      //   throw new Error('Payment verification failed')
+      // }
+
+      setLoading(false);
+
+      router.push('/ManageBookings');
+    } catch (error) {
+      setLoading(false);
+
+      Toast.show({
+        type: 'error',
+        text1: 'Payment failed or cancelled',
+      });
     }
   };
-
   const handleSkip = () => {
     const currentSelections = selections[activeStep] ?? [];
     setStepStatus((prev) => ({
@@ -247,8 +308,26 @@ export default function EventProductSection() {
     setActiveStep(next.key);
   };
 
+  {
+    loading && (
+      <View className="absolute inset-0 z-50 items-center justify-center bg-white">
+        <View className="h-12 w-3/4 overflow-hidden rounded-xl">
+          <LinearGradient
+            colors={['#F97316', '#FACC15']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            className="absolute inset-0"
+          />
+          <View className="flex-1 items-center justify-center">
+            <Text className="font-bold text-white">Processing Payment...</Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
   return (
     <Screen>
+      <ScreenHeader title="Events" showBack rightType="menu" />
       <EventTopHeader
         title={customerName}
         subtitle={eventName}
@@ -279,7 +358,7 @@ export default function EventProductSection() {
         <FlatList
           data={products}
           keyExtractor={(item) => item.productId.toString()}
-          contentContainerStyle={{ paddingBottom: 120 }} // 👈 important
+          contentContainerStyle={{ paddingBottom: 120 }}
           onEndReached={() => {
             if (products.length > 0) loadMore();
           }}
@@ -291,16 +370,20 @@ export default function EventProductSection() {
               guests={`${item.minQuantity ?? 1} - ${item.maxQuantity ?? '∞'}`}
               menu={item.pricingType ?? ''}
               rating={item.rating}
-              price={item.currentPriceBook}
+              price={item.price}
+              pricingType={item.pricingType}
+              priceSlabs={item.priceSlabs}
               image={
                 item.bannerImage
                   ? { uri: `${process.env.EXPO_PUBLIC_AWS_IMAGE_URL}/${item.bannerImage}` }
                   : require('@/assets/images/image_not_found.jpg')
               }
-              added={(selections[activeStep] ?? []).includes(item.productId)}
+              added={(selections[activeStep] ?? []).some((p) => p.productId === item.productId)}
               disabled={!item.isAvailable}
               onAdd={() => {
                 setSelectedProductId(item.productId);
+                setSelectedProduct(item);
+                setSelectedSlabIndex(null);
                 setStartTime(null);
                 setEndTime(null);
                 setQuantity(1);
@@ -324,12 +407,12 @@ export default function EventProductSection() {
 
       <View
         style={{
-          paddingBottom: insets.bottom + 20 || 16,
+          paddingBottom: insets.bottom,
           backgroundColor: 'white',
           borderTopWidth: 1,
           borderTopColor: '#e5e5e5',
         }}>
-        <View className="px-4 pt-3">
+        <View className="px-2 pt-3">
           <View className="flex-row items-center justify-between gap-8 pb-3">
             {!isLastStep && (
               <Pressable
@@ -361,6 +444,9 @@ export default function EventProductSection() {
         onShowStartPickerChange={setShowStartPicker}
         onShowEndPickerChange={setShowEndPicker}
         onConfirm={handleConfirmAddProduct}
+        product={selectedProduct}
+        selectedSlabIndex={selectedSlabIndex}
+        setSelectedSlabIndex={setSelectedSlabIndex}
       />
 
       <ServiceSelectionModal

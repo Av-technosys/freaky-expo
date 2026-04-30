@@ -76,7 +76,7 @@ export default function CategoryProducts() {
             : require('@/assets/images/image_not_found.jpg');
 
           return (
-            <View className="my-6">
+            <View className="my-2">
               <ProductCard
                 id={item.productId}
                 title={item.title}
