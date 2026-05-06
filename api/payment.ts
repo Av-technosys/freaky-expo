@@ -1,7 +1,7 @@
 import { privateApi } from './axios'
 
 
-export const createPaymentOrder = async (payload: { amount: number }) => {
+export const createPaymentOrder = async (payload: { source: 'CART' | 'EVENT'; sourceId: number }) => {
   const response = await privateApi.post('/payment/create-order', payload)
   return response.data
 }

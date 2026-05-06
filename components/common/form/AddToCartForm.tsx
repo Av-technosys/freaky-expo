@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, ScrollView, Pressable } from 'react-native';
 import dayjs from 'dayjs';
 
 import { Input } from '@/components/ui/input';
@@ -19,14 +19,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
 import Toast from 'react-native-toast-message';
 
-import { useAppDispatch } from '@/store/hooks';
-import { addToCart } from '@/store/slices/cartSlice';
-
 import { addCartItem } from '@/api/cart';
 import { Textarea } from '@/components/ui/textarea';
 import DateField from '@/components/common/DateField';
 import TimeField from '@/components/common/TimeField';
 import { GUEST_OPTIONS } from '@/const/global';
+import { useCartStore } from '@/store/cartStore';
 
 type Props = {
   product: {
@@ -38,11 +36,14 @@ type Props = {
   onSuccess?: () => void;
 };
 
-
+type Suggestion = {
+  place_id: string;
+  description: string;
+};
 
 export default function AddToCartForm({ product, onSuccess }: Props) {
-  const dispatch = useAppDispatch();
-
+  const addToCart = useCartStore((state) => state.addToCart);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -52,7 +53,7 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
   const [vendorNote, setVendorNote] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const guestValue = guests?.value; 
+  const guestValue = guests?.value;
   const isValid =
     fullName.trim().length > 0 &&
     phone.length >= 10 &&
@@ -85,27 +86,36 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
         vendorNote: vendorNote.trim(),
       };
 
-      await addCartItem(payload);
+      const res = await addCartItem(payload);
+      const cartItemId =
+        res?.cartItemId ??
+        res?.item?.cartItemId ??
+        res?.data?.cartItemId ??
+        res?.cartItem?.cartItemId ??
+        Date.now().toString();
+      const bookingDraftId =
+        res?.bookingDraftId ?? res?.item?.bookingDraftId ?? res?.data?.bookingDraftId;
+      const cartId = res?.cartId ?? res?.item?.cartId ?? res?.data?.cartId;
 
-      // ✅ FIXED REDUX PAYLOAD
-      dispatch(
-        addToCart({
-          ProductId: product.ProductId ?? '', // must exist
-          title: product.title ?? '',
-          vendorName: product.vendorName ?? '',
-          price: product.price ?? 0,
-          quantity: 1,
-          bookingDetails: {
-            fullName: fullName.trim(),
-            phone: phone.trim(),
-            address: address.trim(),
-            date: eventDate.toISOString(),
-            time: dayjs(time).format('hh:mm A'),
-            guests: guestValue ?? null,
-            vendorNote: vendorNote.trim(),
-          },
-        })
-      );
+      addToCart({
+        cartItemId: String(cartItemId),
+        bookingDraftId: bookingDraftId ? Number(bookingDraftId) : undefined,
+        cartId: cartId ? Number(cartId) : undefined,
+        productId: product.ProductId ?? '',
+        title: product.title ?? '',
+        vendorName: product.vendorName ?? '',
+        price: Number(product.price ?? 0),
+        quantity: 1,
+        bookingDetails: {
+          fullName: fullName.trim(),
+          phone: phone.trim(),
+          address: address.trim(),
+          date: eventDate.toISOString(),
+          time: dayjs(time).format('hh:mm A'),
+          guests: guestValue ?? null,
+          vendorNote: vendorNote.trim(),
+        },
+      });
 
       Toast.show({
         type: 'success',
@@ -125,6 +135,40 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
     }
   };
 
+  const handleAddressSearch = async (text: string) => {
+    setAddress(text);
+
+    if (text.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${text}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+
+      const data = await res.json();
+      setSuggestions(data.predictions || []);
+    } catch {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSelectAddress = async (placeId: string) => {
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+
+      const data = await res.json();
+      const details = data.result;
+
+      setAddress(details.formatted_address || '');
+
+      setSuggestions([]);
+    } catch { }
+  };
   return (
     <View style={{ flex: 1 }}>
       <View className="gap-4 px-4 py-8">
@@ -161,15 +205,44 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
         {/* Address */}
         <View className="gap-2">
           <Label nativeID="address">Address</Label>
-          <Input
-            id="address"
-            placeholder="Enter your address"
-            value={address}
-            onChangeText={setAddress}
-            className="native:px-4"
-            multiline
-            numberOfLines={2}
-          />
+          <View style={{ position: 'relative' }}>
+            <Textarea
+              id="address"
+              placeholder="Enter your address"
+              value={address}
+              onChangeText={handleAddressSearch}
+              className="native:px-4"
+              multiline
+              numberOfLines={2}
+            />
+
+            {suggestions.length > 0 && (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: 55,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'white',
+                  borderWidth: 1,
+                  borderColor: '#ddd',
+                  borderRadius: 8,
+                  zIndex: 20,
+                  maxHeight: 200,
+                }}>
+                <ScrollView keyboardShouldPersistTaps="handled">
+                  {suggestions.map((item) => (
+                    <Pressable
+                      key={item.place_id}
+                      onPress={() => handleSelectAddress(item.place_id)}
+                      style={{ padding: 12, borderBottomWidth: 1, borderColor: '#eee' }}>
+                      <Text>{item.description}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Date Picker */}
@@ -214,7 +287,7 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
           <CardContent className="p-4">
             <View className="flex-row justify-between">
               <Text className="font-semibold">Total Price:</Text>
-              <Text className="text-lg font-bold text-primary">${product.price}</Text>
+              <Text className="text-lg font-bold text-primary">₹{product.price}</Text>
             </View>
           </CardContent>
         </Card>

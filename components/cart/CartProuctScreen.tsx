@@ -10,20 +10,23 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Text } from '@/components/ui/text';
-import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
 import CartItemCard from '../common/card/CartItemCard';
 
+import type { CartItem, CartEventItem } from '@/store/cartStore';
+import Toast from 'react-native-toast-message';
+
 type Props = {
-  orders: any[];
+  items: CartItem[];
+  events: CartEventItem[];
   loading: boolean;
-  onDelete: (bookingDraftId: number) => Promise<void>;
+  onDelete: (cartItemId: string) => Promise<void> | void;
 };
 
-export default function CartProductsScreen({ orders, loading, onDelete }: Props) {
+export default function CartProductsScreen({ items, events, loading, onDelete }: Props) {
   const router = useRouter();
 
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   const confirmDelete = async () => {
@@ -45,41 +48,109 @@ export default function CartProductsScreen({ orders, loading, onDelete }: Props)
         contentContainerStyle={{
           padding: 16,
           paddingBottom: 40,
-          paddingTop: 30,
+          paddingTop: 4,
         }}>
-        <View className="gap-0">
-          {!loading &&
-            orders.map((order) => {
-              const dateObj = new Date(order.startTime || order.createdAt);
+        <View>
+          {/* INDIVIDUAL SERVICES */}
+          {!loading && items && items.length > 0 && (
+            <View className="mb-6">
+              {items.map((item) => {
+                const dateObj = new Date(item.bookingDetails.date);
 
-              const formattedDate = dateObj.toLocaleDateString('en-IN', {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              });
+                const formattedDate = dateObj.toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                });
 
-              const guestRange =
-                order.minGuestCount && order.maxGuestCount
-                  ? `${order.minGuestCount} - ${order.maxGuestCount} Guests`
+                const guestRange = item.bookingDetails.guests
+                  ? `${item.bookingDetails.guests} Guests`
                   : 'Guests not specified';
 
-              return (
-                <CartItemCard
-                  key={order.bookingDraftId}
-                  title={order.contactName || 'Event'}
-                  guestRange={guestRange}
-                  date={formattedDate}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/CartProductDetail',
-                      params: { bookingDraftId: order.bookingDraftId },
-                    })
-                  }
-                  onDelete={() => setConfirmDeleteId(order.bookingDraftId)}
-                />
-              );
-            })}
+                return (
+                  <CartItemCard
+                    key={`item-${item.cartItemId}`}
+                    title={item.title || 'Service'}
+                    vendorName={item.vendorName}
+                    guestRange={guestRange}
+                    date={formattedDate}
+                    time={item.bookingDetails.time}
+                    phone={item.bookingDetails.phone}
+                    address={item.bookingDetails.address}
+                    price={item.price}
+                    quantity={item.quantity}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/CartProductDetail',
+                        params: {
+                          cartItemId: item.cartItemId,
+                          bookingDraftId: item.bookingDraftId,
+                        },
+                      })
+                    }
+                    onDelete={() => setConfirmDeleteId(item.cartItemId)}
+                  />
+                );
+              })}
+            </View>
+          )}
+
+          {/* EVENTS */}
+          {!loading && events && events.length > 0 && (
+            <View className="mb-6">
+              {events.map((event) => {
+                const dateObj = new Date(event.eventDetails.startTime || new Date());
+
+                const formattedDate = dateObj.toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                });
+
+                const timeString = event.eventDetails.startTime
+                  ? new Date(event.eventDetails.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : '';
+
+                const guestRange = `${event.eventDetails.minGuestCount || 0} - ${event.eventDetails.maxGuestCount || 0} Guests`;
+
+                // Calculate total price of all services in this event
+                const totalPrice = event.services.reduce((sum, service) => {
+                  return sum + (Number(service.price) * Number(service.quantity || 1));
+                }, 0);
+
+                return (
+                  <CartItemCard
+                    key={`event-${event.eventId}`}
+                    title={`Event: ${event.eventDetails.contactName || 'New Event'}`}
+                    vendorName={`${event.services.length} Services`}
+                    guestRange={guestRange}
+                    date={formattedDate}
+                    time={timeString}
+                    phone={event.eventDetails.contactNumber}
+                    address=""
+                    price={totalPrice}
+                    quantity={1} // Representing 1 event package
+                    onPress={() =>
+                      router.push({
+                        pathname: '/CartProductDetail',
+                        params: {
+                          eventId: event.eventId,
+                        },
+                      })
+                    }
+                    onDelete={() => {
+                      // Optionally set delete for the whole event or show a different modal
+                      // For now, we omit onDelete so they have to delete services individually inside the event details
+                      // If you want them to delete the whole event, we'd pass event.eventId.
+                      Toast.show({ type: 'info', text1: 'Delete event services inside the event details screen' });
+                    }}
+                  />
+                );
+              })}
+            </View>
+          )}
         </View>
       </ScrollView>
 

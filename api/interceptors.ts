@@ -20,34 +20,48 @@ const notify = (token: string) => {
   subscribers = [];
 };
 
-// REQUEST: attach token
-import { tokenStorage } from '../api/services/tokenStorage';
+import { tokenStorage } from './services/tokenStorage';
 
-
-privateApi.interceptors.request.use(async config => {
-
-   if (cachedToken) {
-    config.headers.Authorization = `Bearer ${cachedToken}`;
+privateApi.interceptors.request.use(
+  async (config) => {
+    const token = await tokenStorage.getIdToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
+);
 
-  console.log("🔑 TOKEN ATTACHED:", !!cachedToken);
-  const token = await tokenStorage.getIdToken();
-//console.log("token storage", token)
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// RESPONSE: refresh on 401
 privateApi.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
 
+    const message =
+      error?.response?.data?.message ||
+      error?.message ||
+      '';
+
+    const isTokenError =
+      error.response?.status === 401 ||
+      message.includes('Token is required') ||
+      message.includes('Token verification failed');
+
+    const isRefreshMissing =
+      message.includes('Missing refresh credentials') ||
+      message.includes('refreshToken null');
+
+    if (isRefreshMissing) {
+      await forceLogout();
+      return Promise.reject(error);
+    }
+
     if (
-      error.response?.status !== 401 ||
+      !isTokenError ||
       originalRequest._retry ||
       originalRequest.url.includes('/auth/refresh_token')
     ) {
@@ -70,6 +84,11 @@ privateApi.interceptors.response.use(
     try {
       const newToken = await refreshIdToken();
 
+      if (!newToken) {
+        await forceLogout();
+        return Promise.reject(error);
+      }
+
       notify(newToken);
 
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -80,5 +99,5 @@ privateApi.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-  },
+  }
 );

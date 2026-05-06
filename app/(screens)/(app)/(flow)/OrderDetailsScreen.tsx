@@ -72,6 +72,8 @@ export default function OrderDetailsScreen() {
       try {
         setLoading(true);
         const res = await fetchBookingbyId(bookingId);
+
+        console.log('Fetched booking details', res);
         setBookingItems(res.items || [])
         setBooking(res.booking || null)
       } catch (err) {
@@ -90,13 +92,13 @@ export default function OrderDetailsScreen() {
 
   const isPaid = booking?.paymentStatus === 'PAID';
 
-const totalAmount = Number(
-  booking?.totalAmount ??
+  const totalAmount = Number(
+    booking?.totalAmount ??
     bookingItems.reduce(
       (sum, item) => sum + Number(item.productPrice || 0),
       0
     )
-);
+  );
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Date TBD';
@@ -145,15 +147,15 @@ const totalAmount = Number(
     navigation.navigate('PaymentScreen', { bookingId });
   };
 
-const handleAddReview = () => {
-  router.push({
-    pathname: '/AddReviewsScreen', // Adjust path based on your file structure
-    params: {
-      eventId: bookingId,
-      productIds: JSON.stringify(bookingItems.map(b => b.productId)),
-    },
-  });
-};
+  const handleAddReview = () => {
+    router.push({
+      pathname: '/AddReviewsScreen', // Adjust path based on your file structure
+      params: {
+        eventId: bookingId,
+        productIds: JSON.stringify(bookingItems.map(b => b.productId)),
+      },
+    });
+  };
 
   if (loading) {
     return (
@@ -169,7 +171,7 @@ const handleAddReview = () => {
   }
 
   return (
- 
+
     <Screen scroll>
       <ScreenHeader title="Order Details" rightType="notification" showBack />
 
@@ -256,7 +258,7 @@ const handleAddReview = () => {
                       </View>
 
                       <Text className="text-lg font-bold text-primary">
-                        ${item.productPrice || '0'}
+                        ₹{item.productPrice || '0'}
                       </Text>
                     </View>
 
@@ -361,7 +363,7 @@ const handleAddReview = () => {
             <AppButton
               variant="outline"
               onPress={handleDownloadInvoice}
-              
+
             >
               <Download size={20} className="text-foreground mr-2" />
               Download Invoice
@@ -372,7 +374,7 @@ const handleAddReview = () => {
             </AppButton>
           )}
         </View>
-        </ScrollView>
-      </Screen>
+      </ScrollView>
+    </Screen>
   );
 }

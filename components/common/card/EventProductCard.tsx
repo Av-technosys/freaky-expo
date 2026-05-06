@@ -87,11 +87,11 @@ export default function ProductCard({
               {price != null && price !== 0 ? (
                 <>
                   {pricingType === 'FLAT' && (
-                    <Text className="text-lg font-semibold">$ {price}</Text>
+                    <Text className="text-lg font-semibold">₹ {price}</Text>
                   )}
 
                   {pricingType === 'TIER' && (
-                    <Text className="text-lg font-semibold">Starts from $ {price}</Text>
+                    <Text className="text-lg font-semibold">₹ {price}</Text>
                   )}
                 </>
               ) : (
@@ -115,15 +115,13 @@ export default function ProductCard({
               <Pressable
                 disabled={disabled}
                 onPress={onRemove}
-                className={`mt-3 self-start rounded-md border px-4 py-1.5 ${
-                  disabled ? 'border-muted' : 'border-yellow-500'
-                }`}>
+                className={`mt-3 self-start rounded-md border px-4 py-1.5 ${disabled ? 'border-muted' : 'border-yellow-500'
+                  }`}>
                 <View className="flex-row items-center gap-1">
                   <Trash2 size={14} color={disabled ? '#9CA3AF' : '#F59E0B'} />
                   <Text
-                    className={`font-semibold ${
-                      disabled ? 'text-muted-foreground' : 'text-yellow-500'
-                    }`}>
+                    className={`font-semibold ${disabled ? 'text-muted-foreground' : 'text-yellow-500'
+                      }`}>
                     Remove
                   </Text>
                 </View>

@@ -4,16 +4,15 @@ import { View, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { ChevronDown, MapPin, Bell, Search } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useState } from 'react';
 
 import { userDetails, fetchCurrentAddress } from '@/api/user';
 import Toast from 'react-native-toast-message';
 import HeaderSkeleton from '@/app/skeleton/home/Header';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HeaderSection({ bottomSheetRef }: any) {
-  const navigation = useNavigation<any>();
 
   const [userData, setUserData] = useState<any>(null);
   const [currentAddress, setCurrentAddress] = useState<any>(null);
@@ -24,7 +23,6 @@ export default function HeaderSection({ bottomSheetRef }: any) {
       setLoading(true);
 
       const res = await userDetails();
-      console.log('res', res);
       if (res?.data) {
         setUserData(res.data);
         console.log(res?.data);
@@ -33,7 +31,6 @@ export default function HeaderSection({ bottomSheetRef }: any) {
 
         if (addressId) {
           const addressRes = await fetchCurrentAddress(addressId);
-
           if (addressRes?.data) {
             setCurrentAddress(addressRes.data);
           } else {
@@ -61,6 +58,21 @@ export default function HeaderSection({ bottomSheetRef }: any) {
   useEffect(() => {
     fetchUserDetails();
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      const checkRefetch = async () => {
+        const shouldRefetch = await AsyncStorage.getItem('addressRefetch')
+
+        if (shouldRefetch === 'true') {
+          await fetchUserDetails()
+          await AsyncStorage.setItem('addressRefetch', 'false')
+        }
+      }
+
+      checkRefetch()
+    }, [])
+  )
 
   if (loading) {
     return <HeaderSkeleton />;

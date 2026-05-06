@@ -18,14 +18,14 @@ export const fetchCartItems = async () => {
   const response = await privateApi.get(
     `/user/cart/items`,
   );
-  return response.data; 
+  return response.data;
 };
 
-export const deleteCartItem = async (bookingDraftId : number) => {
+export const deleteCartItem = async (bookingDraftId: number) => {
   const response = await privateApi.delete(
     `user/cart/item/${bookingDraftId}`,
   );
-  return response.data; 
+  return response.data;
 };
 
 export const addCartItem = async (payload: AddCartItemPayload) => {
@@ -33,8 +33,7 @@ export const addCartItem = async (payload: AddCartItemPayload) => {
   return res.data;
 };
 
-export const fetchBookingDetailsById = async (BookingDraftId : number) => {
+export const fetchBookingDetailsById = async (BookingDraftId: number) => {
   const res = await privateApi.get(`user/cart/item/${BookingDraftId}`)
-  console.log('booking details', BookingDraftId)
   return res.data
 }

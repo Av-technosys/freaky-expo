@@ -51,41 +51,43 @@ export default function ManageBookings() {
     loadBookings();
   }, []);
 
-  const loadBookings = async () => {
-    setLoading(true);
+ const loadBookings = async () => {
+  setLoading(true);
 
-    try {
-      const res = await fetchBookings();
+  try {
+    const res = await fetchBookings(false);
 
-      const list = res?.data || [];
+    const list = res?.data || [];
+    console.log('Fetched bookings', list);
 
-      const mapped = list.map((item: any) => {
-        const rawStatus = item.bookingStatus || 'pending';
+    const mapped = list.map((item: any) => {
+      const rawStatus = item.bookingStatus || 'pending';
 
-        const status = mapBookingStatus(rawStatus);
+      const status = mapBookingStatus(rawStatus);
 
-        return {
-          id: String(item.bookingId),
-          price: Number(item.totalAmount || 0),
-          title: item.contactName || 'Booking',
-          venue: item.contactName || '',
-          status,
-          date: item.createdAt,
-        };
-      });
-      setOrders(mapped);
-    } catch (err) {
-      console.error('Failed to fetch bookings', err);
+      return {
+        id: String(item.bookingId),
+        price: Number(item.totalAmount || 0),
+        title: item.contactName || 'Booking',
+        venue: item.contactName || '',
+        status,
+        date: item.createdAt,
+      };
+    });
 
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load bookings',
-      });
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    setOrders(mapped);
+  } catch (err) {
+    console.error('Failed to fetch bookings', err);
+
+    Toast.show({
+      type: 'error',
+      text1: 'Failed to load bookings',
+    });
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -134,6 +136,7 @@ export default function ManageBookings() {
               price={item.price}
               venue={item.venue}
               status={item.status}
+              date={item.date}
               onPress={() => handleOrderPress(item.id, item.status)}
             />
           )}

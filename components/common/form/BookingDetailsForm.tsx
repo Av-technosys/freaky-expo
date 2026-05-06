@@ -1,5 +1,5 @@
 import { View, Pressable, ScrollView } from 'react-native';
-import { useEffect, useState } from 'react';
+import React, { SetStateAction, useEffect, useState } from 'react';
 import { Calendar } from 'react-native-calendars';
 import { TimePickerModal } from 'react-native-paper-dates';
 import dayjs from 'dayjs';
@@ -39,6 +39,12 @@ import { useAppDispatch } from '@/store/hooks';
 import { resetEvent, setEventId, setEventType } from '@/store/slices/eventSlice';
 import { AppButton } from '../AppButton';
 import { GUEST_OPTIONS } from '@/const/global';
+import { Textarea } from '@/components/ui/textarea';
+
+type Suggestion = {
+  place_id: string;
+  description: string;
+};
 
 type Props = {
   onSubmit: (data: any) => void;
@@ -56,6 +62,7 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
   const [time, setTime] = useState<Date | null>(null);
   const [eventTypes, setEventTypes] = useState<any[]>([]);
   const [showEventDialog, setShowEventDialog] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
 
   useEffect(() => {
     fetchEventType().then((res) => setEventTypes(res.data));
@@ -99,6 +106,40 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
     }
   };
 
+  const handleAddressSearch = async (text: string) => {
+  setAddress(text)
+
+  if (text.length < 3) {
+    setSuggestions([])
+    return
+  }
+
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${text}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+    )
+
+    const data = await res.json()
+    setSuggestions(data.predictions || [])
+  } catch {
+    setSuggestions([])
+  }
+}
+
+const handleSelectAddress = async (placeId: any) => {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+    )
+
+    const data = await res.json()
+    const details = data.result
+
+    setAddress(details.formatted_address || '')
+
+    setSuggestions([])
+  } catch {}
+}
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View className="mt-4">
@@ -139,14 +180,45 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
               <Label>Address</Label>
               <View className="flex-row items-center gap-2">
                 <MapPin size={18} className="text-muted-foreground" />
-                <Input
-                  placeholder="Your full address"
-                  value={address}
-                  onChangeText={setAddress}
-                  multiline
-                  numberOfLines={2}
-                  className="flex-1"
-                />
+                <View style={{ position: 'relative', flex: 1 }}>
+  <Textarea
+    placeholder="Your full address"
+    value={address}
+    onChangeText={handleAddressSearch}
+    multiline
+    numberOfLines={2}
+    className="flex-1"
+  />
+
+  {suggestions.length > 0 && (
+    <View
+      style={{
+        position: 'absolute',
+        top: 55,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderWidth: 1,
+        borderColor: '#ddd',
+        borderRadius: 8,
+        zIndex: 20,
+        maxHeight: 200
+      }}
+    >
+      <ScrollView keyboardShouldPersistTaps="handled">
+        {suggestions.map((item) => (
+          <Pressable
+            key={item.place_id}
+            onPress={() => handleSelectAddress(item.place_id)}
+            style={{ padding: 12, borderBottomWidth: 1, borderColor: '#eee' }}
+          >
+            <Text>{item.description}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  )}
+</View>
               </View>
             </View>
 

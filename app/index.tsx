@@ -11,13 +11,13 @@ export default function IntroScreen() {
   const checkAuth = async () => {
     const accessToken = await AsyncStorage.getItem('accessToken');
     const idToken = await AsyncStorage.getItem('idToken');
-
+    const refreshToken = await AsyncStorage.getItem('refreshToken');
     if (!isConnected) {
       router.replace('/no-internet');
       return;
     }
 
-    if (!accessToken || !idToken) {
+    if (!accessToken || !idToken || !refreshToken) {
       router.replace('/authIntro');
       return;
     }
@@ -34,9 +34,7 @@ export default function IntroScreen() {
         autoPlay
         loop={false}
         resizeMode="cover"
-        onAnimationFinish={() => {
-           router.replace('/home')
-        }}
+        onAnimationFinish={checkAuth}
         style={StyleSheet.absoluteFill}
       />
     </View>

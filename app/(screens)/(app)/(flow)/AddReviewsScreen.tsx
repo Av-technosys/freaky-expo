@@ -58,11 +58,11 @@ export default function AddReview() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     eventId: string;
-    productIds: string;
+    productIds: string | string[];
   }>();
-  
+
   const eventId = Number(params.eventId);
-  const productIds = JSON.parse(params.productIds || '[]');
+  const productIdsStr = params.productIds || '[]';
 
   const [eventRating, setEventRating] = useState(0);
   const [eventComment, setEventComment] = useState('');
@@ -77,15 +77,24 @@ export default function AddReview() {
 
   useEffect(() => {
     loadEvent();
-  }, [eventId]);
 
-  useEffect(() => {
-    if (productIds && productIds.length > 0) {
-      loadServices();
+    let parsedProductIds: number[] = [];
+    try {
+      if (typeof params.productIds === 'string') {
+        parsedProductIds = JSON.parse(params.productIds || '[]');
+      } else if (Array.isArray(params.productIds)) {
+        parsedProductIds = params.productIds.map(Number);
+      }
+    } catch (e) {
+      console.log('Error parsing productIds:', e);
+    }
+
+    if (parsedProductIds && parsedProductIds.length > 0) {
+      loadServices(parsedProductIds);
     } else {
       setServicesLoading(false);
     }
-  }, [productIds]);
+  }, []);
 
   useEffect(() => {
     Animated.parallel([
@@ -121,13 +130,13 @@ export default function AddReview() {
     }
   };
 
-  const loadServices = async () => {
+  const loadServices = async (ids: number[]) => {
     setServicesLoading(true);
     try {
       const results = await Promise.all(
-        productIds.map((id: number) => getProductsByProductId(id))
+        ids.map((id: number) => getProductsByProductId(id))
       );
-      
+
       const mappedServices: Service[] = results
         .filter(result => result && (result.product || result.data))
         .map(r => {
@@ -143,7 +152,7 @@ export default function AddReview() {
             price: productData?.prices?.[0]?.salePrice ?? null,
           };
         });
-      
+
       setServices(mappedServices);
     } catch (err) {
       console.error('Failed to load services', err);
@@ -160,47 +169,47 @@ export default function AddReview() {
   const canAddImage = (media: MediaItem[]) => media.length < 4;
   const canAddVideo = (media: MediaItem[]) => media.filter(m => m.mediaType === 'video').length < 1 && media.length < 4;
 
-const uploadToS3 = async (uploadUrl: string, fileUri: string, mimeType: string) => {
-  try {
-    console.log('🚀 START UPLOAD');
-    console.log('📂 FILE URI:', fileUri);
-    console.log('📦 MIME TYPE:', mimeType);
-    console.log('🔗 UPLOAD URL:', uploadUrl);
+  const uploadToS3 = async (uploadUrl: string, fileUri: string, mimeType: string) => {
+    try {
+      console.log('🚀 START UPLOAD');
+      console.log('📂 FILE URI:', fileUri);
+      console.log('📦 MIME TYPE:', mimeType);
+      console.log('🔗 UPLOAD URL:', uploadUrl);
 
-    // 🔍 Extract time from URL (CRITICAL DEBUG)
-    const url = new URL(uploadUrl);
-    console.log('⏱ X-Amz-Date:', url.searchParams.get('X-Amz-Date'));
-    console.log('⏱ ExpiresIn:', url.searchParams.get('X-Amz-Expires'));
+      // 🔍 Extract time from URL (CRITICAL DEBUG)
+      const url = new URL(uploadUrl);
+      console.log('⏱ X-Amz-Date:', url.searchParams.get('X-Amz-Date'));
+      console.log('⏱ ExpiresIn:', url.searchParams.get('X-Amz-Expires'));
 
-    const response = await fetch(fileUri);
-    const blob = await response.blob();
+      const response = await fetch(fileUri);
+      const blob = await response.blob();
 
-    console.log('📏 BLOB SIZE:', blob.size);
+      console.log('📏 BLOB SIZE:', blob.size);
 
-    const res = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': mimeType,
-      },
-      body: blob,
-    });
+      const res = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': mimeType,
+        },
+        body: blob,
+      });
 
-    console.log('📡 S3 STATUS:', res.status);
+      console.log('📡 S3 STATUS:', res.status);
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.log('❌ S3 ERROR BODY:', text);
-      throw new Error('S3 upload failed');
+      if (!res.ok) {
+        const text = await res.text();
+        console.log('❌ S3 ERROR BODY:', text);
+        throw new Error('S3 upload failed');
+      }
+
+      console.log('✅ UPLOAD SUCCESS');
+
+      return res;
+    } catch (err) {
+      console.log('🔥 UPLOAD ERROR:', err);
+      throw err;
     }
-
-    console.log('✅ UPLOAD SUCCESS');
-
-    return res;
-  } catch (err) {
-    console.log('🔥 UPLOAD ERROR:', err);
-    throw err;
-  }
-};
+  };
   const handlePickMedia = async (productId: number) => {
     const service = services.find(s => s.productId === productId);
     if (!service) return;
@@ -234,60 +243,60 @@ const uploadToS3 = async (uploadUrl: string, fileUri: string, mimeType: string) 
       }
 
       setMediaLoading(true);
-try {
-  console.log('📸 PICKED FILE:', file);
+      try {
+        console.log('📸 PICKED FILE:', file);
 
-  const res = await getBucketUrl({
-    fileName: file.fileName ?? `review-${Date.now()}`,
-    fileType: file.mimeType ?? 'image/jpeg',
-    path: 'reviews',
-  });
+        const res = await getBucketUrl({
+          fileName: file.fileName ?? `review-${Date.now()}`,
+          fileType: file.mimeType ?? 'image/jpeg',
+          path: 'reviews',
+        });
 
-  console.log('🧾 PRESIGNED RESPONSE:', res);
+        console.log('🧾 PRESIGNED RESPONSE:', res);
 
-  // 🔥 Validate response
-  if (!res.uploadUrl || !res.filePath) {
-    console.log('❌ INVALID PRESIGNED RESPONSE');
-    throw new Error('Invalid presigned URL');
-  }
+        // 🔥 Validate response
+        if (!res.uploadUrl || !res.filePath) {
+          console.log('❌ INVALID PRESIGNED RESPONSE');
+          throw new Error('Invalid presigned URL');
+        }
 
-  // 🔥 Upload immediately
-  await uploadToS3(res.uploadUrl, file.uri, file.mimeType!);
+        // 🔥 Upload immediately
+        await uploadToS3(res.uploadUrl, file.uri, file.mimeType!);
 
-  console.log('📁 FILE PATH SAVED:', res.filePath);
+        console.log('📁 FILE PATH SAVED:', res.filePath);
 
-  setServices(prev =>
-    prev.map(s =>
-      s.productId === productId
-        ? {
-            ...s,
-            media: [
-              ...s.media,
-              {
-                localUri: file.uri,
-                mediaUrl: res.filePath,
-                mediaType: isVideo ? 'video' : 'image',
-              },
-            ],
-          }
-        : s
-    )
-  );
+        setServices(prev =>
+          prev.map(s =>
+            s.productId === productId
+              ? {
+                ...s,
+                media: [
+                  ...s.media,
+                  {
+                    localUri: file.uri,
+                    mediaUrl: res.filePath,
+                    mediaType: isVideo ? 'video' : 'image',
+                  },
+                ],
+              }
+              : s
+          )
+        );
 
-  Toast.show({
-    type: 'success',
-    text1: 'Media uploaded',
-  });
+        Toast.show({
+          type: 'success',
+          text1: 'Media uploaded',
+        });
 
-} catch (error) {
-  console.error('❌ Upload failed FULL:', error);
-  Toast.show({
-    type: 'error',
-    text1: 'Upload failed',
-  });
-} finally {
-  setMediaLoading(false);
-}
+      } catch (error) {
+        console.error('❌ Upload failed FULL:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Upload failed',
+        });
+      } finally {
+        setMediaLoading(false);
+      }
     }
   };
 
@@ -296,7 +305,7 @@ try {
     setServices(prev => {
       const serviceIndex = prev.findIndex(s => s.productId === productId);
       if (serviceIndex === -1) return prev;
-      
+
       const updated = [...prev];
       updated[serviceIndex] = {
         ...updated[serviceIndex],
@@ -405,139 +414,136 @@ try {
     <Screen scroll>
       <ScreenHeader title="Write a Review" showBack rightType="menu" />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerClassName="p-4 pb-8"
-          >
-            <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
-              {/* Event Card */}
-              <Card className="mb-6">
-                <CardContent className="p-5">
-                  <View className="flex-row items-start">
-                    <View className="h-20 w-20 items-center justify-center rounded-2xl bg-orange-400 shadow-md">
-                      <Feather name="gift" size={32} color="white" />
-                    </View>
-                    <View className="ml-4 flex-1">
-                      <View className="flex-row flex-wrap justify-between items-start gap-2">
-                        <Text className="flex-1 text-2xl font-bold text-foreground" numberOfLines={2}>
-                          {event?.contactName || 'Event'}
-                        </Text>
-                        <Badge variant="secondary">
-                          <Text className="text-primary">Event</Text>
-                        </Badge>
-                      </View>
-                      <Text className="mt-2 text-sm text-muted-foreground">
-                        Event #{event?.eventId}
+
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName=" pb-8"
+        >
+          <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+            {/* Event Card */}
+            <View className="mb-6 rounded-3xl bg-card border border-border/40 overflow-hidden shadow-sm">
+              <View className="p-6">
+                <View className="flex-row items-center">
+                  <View className="h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-300 shadow-sm border border-orange-400/20">
+                    <Feather name="gift" size={32} color="white" />
+                  </View>
+                  <View className="ml-5 flex-1">
+                    <View className="flex-row flex-wrap justify-between items-start gap-2">
+                      <Text className="flex-1 text-2xl font-bold text-foreground tracking-tight" numberOfLines={2}>
+                        {event?.contactName || 'Event Experience'}
                       </Text>
-                      {event?.startTime && (
-                        <View className="mt-4 gap-2">
-                          <View className="flex-row items-center">
-                            <Feather name="calendar" size={14} color="#6b7280" />
-                            <Text className="ml-2 text-sm text-foreground">
-                              {dayjs(event.startTime).format('dddd, D MMMM YYYY')}
-                            </Text>
-                          </View>
-                          <View className="flex-row items-center">
-                            <Feather name="clock" size={14} color="#6b7280" />
-                            <Text className="ml-2 text-sm text-foreground">
-                              {dayjs(event.startTime).format('hh:mm A')} - {dayjs(event.endTime).format('hh:mm A')}
-                            </Text>
-                          </View>
-                        </View>
-                      )}
+                    </View>
+                    <Text className="mt-1.5 text-sm font-medium text-muted-foreground bg-muted self-start px-2.5 py-0.5 rounded-full">
+                      ID #{event?.eventId}
+                    </Text>
+                  </View>
+                </View>
+
+                {event?.startTime && (
+                  <View className="mt-5 pt-5 border-t border-border/50 flex-row justify-between">
+                    <View className="flex-row items-center bg-primary/5 px-3 py-2 rounded-xl border border-primary/10">
+                      <Feather name="calendar" size={16} color="#f97316" />
+                      <Text className="ml-2.5 text-sm font-semibold text-foreground">
+                        {dayjs(event.startTime).format('MMM D, YYYY')}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center bg-primary/5 px-3 py-2 rounded-xl border border-primary/10">
+                      <Feather name="clock" size={16} color="#f97316" />
+                      <Text className="ml-2.5 text-sm font-semibold text-foreground">
+                        {dayjs(event.startTime).format('h:mm A')}
+                      </Text>
                     </View>
                   </View>
-                </CardContent>
-              </Card>
+                )}
+              </View>
+            </View>
 
-              {/* Event Rating Section */}
-              <Card className="mb-8">
-                <CardContent className="p-5">
-                  <View className="flex-row items-center mb-4 gap-2">
-                    <View className="h-6 w-1 rounded-full bg-primary" />
-                    <Text className="text-xl font-bold text-foreground">Rate this Event</Text>
-                  </View>
-                  <StarRating value={eventRating} onChange={setEventRating} />
-                  {eventRating > 0 && (
-                    <View className="mt-4 pt-4 border-t border-border">
-                      <FloatingLabelInput
-                        label="Share your overall experience"
-                        value={eventComment}
-                        onChangeText={setEventComment}
-                        multiline
-                      />
-                    </View>
-                  )}
-                </CardContent>
-              </Card>
+            {/* Event Rating Section */}
+            <View className="mb-8 rounded-3xl bg-card border border-border/40 p-6 shadow-sm">
+              <View className="items-center mb-6">
+                <Text className="text-xl font-bold text-foreground tracking-tight mb-2">Overall Experience</Text>
+                <Text className="text-sm font-medium text-muted-foreground text-center">
+                  How was your overall experience with this event?
+                </Text>
+              </View>
 
-              {/* Services Section - Shows/Hides based on rating */}
-            {/* {services.length > 0 && (
-  <View className="mb-8">
-    <View className="flex-row items-center mb-4 gap-2">
-      <View className="h-6 w-1 rounded-full bg-primary" />
-      <Text className="text-xl font-bold text-foreground">
-        Rate Specific Services
-      </Text>
-    </View>
+              <View className="bg-muted/30 p-5 rounded-2xl">
+                <StarRating value={eventRating} onChange={setEventRating} size={36} />
+              </View>
 
-    {servicesLoading ? (
-      <>
-        <ServiceSkeleton />
-        <ServiceSkeleton />
-      </>
-    ) : (
-      services.map((service) => (
-        <ServiceCard
-          key={service.productId}
-          service={service}
-          mediaLoading={mediaLoading}
-          onRatingChange={(rating: number) => {
-            setServices(prev => {
-              const index = prev.findIndex(s => s.productId === service.productId);
-              if (index === -1) return prev;
-              const updated = [...prev];
-              updated[index] = { ...updated[index], rating };
-              return updated;
-            });
-          }}
-          onCommentChange={(comment: string) => {
-            setServices(prev => {
-              const index = prev.findIndex(s => s.productId === service.productId);
-              if (index === -1) return prev;
-              const updated = [...prev];
-              updated[index] = { ...updated[index], comment };
-              return updated;
-            });
-          }}
-          onAddMedia={() => handlePickMedia(service.productId)}
-          onRemoveMedia={(mediaIndex: number) =>
-            handleRemoveMedia(service.productId, mediaIndex)
-          }
-          canAddImage={canAddImage(service.media)}
-          getImageSource={getImageSource}
-          getValidUri={getValidUri}
-        />
-      ))
-    )}
-  </View>
-)} */}
+              {eventRating > 0 && (
+                <View className="mt-6 pt-6 border-t border-border/50">
+                  <FloatingLabelInput
+                    label="Share more about your experience"
+                    value={eventComment}
+                    onChangeText={setEventComment}
+                    multiline
+                  />
+                </View>
+              )}
+            </View>
 
-              {/* Submit Button */}
-              <AppButton onPress={handleSubmit}>
-                Submit Review
-              </AppButton>
-            </Animated.View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+            {/* Services Section */}
+            {services.length > 0 && (
+              <View className="mb-8">
+                <View className="flex-row items-center mb-5 ml-1">
+                  <View className="h-6 w-1.5 rounded-full bg-primary mr-3" />
+                  <Text className="text-xl font-bold text-foreground tracking-tight">
+                    Review Services
+                  </Text>
+                </View>
+
+                {servicesLoading ? (
+                  <>
+                    <ServiceSkeleton />
+                    <ServiceSkeleton />
+                  </>
+                ) : (
+                  services.map((service) => (
+                    <ServiceCard
+                      key={service.productId}
+                      service={service}
+                      mediaLoading={mediaLoading}
+                      onRatingChange={(rating: number) => {
+                        setServices(prev => {
+                          const index = prev.findIndex(s => s.productId === service.productId);
+                          if (index === -1) return prev;
+                          const updated = [...prev];
+                          updated[index] = { ...updated[index], rating };
+                          return updated;
+                        });
+                      }}
+                      onCommentChange={(comment: string) => {
+                        setServices(prev => {
+                          const index = prev.findIndex(s => s.productId === service.productId);
+                          if (index === -1) return prev;
+                          const updated = [...prev];
+                          updated[index] = { ...updated[index], comment };
+                          return updated;
+                        });
+                      }}
+                      onAddMedia={() => handlePickMedia(service.productId)}
+                      onRemoveMedia={(mediaIndex: number) =>
+                        handleRemoveMedia(service.productId, mediaIndex)
+                      }
+                      canAddImage={canAddImage(service.media)}
+                      getImageSource={getImageSource}
+                      getValidUri={getValidUri}
+                    />
+                  ))
+                )}
+              </View>
+            )}
+
+            {/* Submit Button */}
+            <AppButton onPress={handleSubmit}>
+              Submit Review
+            </AppButton>
+          </Animated.View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
     </Screen>
   );
 }

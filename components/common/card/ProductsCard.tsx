@@ -8,6 +8,7 @@ import { Text } from '@/components/ui/text';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { router } from 'expo-router';
+import Markdown from 'react-native-markdown-display';
 
 type RootStackParamList = {
   CategoryProducts: undefined;
@@ -41,7 +42,7 @@ export default function ProductCard({
 
   return (
     <Pressable
-     onPress={() =>
+      onPress={() =>
         router.push({
           pathname: '/ProductDetails',
           params: {
@@ -60,9 +61,32 @@ export default function ProductCard({
               </Text>
 
               {/* Description */}
-              <Text className="mt-1 text-sm text-muted-foreground" numberOfLines={2}>
-                {menu}
-              </Text>
+              <Markdown
+                style={{
+                  body: {
+                    marginTop: 4,
+                    fontSize: 14,
+                    color: '#6B7280',
+                    lineHeight: 20,
+                  },
+
+                  paragraph: {
+                    marginTop: 0,
+                    marginBottom: 0,
+                  },
+
+                  heading1: {
+                    fontSize: 16,
+                    fontWeight: '700',
+                  },
+
+                  heading2: {
+                    fontSize: 15,
+                    fontWeight: '700',
+                  },
+                }}>
+                {typeof menu === 'string' ? menu : ''}
+              </Markdown>
 
               {/* Rating and Guests */}
               <View className="mt-2 flex-row items-center gap-3">
@@ -83,7 +107,7 @@ export default function ProductCard({
               {price > 0 && (
                 <View className="mt-3">
                   <Badge variant="secondary" className="self-start">
-                    <Text className="font-bold text-primary">${price}</Text>
+                    <Text className="font-bold text-primary">₹{price}</Text>
                   </Badge>
                 </View>
               )}

@@ -80,14 +80,19 @@ export default function Reviews() {
         })) ?? [],
     }));
 
-  const formatDate = (isoDate?: string) => {
-    if (!isoDate) return '';
-    return new Date(isoDate).toLocaleDateString('en-GB', {
+  const formatDate = (date?: string) => {
+    if (!date) return ''
+
+    const d = new Date(date)
+
+    if (isNaN(d.getTime())) return 'Invalid date'
+
+    return d.toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-    });
-  };
+    })
+  }
 
   const handleDeleteReview = async (reviewId: number) => {
     try {
@@ -114,7 +119,7 @@ export default function Reviews() {
   const loadReviews = async () => {
     try {
       const res = await getAllReviews();
-
+      console.log(res.data)
       const mapped = await Promise.all(
         res.data.map(async (review: any) => {
           let productTitle = 'Event Review';
@@ -179,7 +184,7 @@ export default function Reviews() {
           </View>
         ) : (
           // Reviews list
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerClassName="pb-6"
           >
@@ -203,7 +208,7 @@ export default function Reviews() {
                     images={images}
                     videos={videos}
                     onDelete={() => handleDeleteReview(item.id)}
-                    
+
                   />
                 );
               })}

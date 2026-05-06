@@ -17,6 +17,7 @@ type OrderCardProps = {
   venue?: string;
   price?: string | any;
   status?: string;
+  date?: string;
 
   onPress: () => void;
   onDelete?: () => void;
@@ -29,62 +30,77 @@ export default function OrderCard({
   venue,
   price,
   status,
+  date,
   onPress,
 }: OrderCardProps) {
+  const safeTitle = title || ''
+  const safeVenue = venue || ''
+  const safePrice = price != null ? String(price) : ''
+  const safeStatus = status || ''
+
+  let safeDate = ''
+  if (date) {
+    const d = new Date(date)
+    if (!isNaN(d.getTime())) {
+      safeDate = d.toLocaleDateString()
+    }
+  }
+
   return (
     <Pressable onPress={onPress}>
-      <Card className="overflow-hidden -py-4 mt-6  rounded-2xl border border-border">
+      <Card className="overflow-hidden -py-4 mt-6 rounded-2xl border border-border">
 
         <View className="flex-row">
 
-          {/* 🔶 LEFT ICON */}
           <View className="w-16 items-center justify-center bg-orange-400">
             <Feather name="gift" size={24} color="white" />
           </View>
 
-          {/* 📄 CONTENT */}
           <CardContent className="flex-1 px-4 py-3">
             <Text className="font-semibold text-base">
-              {title}
+              {safeTitle}
             </Text>
 
-            {venue && (
+            {safeVenue ? (
               <Text className="text-muted-foreground mt-1 text-sm">
-                {venue}
+                {safeVenue}
               </Text>
-            )}
+            ) : null}
 
-            {price && (
-              <Text className="mt-1 font-medium">
-                $ {price}
+            {safeDate ? (
+              <Text className="text-muted-foreground mt-1 text-sm">
+                {safeDate}
               </Text>
-            )}
+            ) : null}
+
+            {safePrice ? (
+              <Text className="mt-1 font-medium">
+                ₹ {safePrice}
+              </Text>
+            ) : null}
           </CardContent>
 
-          {/* 📌 STATUS STRIP */}
-          {status && (
+          {safeStatus ? (
             <View
-              className={`w-14 items-center justify-center ${
-                status === 'Paid'
-                  ? 'bg-green-100'
-                  : 'bg-red-200'
-              }`}
+              className={`w-14 items-center justify-center ${safeStatus === 'confirmed' || safeStatus === 'completed'
+                ? 'bg-green-100'
+                : 'bg-red-200'
+                }`}
             >
               <Text
-                className={`text-xs font-semibold rotate-90 ${
-                  status === 'Paid'
-                    ? 'text-green-600'
-                    : 'text-red-700'
-                }`}
+                className={`text-xs font-semibold rotate-90 ${safeStatus === 'confirmed' || safeStatus === 'completed'
+                  ? 'text-green-600'
+                  : 'text-red-700'
+                  }`}
               >
-                {status}
+                {safeStatus}
               </Text>
             </View>
-          )}
+          ) : null}
 
         </View>
 
       </Card>
     </Pressable>
-  );
+  )
 }

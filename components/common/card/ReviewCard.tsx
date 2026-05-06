@@ -86,16 +86,12 @@ export default function ReviewCard({
             </View>
 
             <Text className="text-xs text-muted-foreground">
-              {new Date(createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {createdAt}
             </Text>
           </View>
 
           {onDelete && (
-            <Pressable 
+            <Pressable
               onPress={() => setShowConfirm(true)}
               disabled={isDeleting}
               className="p-2"
@@ -190,9 +186,9 @@ export default function ReviewCard({
       </View>
 
       {/* IMAGE MODAL - Full Screen Image Viewer */}
-      <Modal 
-        visible={!!selectedImage} 
-        transparent 
+      <Modal
+        visible={!!selectedImage}
+        transparent
         animationType="fade"
         statusBarTranslucent
       >

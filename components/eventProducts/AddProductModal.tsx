@@ -114,7 +114,7 @@ export default function AddProductModal({
                   <Text className="flex-1">{item.lowerSlab}</Text>
                   <Text className="flex-1 text-center">{item.upperSlab ?? '-'}</Text>
                   <Text className="flex-1 text-center text-orange-500">
-                    ${Number(item.salePrice)}
+                    ₹{Number(item.salePrice)}
                   </Text>
 
                   <View style={{ width: 24, alignItems: 'center' }}>

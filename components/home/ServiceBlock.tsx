@@ -52,6 +52,7 @@ export default function ServicesBlock() {
       setLoading(true);
 
       const res = await getAllFeaturedProducts();
+
       if (res?.data && Array.isArray(res.data)) {
         setSections(res.data);
         console.log('Fetched featured products:', res.data);
@@ -68,9 +69,9 @@ export default function ServicesBlock() {
   };
 
   // ✅ LOADING
-  // if (loading) {
-  //   return <ServiceCardSkeleton />;
-  // }
+  if (loading) {
+    return null
+  }
 
   // ✅ NO DATA
   if (!sections || sections.length === 0) {

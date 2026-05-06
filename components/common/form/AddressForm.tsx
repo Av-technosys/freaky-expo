@@ -18,6 +18,7 @@ import Toast from 'react-native-toast-message';
 import { addAddress, editAddress } from '@/api/user';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { US_STATES } from '@/const/global';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Address = {
   id?: number;
@@ -40,8 +41,14 @@ type Props = {
   onCancel: () => void;
 };
 
+type Suggestion = {
+  place_id: string;
+  description: string;
+};
+
 export default function AddressForm({ initialData, onSuccess, onCancel }: Props) {
   const sheetRef = useRef<BottomSheetMethods>(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const options = US_STATES.map((s) => ({
     label: s,
     value: s,
@@ -97,6 +104,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Props)
         });
         Toast.show({ type: 'success', text1: 'Address added' });
       }
+      await AsyncStorage.setItem('addressRefetch', 'true')
 
       onSuccess();
     } catch (err) {
@@ -104,6 +112,71 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Props)
     }
   };
 
+  const handleSearch = async (text: string | any[]) => {
+    const searchText = Array.isArray(text) ? text.join(' ') : text;
+
+    onChange('addressLineOne', searchText)
+
+    if (searchText.length < 3) {
+      setSuggestions([])
+      return
+    }
+
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchText)}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      )
+
+      const data = await res.json()
+
+      setSuggestions(data.predictions || [])
+    } catch (e) {
+      setSuggestions([])
+    }
+  }
+
+  const handleSelect = async (placeId: any) => {
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+    )
+
+    const data = await res.json()
+
+    const details = data.result
+
+    const address = details.formatted_address || ''
+    const lat = details.geometry?.location?.lat
+    const lng = details.geometry?.location?.lng
+
+    const components = details.address_components || []
+
+    const get = (type: string) =>
+      components.find((c: { types: string | string[]; }) => c.types.includes(type))?.long_name || ''
+
+    const city =
+      get('locality') ||
+      get('sublocality') ||
+      get('administrative_area_level_2')
+
+    const state = get('administrative_area_level_1')
+
+    const postalCode = get('postal_code')
+
+    setForm(prev => ({
+      ...prev,
+      addressLineOne: address,
+      city,
+      state,
+      postalCode,
+      latitude: lat,
+      longitude: lng
+    }))
+
+    setSuggestions([])
+    Keyboard.dismiss()
+  } catch (e) {}
+}
   return (
     <>
       <View className="p-2">
@@ -121,12 +194,28 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Props)
               onChangeText={(v) => onChange('title', v)}
             />
 
-            <Input
-              placeholder="Street Address Line 1"
-              value={form.addressLineOne}
-              onChangeText={(v) => onChange('addressLineOne', v)}
-            />
+    
+     <View>
+  <Input
+    placeholder="Street Address Line 1"
+    value={form.addressLineOne}
+    onChangeText={handleSearch}
+  />
 
+  {suggestions.length > 0 && (
+    <View style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginTop: 4 }}>
+      {suggestions.map((item) => (
+        <Pressable
+          key={item.place_id}
+          onPress={() => handleSelect(item.place_id)}
+          style={{ padding: 10, borderBottomWidth: 1, borderColor: '#eee' }}
+        >
+          <Text>{item.description}</Text>
+        </Pressable>
+      ))}
+    </View>
+  )}
+</View>
             <Input
               placeholder="Street Address Line 2"
               value={form.addressLineTwo}

@@ -1,6 +1,7 @@
 import { View, Pressable, Platform, BackHandler, KeyboardAvoidingView } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import Animated, { FadeInRight, FadeOutRight } from 'react-native-reanimated';
+import * as Location from 'expo-location'
 
 // React Native Reusables components
 import { Text } from '@/components/ui/text';
@@ -108,6 +109,60 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
     }
   };
 
+const handleUseCurrentLocation = async () => {
+  try {
+    const { status } = await Location.requestForegroundPermissionsAsync()
+
+    if (status !== 'granted') {
+      Toast.show({ type: 'error', text1: 'Permission denied' })
+      return
+    }
+
+    const location = await Location.getCurrentPositionAsync({})
+
+    const lat = location.coords.latitude
+    const lng = location.coords.longitude
+
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+    )
+    const data = await res.json()
+   console.log('Geocoding response', data)
+
+    const result = data.results?.[0]
+
+    const address = result?.formatted_address || ''
+
+    const components = result?.address_components || []
+
+    const get = (type: string) =>
+      components.find((c: { types: string | string[]; }) => c.types.includes(type))?.long_name || ''
+
+    const city =
+      get('locality') ||
+      get('sublocality') ||
+      get('administrative_area_level_2')
+
+    const state = get('administrative_area_level_1')
+
+    const postalCode = get('postal_code')
+
+    setSelectedAddress({
+      title: 'Current Location',
+      addressLineOne: address,
+      addressLineTwo: '',
+      city,
+      state,
+      postalCode,
+      latitude: lat,
+      longitude: lng
+    })
+
+    setMode('form')
+  } catch (e) {
+    Toast.show({ type: 'error', text1: 'Failed to get location' })
+  }
+}
   if (mode === 'form') {
     return (
       <Animated.View entering={FadeInRight} exiting={FadeOutRight} className="flex-1">
@@ -182,9 +237,7 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
           {/* Secondary Action: Use Current Location */}
           <AppButton
             variant="outline"
-            onPress={() => {
-              /* handle location */
-            }}>
+            onPress={handleUseCurrentLocation}>
             <View className="flex-row items-center gap-2">
               <Feather name="map-pin" size={18} color="black" /> {/* Match the gradient orange */}
               <Text className="">Use Current Location</Text>

@@ -42,7 +42,6 @@ export default function EventProductSection() {
   const eventId = useAppSelector((state) => state.event.eventId);
   const bookingDetails = useAppSelector((state) => state.event.bookingDetails);
   const selections = useAppSelector((state) => state.event.selections);
-  console.log('Current selections from Redux:', selections);
   const eventType = useAppSelector((state) => state.event.eventType);
   const event = useAppSelector((state) => state.event);
   const dispatch = useAppDispatch();
@@ -56,7 +55,7 @@ export default function EventProductSection() {
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [enabledSteps, setEnabledSteps] = useState<string[]>([]);
   const [tempEnabledSteps, setTempEnabledSteps] = useState<string[]>([]);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
@@ -242,61 +241,65 @@ export default function EventProductSection() {
       return;
     }
 
-    try {
-      if (!bookingDetails) throw new Error('Booking details missing');
-      const allItems = Object.values(selections).flat();
+    router.push({
+      pathname: '/cart',
+      params: { event: 'true' }
+    })
+    // try {
+    //   if (!bookingDetails) throw new Error('Booking details missing');
+    //   const allItems = Object.values(selections).flat();
 
-      const totalAmount = allItems.reduce((sum, item) => {
-        const price = Number(item.price || 0);
-        const qty = Number(item.quantity || 1);
-        return sum + price * qty;
-      }, 0);
+    //   const totalAmount = allItems.reduce((sum, item) => {
+    //     const price = Number(item.price || 0);
+    //     const qty = Number(item.quantity || 1);
+    //     return sum + price * qty;
+    //   }, 0);
 
-      const RazorpayCheckout = require('react-native-razorpay').default;
+    //   const RazorpayCheckout = require('react-native-razorpay').default;
 
-      const order = await createPaymentOrder({
-        amount: totalAmount,
-      });
-      const paymentData = await RazorpayCheckout.open({
-        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY || '',
-        amount: order.amount,
-        currency: order.currency,
-        order_id: order.id,
-        name: 'Freaky Chimp',
-        prefill: {
-          contact: bookingDetails.contactNumber,
-          name: bookingDetails.contactName,
-        },
-        theme: { color: '#F97316' },
-      });
+    //   const order = await createPaymentOrder({
+    //     amount: totalAmount,
+    //   });
+    //   const paymentData = await RazorpayCheckout.open({
+    //     key: process.env.EXPO_PUBLIC_RAZORPAY_KEY || '',
+    //     amount: order.amount,
+    //     currency: order.currency,
+    //     order_id: order.id,
+    //     name: 'Freaky Chimp',
+    //     prefill: {
+    //       contact: bookingDetails.contactNumber,
+    //       name: bookingDetails.contactName,
+    //     },
+    //     theme: { color: '#F97316' },
+    //   });
 
-      setLoading(true);
+    //   setLoading(true);
 
-      await verifyPayment({
-        razorpay_order_id: paymentData.razorpay_order_id,
-        razorpay_payment_id: paymentData.razorpay_payment_id,
-        razorpay_signature: paymentData.razorpay_signature,
-        amount: order.amount,
-        source: 'EVENT',
-        sourceId: eventId || 0,
-        bookingDetails,
-      });
+    //   await verifyPayment({
+    //     razorpay_order_id: paymentData.razorpay_order_id,
+    //     razorpay_payment_id: paymentData.razorpay_payment_id,
+    //     razorpay_signature: paymentData.razorpay_signature,
+    //     amount: order.amount,
+    //     source: 'EVENT',
+    //     sourceId: eventId || 0,
+    //     bookingDetails,
+    //   });
 
-      // if (!verifyRes?.success) {
-      //   throw new Error('Payment verification failed')
-      // }
+    //   // if (!verifyRes?.success) {
+    //   //   throw new Error('Payment verification failed')
+    //   // }
 
-      setLoading(false);
+    //   setLoading(false);
 
-      router.push('/ManageBookings');
-    } catch (error) {
-      setLoading(false);
+    //   router.push('/ManageBookings');
+    // } catch (error) {
+    //   setLoading(false);
 
-      Toast.show({
-        type: 'error',
-        text1: 'Payment failed or cancelled',
-      });
-    }
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Payment failed or cancelled',
+    //   });
+    // }
   };
   const handleSkip = () => {
     const currentSelections = selections[activeStep] ?? [];
@@ -333,7 +336,7 @@ export default function EventProductSection() {
         subtitle={eventName}
         date={formattedDate}
         image={eventImage}
-        onPress={() => {}}
+        onPress={() => { }}
       />
 
       <StepsHeader
