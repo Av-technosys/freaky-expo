@@ -13,11 +13,19 @@ import { router } from 'expo-router';
 
 type Booking = {
   id: string;
-  price: number;
-  title: string;
-  venue: string;
-  status: string;
-  date?: string;
+  bookingId: number;
+  vendorName: string | null;
+  vendorLogo: string | null;
+  contactName: string | null;
+  contactNumber: string | null;
+  description: string | null;
+  bookingStatus: string;
+  startTime: string | null;
+  endTime: string | null;
+  totalAmount: string | null;
+  minGuestCount: number | null;
+  maxGuestCount: number | null;
+  source: string | null;
 };
 
 export default function ManageBookings() {
@@ -59,21 +67,13 @@ export default function ManageBookings() {
 
     const list = res?.data || [];
     console.log('Fetched bookings', list);
-
-    const mapped = list.map((item: any) => {
-      const rawStatus = item.bookingStatus || 'pending';
-
-      const status = mapBookingStatus(rawStatus);
-
-      return {
-        id: String(item.bookingId),
-        price: Number(item.totalAmount || 0),
-        title: item.contactName || 'Booking',
-        venue: item.contactName || '',
-        status,
-        date: item.createdAt,
-      };
-    });
+const mapped = list.map((item: any) => {
+  // Pass the raw data directly to OrderCard since it now handles all the fields
+  return {
+    id: String(item.bookingId),
+    ...item, // Spread all the original data
+  };
+});
 
     setOrders(mapped);
   } catch (err) {
@@ -120,7 +120,7 @@ export default function ManageBookings() {
         <FlatList
           data={orders}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 8, paddingBottom: 32 }}
+          contentContainerStyle={{ padding:0, paddingBottom: 32, paddingTop: 20 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -132,12 +132,19 @@ export default function ManageBookings() {
           }
           renderItem={({ item }) => (
             <OrderCard
-              title={item.title}
-              price={item.price}
-              venue={item.venue}
-              status={item.status}
-              date={item.date}
-              onPress={() => handleOrderPress(item.id, item.status)}
+              vendorName={item.vendorName}
+              vendorLogo={item.vendorLogo}
+              contactName={item.contactName}
+              contactNumber={item.contactNumber}
+              description={item.description}
+              bookingStatus={item.bookingStatus}
+              startTime={item.startTime}
+              endTime={item.endTime}
+              totalAmount={item.totalAmount}
+              minGuestCount={item.minGuestCount}
+              maxGuestCount={item.maxGuestCount}
+              source={item.source}
+              onPress={() => handleOrderPress(item.id, item.bookingStatus)}
             />
           )}
           ListFooterComponent={

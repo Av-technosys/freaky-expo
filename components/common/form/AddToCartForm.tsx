@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Platform, ScrollView, Pressable } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import dayjs from 'dayjs';
+import { Feather } from '@expo/vector-icons';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Text } from '@/components/ui/text';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
 import Toast from 'react-native-toast-message';
 
@@ -170,135 +171,187 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
     } catch { }
   };
   return (
-    <View style={{ flex: 1 }}>
-      <View className="gap-4 px-4 py-8">
-        {/* Full Name */}
-        <View className="gap-2">
-          <Label nativeID="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            placeholder="Enter your full name"
-            value={fullName}
-            onChangeText={setFullName}
-            className="native:px-4"
-          />
-        </View>
+    <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <View className="my-4 gap-4">
+        {/* Header */}
+        {/* <View className="items-center py-2">
+          <Text className="text-lg font-semibold text-gray-900">Booking Details</Text>
+          <Text className="text-sm text-gray-500 mt-1">Fill in your event information</Text>
+        </View> */}
 
-        {/* Phone */}
-        <View className="gap-2">
-          <Label nativeID="phone">Phone Number</Label>
-          <Input
-            id="phone"
-            placeholder="Enter your phone number"
-            value={phone}
-            onChangeText={setPhone}
-            keyboardType="phone-pad"
-            className="native:px-4"
-          />
-          {phone.length > 0 && phone.length < 10 && (
-            <Text className="text-sm text-destructive">
-              Phone number must be at least 10 digits
-            </Text>
-          )}
-        </View>
+        {/* Main Form Card */}
+        <Card className="p-4">
+          {/* Contact Info Section */}
+          <View className="">
+            <Text className="text-sm font-semibold text-gray-700 mb-3">Contact Information</Text>
+            
+            {/* Full Name */}
+            <View className="mb-3">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="user" size={14} color="#6B7280" />
+                <Label nativeID="fullName" className="text-sm text-gray-600">Full Name</Label>
+              </View>
+              <Input
+                id="fullName"
+                placeholder="Enter your name"
+                value={fullName}
+                onChangeText={setFullName}
+                className="h-10 text-sm"
+              />
+            </View>
 
-        {/* Address */}
-        <View className="gap-2">
-          <Label nativeID="address">Address</Label>
-          <View style={{ position: 'relative' }}>
+            {/* Phone */}
+            <View className="mb-3">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="phone" size={14} color="#6B7280" />
+                <Label nativeID="phone" className="text-sm text-gray-600">Phone Number</Label>
+              </View>
+              <Input
+                id="phone"
+                placeholder="10-digit mobile"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                className="h-10 text-sm "
+              />
+              {phone.length > 0 && phone.length < 10 && (
+                <Text className="text-xs text-red-500 mt-1">Must be at least 10 digits</Text>
+              )}
+            </View>
+          </View>
+
+          {/* Event Details Section */}
+          <View className="">
+            <Text className="text-sm font-semibold text-gray-700 mb-3">Event Details</Text>
+            
+            {/* Address */}
+            <View className="mb-3">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="map-pin" size={14} color="#6B7280" />
+                <Label nativeID="address" className="text-sm text-gray-600">Address</Label>
+              </View>
+              <View style={{ position: 'relative' }}>
+                <Textarea
+                  id="address"
+                  placeholder="Event location"
+                  value={address}
+                  onChangeText={handleAddressSearch}
+                  className="min-h-[60px] text-sm"
+                  numberOfLines={2}
+                />
+
+                {suggestions.length > 0 && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 55,
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'white',
+                      borderWidth: 1,
+                      borderColor: '#ddd',
+                      borderRadius: 8,
+                      zIndex: 20,
+                      maxHeight: 150,
+                    }}>
+                    <ScrollView keyboardShouldPersistTaps="handled">
+                      {suggestions.map((item) => (
+                        <Pressable
+                          key={item.place_id}
+                          onPress={() => handleSelectAddress(item.place_id)}
+                          style={{ padding: 10, borderBottomWidth: 1, borderColor: '#eee' }}>
+                          <Text className="text-sm">{item.description}</Text>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Date & Time Row */}
+            <View className="flex-row gap-3 mb-3">
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2 mb-1.5">
+                  <Feather name="calendar" size={14} color="#6B7280" />
+                  <Label className="text-sm text-gray-600">Date</Label>
+                </View>
+                <DateField value={date} onChange={setDate} />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2 mb-1.5">
+                  <Feather name="clock" size={14} color="#6B7280" />
+                  <Label className="text-sm text-gray-600">Time</Label>
+                </View>
+                <TimeField value={time} onChange={setTime} />
+              </View>
+            </View>
+
+            {/* Guests */}
+            <View className="mb-1">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="users" size={14} color="#6B7280" />
+                <Label nativeID="guests" className="text-sm text-gray-600">Number of Guests</Label>
+              </View>
+              <Select value={guests} onValueChange={(val) => setGuests(val)}>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select guests" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Guest Count</SelectLabel>
+                    {GUEST_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} label={option.label} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </View>
+          </View>
+
+          {/* Special Requests */}
+          <View className="mb-4">
+            <View className="flex-row items-center gap-2 mb-1.5">
+              <Feather name="edit-3" size={14} color="#6B7280" />
+              <Label className="text-sm text-gray-600">Vendor Note</Label>
+            </View>
             <Textarea
-              id="address"
-              placeholder="Enter your address"
-              value={address}
-              onChangeText={handleAddressSearch}
-              className="native:px-4"
-              multiline
+              value={vendorNote}
+              onChangeText={setVendorNote}
+              placeholder="Any special requirements?"
+              className="min-h-[60px] text-sm"
               numberOfLines={2}
             />
-
-            {suggestions.length > 0 && (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: 55,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'white',
-                  borderWidth: 1,
-                  borderColor: '#ddd',
-                  borderRadius: 8,
-                  zIndex: 20,
-                  maxHeight: 200,
-                }}>
-                <ScrollView keyboardShouldPersistTaps="handled">
-                  {suggestions.map((item) => (
-                    <Pressable
-                      key={item.place_id}
-                      onPress={() => handleSelectAddress(item.place_id)}
-                      style={{ padding: 12, borderBottomWidth: 1, borderColor: '#eee' }}>
-                      <Text>{item.description}</Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
           </View>
-        </View>
 
-        {/* Date Picker */}
-
-        <DateField value={date} onChange={setDate} />
-        {/* Time Picker */}
-
-        <TimeField value={time} onChange={setTime} />
-        {/* Guests Select */}
-        <View className="gap-2">
-          <Label nativeID="guests">Number of Guests</Label>
-          <Select value={guests} onValueChange={(val) => setGuests(val)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select guest range" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Guest Count</SelectLabel>
-
-                {GUEST_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} label={option.label} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </View>
-        {/* Vendor Note */}
-        <View className="gap-1.5">
-          <Label>Vendor Note</Label>
-          <Textarea
-            value={vendorNote}
-            onChangeText={setVendorNote}
-            placeholder="Any special requests?"
-            className="min-h-[100px]"
-          />
-        </View>
-        {/* Price Summary Card */}
-        <Card className="mt-2">
-          <CardContent className="p-4">
-            <View className="flex-row justify-between">
-              <Text className="font-semibold">Total Price:</Text>
-              <Text className="text-lg font-bold text-primary">₹{product.price}</Text>
+          {/* Price Summary */}
+          <View className="bg-orange-50 rounded-lg p-3 mb-4">
+            <View className="flex-row justify-between items-center">
+              <View>
+                <Text className="text-sm font-medium text-gray-600">Total Amount</Text>
+                <Text className="text-xs text-gray-500">For {guests?.label || 'selected guests'}</Text>
+              </View>
+              <Text className="text-lg font-bold text-orange-600">₹{product.price}</Text>
             </View>
-          </CardContent>
+          </View>
         </Card>
 
-        {/* Action Buttons */}
-        <View className="mt-4 flex-row gap-3">
-          <AppButton className="flex-1" onPress={handleSubmit} disabled={!isValid || loading}>
-            {loading ? 'Adding...' : 'Add to Cart'}
-          </AppButton>
-        </View>
+        {/* Submit Button */}
+        <AppButton 
+          onPress={handleSubmit} 
+          disabled={!isValid || loading}
+          className="h-12"
+        >
+          <View className="flex-row items-center justify-center gap-2">
+            <Feather name="shopping-cart" size={18} color="#fff" />
+            <Text className="text-white font-semibold">
+              {loading ? 'Adding...' : 'Add to Cart'}
+            </Text>
+          </View>
+        </AppButton>
       </View>
-    </View>
+    </ScrollView>
   );
 }

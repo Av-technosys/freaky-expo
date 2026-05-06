@@ -19,7 +19,7 @@ export default function DateField({ value, onChange, label = 'Select Date' }: Pr
 
   return (
     <View className="gap-2">
-      <Label>{label}</Label>
+      {/* <Label>{label}</Label> */}
 
       <Button
         variant="outline"
@@ -27,7 +27,7 @@ export default function DateField({ value, onChange, label = 'Select Date' }: Pr
         onPress={() => setOpen(true)}>
         <Calendar size={18} color="#999" />
 
-        <Text className="ml-2 text-base font-normal text-foreground">
+        <Text className="ml-2 text-sm font-normal text-foreground">
           {value ? dayjs(value).format('DD MMM YYYY') : 'Pick a date'}
         </Text>
       </Button>

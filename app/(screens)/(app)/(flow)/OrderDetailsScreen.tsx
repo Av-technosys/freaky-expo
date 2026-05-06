@@ -1,23 +1,19 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Pressable, StatusBar } from 'react-native';
+import { View, ScrollView, Pressable, StatusBar, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { router, useNavigation } from 'expo-router';
-import { Calendar, Clock, Gift, Coffee, Download, ChevronRight, Info, Star } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 
 // React Native Reusables components
 import { Text } from '@/components/ui/text';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 
 // Components
 import ScreenHeader from '@/components/common/ScreenHeader';
-import OrderCardSkeleton from '@/app/skeleton/OrderCard';
 
 // API
 import { fetchBookingbyId } from '@/api/booking';
@@ -37,26 +33,51 @@ type OrderStackParamList = {
 type OrderDetailsRouteProp = RouteProp<OrderStackParamList, 'OrderDetailsScreen'>;
 
 type BookingItem = {
-  id: string;
+  id: number;
+  bookingId: number;
+  productId: number;
   productName: string;
-  productPrice: number;
+  productImage: string;
+  productPrice: string;
   quantity: number;
-  minGuestCount?: number;
-  maxGuestCount?: number;
+  contactName: string | null;
+  contactNumber: string | null;
+  startTime: string;
+  endTime: string;
+  minGuestCount: number;
+  maxGuestCount: number;
+  latitude: string | null;
+  longitude: string | null;
   bookingStatus: string;
-  productId: string;
+  paymentStatus: string;
+  createdAt: string;
+  vendorId: number;
 };
 
 type Booking = {
-  id: string;
-  contactName: string;
-  paymentStatus: string;
+  bookingId: number;
+  userId: number;
+  eventTypeId: number | null;
+  source: string;
+  contactName: string | null;
+  contactNumber: string | null;
+  description: string | null;
   startTime: string;
   endTime: string;
-  totalAmount?: number;
-  subtotal?: number;
-  serviceFee?: number;
-  tax?: number;
+  minGuestCount: number;
+  maxGuestCount: number;
+  latitude: string | null;
+  longitude: string | null;
+  bookingStatus: string;
+  paymentStatus: string;
+  totalAmount: string;
+  createdAt: string;
+  bookedAt: string;
+  vendorId: number | null;
+  vendorName: string | null;
+  vendorLogo: string | null;
+  vendorCity: string | null;
+  vendorState: string | null;
 };
 
 export default function OrderDetailsScreen() {
@@ -72,10 +93,9 @@ export default function OrderDetailsScreen() {
       try {
         setLoading(true);
         const res = await fetchBookingbyId(bookingId);
-
         console.log('Fetched booking details', res);
-        setBookingItems(res.items || [])
-        setBooking(res.booking || null)
+        setBookingItems(res.data?.items || []);
+        setBooking(res.data?.booking || null);
       } catch (err) {
         console.error('Failed to fetch booking details', err);
         Toast.show({
@@ -91,48 +111,46 @@ export default function OrderDetailsScreen() {
   }, [bookingId]);
 
   const isPaid = booking?.paymentStatus === 'PAID';
-
-  const totalAmount = Number(
-    booking?.totalAmount ??
-    bookingItems.reduce(
-      (sum, item) => sum + Number(item.productPrice || 0),
-      0
-    )
-  );
+  const totalAmount = Number(booking?.totalAmount || 0);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Date TBD';
-    return dayjs(dateString).format('dddd, D MMMM YYYY');
+    return dayjs(dateString).format('DD MMM YYYY');
   };
 
-  const formatTimeRange = (start: string, end: string) => {
-    if (!start || !end) return 'Time TBD';
-    return `${dayjs(start).format('hh:mm A')} - ${dayjs(end).format('hh:mm A')}`;
+  const formatTime = (dateString: string) => {
+    if (!dateString) return 'Time TBD';
+    return dayjs(dateString).format('hh:mm A');
   };
 
   const getStatusColor = (status: string) => {
-    const statusLower = status?.toLowerCase() || '';
-    if (statusLower === 'paid') return 'bg-green-100';
-    if (statusLower === 'pending') return 'bg-amber-100';
-    if (statusLower === 'cancelled') return 'bg-red-100';
-    return 'bg-gray-100';
+    switch (status?.toLowerCase()) {
+      case 'confirmed':
+        return '#10B981';
+      case 'completed':
+        return '#3B82F6';
+      case 'pending':
+        return '#F59E0B';
+      case 'cancelled':
+        return '#EF4444';
+      case 'hold':
+        return '#6B7280';
+      default:
+        return '#6B7280';
+    }
   };
 
-  const getStatusTextColor = (status: string) => {
-    const statusLower = status?.toLowerCase() || '';
-    if (statusLower === 'paid') return 'text-green-700';
-    if (statusLower === 'pending') return 'text-amber-700';
-    if (statusLower === 'cancelled') return 'text-red-700';
-    return 'text-gray-700';
-  };
-
-  const getBookingStatusColor = (status: string) => {
-    const statusLower = status?.toLowerCase() || '';
-    if (statusLower === 'confirmed') return 'bg-green-100 text-green-700';
-    if (statusLower === 'pending') return 'bg-amber-100 text-amber-700';
-    if (statusLower === 'cancelled') return 'bg-red-100 text-red-700';
-    if (statusLower === 'completed') return 'bg-blue-100 text-blue-700';
-    return 'bg-gray-100 text-gray-700';
+  const getGuestCount = (min: number, max: number) => {
+    if (min && max && min !== max) {
+      return `${min} - ${max} guests`;
+    }
+    if (max) {
+      return `${max} guests`;
+    }
+    if (min) {
+      return `${min} guest${min > 1 ? 's' : ''}`;
+    }
+    return null;
   };
 
   const handleDownloadInvoice = () => {
@@ -149,7 +167,7 @@ export default function OrderDetailsScreen() {
 
   const handleAddReview = () => {
     router.push({
-      pathname: '/AddReviewsScreen', // Adjust path based on your file structure
+      pathname: '/AddReviewsScreen',
       params: {
         eventId: bookingId,
         productIds: JSON.stringify(bookingItems.map(b => b.productId)),
@@ -157,21 +175,148 @@ export default function OrderDetailsScreen() {
     });
   };
 
+  // Order Card Component for each booking item
+  const OrderItemCard = ({ item }: { item: BookingItem }) => {
+    const statusColor = getStatusColor(item.bookingStatus);
+    const guestCount = getGuestCount(item.minGuestCount, item.maxGuestCount);
+    const hasDateTime = item.startTime || item.endTime;
+
+    return (
+      <Card className="mt-4 -py-6 overflow-hidden rounded-xl border border-gray-100 bg-white shadow">
+        <View className="flex-row">
+          <View className="w-2" style={{ backgroundColor: statusColor }} />
+          
+          <View className="flex-1 px-4 py-3">
+            <View className="flex-row items-start justify-between gap-3 mb-3">
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2">
+                  {item.productImage ? (
+                    <Image 
+                      source={{ uri: item.productImage }}
+                      className="h-6 w-6 rounded-md"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Feather name="coffee" size={16} color="#F97316" />
+                  )}
+                  <Text className="text-base font-semibold text-black" numberOfLines={1}>
+                    {item.productName}
+                  </Text>
+                </View>
+                
+                <View className="flex-row items-center gap-2 mt-1.5">
+                  <View 
+                    className="flex-row items-center gap-1.5 px-2 py-0.5 rounded-full"
+                    style={{ 
+                      backgroundColor: `${statusColor}15`,
+                      borderWidth: 0.5,
+                      borderColor: `${statusColor}30`
+                    }}
+                  >
+                    <Feather 
+                      name={item.bookingStatus?.toLowerCase() === 'confirmed' ? 'check-circle' : 
+                            item.bookingStatus?.toLowerCase() === 'completed' ? 'check' :
+                            item.bookingStatus?.toLowerCase() === 'pending' ? 'clock' :
+                            item.bookingStatus?.toLowerCase() === 'cancelled' ? 'x-circle' : 'info'}
+                      size={12} 
+                      color={statusColor} 
+                    />
+                    <Text 
+                      className="text-xs font-semibold capitalize"
+                      style={{ color: statusColor }}
+                    >
+                      {item.bookingStatus?.toLowerCase() || 'hold'}
+                    </Text>
+                  </View>
+                  
+                  <View className="w-1 h-1 rounded-full bg-gray-300" />
+                  <View className="flex-row items-center gap-1">
+                    <Feather name="shopping-bag" size={10} color="#9CA3AF" />
+                    <Text className="text-xs text-gray-400">
+                      Qty {item.quantity}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View className="items-end">
+                <Text className="text-lg font-bold text-orange-500">
+                  ₹ {Number(item.productPrice).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            <View className="gap-2.5">
+              {/* Date & Time */}
+              {hasDateTime && (
+                <View className="flex-row items-center gap-4">
+                  {item.startTime && (
+                    <View className="flex-row items-center gap-1.5">
+                      <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                        <Feather name="calendar" size={11} color="#6B7280" />
+                      </View>
+                      <Text className="text-xs text-gray-600">{formatDate(item.startTime)}</Text>
+                    </View>
+                  )}
+                  {item.endTime && (
+                    <View className="flex-row items-center gap-1.5">
+                      <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                        <Feather name="clock" size={11} color="#6B7280" />
+                      </View>
+                      <Text className="text-xs text-gray-600">{formatTime(item.startTime || item.endTime)}</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {/* Guest Count */}
+              {guestCount && (
+                <View className="flex-row items-center gap-1.5">
+                  <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                    <Feather name="users" size={11} color="#6B7280" />
+                  </View>
+                  <Text className="text-xs text-gray-600">{guestCount}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      </Card>
+    );
+  };
+
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-background">
+      <SafeAreaView className="flex-1 bg-gray-50">
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <ScreenHeader title="Order Details" showBack />
         <View className="p-4 gap-4">
-          <OrderCardSkeleton variant="default" />
-          <OrderCardSkeleton variant="default" />
+          <Card className="mt-4 -py-6 overflow-hidden rounded-xl border border-gray-100 bg-white shadow">
+            <View className="flex-row p-4">
+              <View className="w-16 h-16 bg-gray-200 rounded-xl" />
+              <View className="flex-1 ml-3 gap-2">
+                <View className="h-5 bg-gray-200 rounded w-3/4" />
+                <View className="h-4 bg-gray-200 rounded w-1/2" />
+                <View className="h-4 bg-gray-200 rounded w-2/3" />
+              </View>
+            </View>
+          </Card>
+          <Card className="mt-4 -py-6 overflow-hidden rounded-xl border border-gray-100 bg-white shadow">
+            <View className="flex-row p-4">
+              <View className="w-16 h-16 bg-gray-200 rounded-xl" />
+              <View className="flex-1 ml-3 gap-2">
+                <View className="h-5 bg-gray-200 rounded w-3/4" />
+                <View className="h-4 bg-gray-200 rounded w-1/2" />
+                <View className="h-4 bg-gray-200 rounded w-2/3" />
+              </View>
+            </View>
+          </Card>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-
     <Screen scroll>
       <ScreenHeader title="Order Details" rightType="notification" showBack />
 
@@ -180,197 +325,211 @@ export default function OrderDetailsScreen() {
         contentContainerClassName="pb-8"
         className="flex-1"
       >
-        {/* HEADER CARD */}
-        <Card className="mx-2 mt-4 mb-6">
-          <CardContent className="p-5">
-            <View className="flex-row items-start">
-              <View className="h-20 w-20 items-center justify-center rounded-2xl  bg-orange-400 shadow-md">
-                <Gift size={32} color="white" />
-              </View>
-
-              <View className="ml-4 flex-1">
-                <View className="flex-row flex-wrap justify-between items-start gap-2">
-                  <Text className="flex-1 text-2xl font-bold text-foreground" numberOfLines={2}>
-                    {booking?.contactName || 'N/A'}
-                  </Text>
-
-                  <Badge className={getStatusColor(booking?.paymentStatus || '')}>
-                    <Text className={getStatusTextColor(booking?.paymentStatus || '')}>
-                      {isPaid ? 'Paid' : 'Pending'}
-                    </Text>
-                  </Badge>
-                </View>
-
-                <Text className="mt-2 text-sm text-muted-foreground">
-                  Order #{bookingId}
-                </Text>
-
-                {booking?.startTime && (
-                  <View className="mt-4 gap-2">
-                    <View className="flex-row items-center">
-                      <Calendar size={16} className="text-muted-foreground" />
-                      <Text className="ml-2 font-medium text-foreground">
-                        {formatDate(booking.startTime)}
+        {/* MAIN BOOKING CARD */}
+        {booking && (
+          <Card className="mx-2 -py-6 mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow">
+            <View className="flex-row">
+              <View className="w-2" style={{ backgroundColor: getStatusColor(booking.bookingStatus) }} />
+              
+              <View className="flex-1 px-4 py-3">
+                <View className="flex-row items-start justify-between gap-3 mb-3">
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-2">
+                      {booking.vendorLogo ? (
+                        <Image 
+                          source={{ uri: booking.vendorLogo }}
+                          className="h-6 w-6 rounded-md"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Feather name="gift" size={16} color="#F97316" />
+                      )}
+                      <Text className="text-base font-semibold text-black" numberOfLines={1}>
+                        {booking.vendorName || 'Booking'}
                       </Text>
                     </View>
+                    
+                    <View className="flex-row items-center gap-2 mt-1.5">
+                      <View 
+                        className="flex-row items-center gap-1.5 px-2 py-0.5 rounded-full"
+                        style={{ 
+                          backgroundColor: `${getStatusColor(booking.bookingStatus)}15`,
+                          borderWidth: 0.5,
+                          borderColor: `${getStatusColor(booking.bookingStatus)}30`
+                        }}
+                      >
+                        <Feather 
+                          name={booking.bookingStatus?.toLowerCase() === 'confirmed' ? 'check-circle' : 
+                                booking.bookingStatus?.toLowerCase() === 'completed' ? 'check' :
+                                booking.bookingStatus?.toLowerCase() === 'pending' ? 'clock' :
+                                booking.bookingStatus?.toLowerCase() === 'cancelled' ? 'x-circle' : 'info'}
+                          size={12} 
+                          color={getStatusColor(booking.bookingStatus)} 
+                        />
+                        <Text 
+                          className="text-xs font-semibold capitalize"
+                          style={{ color: getStatusColor(booking.bookingStatus) }}
+                        >
+                          {booking.bookingStatus?.toLowerCase()}
+                        </Text>
+                      </View>
+                      
+                      <View className="w-1 h-1 rounded-full bg-gray-300" />
+                      <View className="flex-row items-center gap-1">
+                        <Feather name={booking.source === 'EVENT' ? 'calendar' : 'shopping-bag'} size={10} color="#9CA3AF" />
+                        <Text className="text-xs text-gray-400">
+                          {booking.source === 'EVENT' ? 'Event Booking' : 'Regular'}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
 
-                    <View className="flex-row items-center">
-                      <Clock size={16} className="text-muted-foreground" />
-                      <Text className="ml-2 font-medium text-foreground">
-                        {formatTimeRange(booking.startTime, booking.endTime)}
+                  <View className="items-end">
+                    <Text className="text-base text-gray-500">Total</Text>
+                    <Text className="text-lg font-bold text-orange-500">
+                      ₹ {totalAmount.toFixed(2)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="gap-2.5">
+                  {/* Contact Info */}
+                  {(booking.contactName || booking.contactNumber) && (
+                    <View className="flex-row items-center gap-3">
+                      {booking.contactName && (
+                        <View className="flex-row items-center gap-1.5">
+                          <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                            <Feather name="user" size={11} color="#6B7280" />
+                          </View>
+                          <Text className="text-xs text-gray-600">{booking.contactName}</Text>
+                        </View>
+                      )}
+                      {booking.contactNumber && (
+                        <View className="flex-row items-center gap-1.5">
+                          <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                            <Feather name="phone" size={11} color="#6B7280" />
+                          </View>
+                          <Text className="text-xs text-gray-600">{booking.contactNumber}</Text>
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {/* Date & Time */}
+                  {booking.startTime && (
+                    <View className="flex-row items-center gap-4">
+                      <View className="flex-row items-center gap-1.5">
+                        <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                          <Feather name="calendar" size={11} color="#6B7280" />
+                        </View>
+                        <Text className="text-xs text-gray-600">{formatDate(booking.startTime)}</Text>
+                      </View>
+                      <View className="flex-row items-center gap-1.5">
+                        <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                          <Feather name="clock" size={11} color="#6B7280" />
+                        </View>
+                        <Text className="text-xs text-gray-600">
+                          {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+                        </Text>
+                      </View>
+                    </View>
+                  )}
+
+                  {/* Guest Count */}
+                  {getGuestCount(booking.minGuestCount, booking.maxGuestCount) && (
+                    <View className="flex-row items-center gap-1.5">
+                      <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center">
+                        <Feather name="users" size={11} color="#6B7280" />
+                      </View>
+                      <Text className="text-xs text-gray-600">
+                        {getGuestCount(booking.minGuestCount, booking.maxGuestCount)}
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* Description */}
+                  {booking.description && (
+                    <View className="flex-row items-start gap-1.5">
+                      <View className="w-5 h-5 rounded-full bg-gray-50 items-center justify-center mt-0.5">
+                        <Feather name="file-text" size={11} color="#6B7280" />
+                      </View>
+                      <Text className="flex-1 text-xs text-gray-600" numberOfLines={2}>
+                        {booking.description}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Payment Status Badge */}
+                <View className="mt-3 pt-3 border-t border-gray-100">
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-xs text-gray-500">Payment Status</Text>
+                    <View className="flex-row items-center gap-1.5">
+                      <View className={`w-1.5 h-1.5 rounded-full ${isPaid ? 'bg-green-500' : 'bg-amber-500'}`} />
+                      <Text className={`text-xs font-medium ${isPaid ? 'text-green-600' : 'text-amber-600'}`}>
+                        {isPaid ? 'PAID' : 'PENDING'}
                       </Text>
                     </View>
                   </View>
-                )}
+                </View>
               </View>
             </View>
-          </CardContent>
-        </Card>
+          </Card>
+        )}
 
         {/* SERVICES SECTION */}
-        <View className="mx-2 mb-6">
-          <Text className="mb-4 text-xl font-bold text-foreground">
-            Services ({bookingItems.length})
-          </Text>
-
-          <View className="gap-3">
-            {bookingItems.map((item) => {
-              const statusStyle = getBookingStatusColor(item.bookingStatus);
-              return (
-                <Card key={item.id}>
-                  <CardContent className="p-4">
-                    <View className="flex-row justify-between items-start mb-3">
-                      <View className="flex-row flex-1 items-start">
-                        <View className="mr-3 h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-                          <Coffee size={20} color="#2563EB" />
-                        </View>
-
-                        <View className="flex-1">
-                          <Text className="text-lg font-semibold text-foreground">
-                            {item.productName}
-                          </Text>
-                          {item.minGuestCount && (
-                            <Text className="mt-1 text-sm text-muted-foreground">
-                              Guests: {item.minGuestCount} - {item.maxGuestCount}
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-
-                      <Text className="text-lg font-bold text-primary">
-                        ₹{item.productPrice || '0'}
-                      </Text>
-                    </View>
-
-                    <Separator className="my-3" />
-
-                    <View className="flex-row justify-between items-center">
-                      <View className="flex-row items-center">
-                        <Badge variant="secondary">
-                          <Text className="font-medium">Qty: {item.quantity || 1}</Text>
-                        </Badge>
-                      </View>
-
-                      <Badge className={statusStyle.split(' ')[0]}>
-                        <Text className={statusStyle.split(' ')[1] || ''}>
-                          {item.bookingStatus || 'HOLD'}
-                        </Text>
-                      </Badge>
-                    </View>
-                  </CardContent>
-                </Card>
-              );
-            })}
+        {bookingItems.length > 0 && (
+          <View className="mx-2 mt-6">
+            <Text className="mb-3 text-lg font-bold text-gray-900">
+              Services ({bookingItems.length})
+            </Text>
+            {bookingItems.map((item) => (
+              <OrderItemCard key={item.id} item={item} />
+            ))}
           </View>
-        </View>
-
-        {/* PRICING BREAKDOWN */}
-        <View className="mx-2 mb-6">
-          <Text className="mb-4 text-xl font-bold text-foreground">
-            Pricing Breakdown
-          </Text>
-
-          <Card>
-            <CardContent className="p-5">
-              <View className="gap-3">
-                <View className="flex-row justify-between">
-                  <Text className="text-muted-foreground">Subtotal</Text>
-                  <Text className="text-foreground">$ {Number(totalAmount || 0).toFixed(2)}</Text>
-                </View>
-
-                <View className="flex-row justify-between">
-                  <Text className="text-muted-foreground">Service Fee</Text>
-                  <Text className="text-muted-foreground">Included</Text>
-                </View>
-
-                <View className="flex-row justify-between">
-                  <Text className="text-muted-foreground">Tax</Text>
-                  <Text className="text-muted-foreground">Included</Text>
-                </View>
-              </View>
-
-              <Separator className="my-4" />
-
-              <View className="flex-row justify-between items-center">
-                <Text className="text-lg font-bold text-foreground">Total Amount</Text>
-                <Text className="text-2xl font-bold text-primary">$ {Number(totalAmount || 0).toFixed(2)}</Text>
-              </View>
-
-              <View className="mt-4 flex-row items-center">
-                <Info size={16} className="text-muted-foreground" />
-                <Text className="ml-2 text-sm text-muted-foreground">
-                  Includes all taxes and service charges
-                </Text>
-              </View>
-            </CardContent>
-          </Card>
-        </View>
+        )}
 
         {/* REVIEWS & FEEDBACK */}
-        <View className="mx-2 mb-6">
-          <Text className="mb-4 text-xl font-bold text-foreground">
-            Reviews & Feedback
-          </Text>
-
+        <View className="mx-2 mt-6">
           <Pressable onPress={handleAddReview}>
-            <Card className="border-orange-300 bg-primary/5">
-              <CardContent className="p-5">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <View className="mb-2 flex-row items-center">
-                      <Star size={20} className="text-primary" />
-                      <Text className="ml-2 text-lg font-bold text-primary">
-                        Share Your Experience
-                      </Text>
-                    </View>
-                    <Text className="text-sm text-primary/80">
-                      Rate this event and help us improve our services
-                    </Text>
-                  </View>
-
-                  <View className="h-12 w-12 items-center justify-center rounded-xl bg-white">
-                    <ChevronRight size={24} className="text-primary" />
-                  </View>
+            <Card className="overflow-hidden rounded-xl border border-orange-200 bg-orange-50">
+              <View className="flex-row items-center p-4">
+                <View className="h-12 w-12 rounded-xl bg-orange-100 items-center justify-center">
+                  <Feather name="star" size={22} color="#F97316" />
                 </View>
-              </CardContent>
+                <View className="flex-1 ml-3">
+                  <Text className="text-base font-semibold text-orange-600">
+                    Share Your Experience
+                  </Text>
+                  <Text className="text-xs text-orange-500 mt-0.5">
+                    Rate this booking and help us improve
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={20} color="#F97316" />
+              </View>
             </Card>
           </Pressable>
         </View>
 
         {/* ACTION BUTTONS */}
-        <View className="mx-2">
+        <View className="mx-2 mt-6 mb-8">
           {isPaid ? (
             <AppButton
               variant="outline"
               onPress={handleDownloadInvoice}
-
+              className="border-orange-200 bg-orange-50"
             >
-              <Download size={20} className="text-foreground mr-2" />
-              Download Invoice
+              <View className="flex-row items-center gap-2">
+                <Feather name="download" size={18} color="#F97316" />
+                <Text className="text-orange-600 font-semibold">Download Invoice</Text>
+              </View>
             </AppButton>
           ) : (
             <AppButton onPress={handlePayNow}>
-              Pay Now
+              <View className="flex-row items-center gap-2">
+                <Feather name="credit-card" size={18} color="#fff" />
+                <Text className="text-white font-semibold">Pay Now</Text>
+              </View>
             </AppButton>
           )}
         </View>

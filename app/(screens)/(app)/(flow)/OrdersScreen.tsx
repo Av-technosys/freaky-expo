@@ -10,13 +10,21 @@ import OrderCardSkeleton from '@/app/skeleton/OrderCard';
 import EmptyState from '@/components/eventProducts/EmptyProductsState';
 import { fetchBookings } from '@/api/booking';
 
-type Order = {
+type Booking = {
   id: string;
-  price: number;
-  title: string;
-  venue: string;
-  status: string;
-  date?: string;
+  bookingId: number;
+  vendorName: string | null;
+  vendorLogo: string | null;
+  contactName: string | null;
+  contactNumber: string | null;
+  description: string | null;
+  bookingStatus: string;
+  startTime: string | null;
+  endTime: string | null;
+  totalAmount: string | null;
+  minGuestCount: number | null;
+  maxGuestCount: number | null;
+  source: string | null;
 };
 
 const mapStatus = (status: string) => {
@@ -31,7 +39,7 @@ const mapStatus = (status: string) => {
 };
 
 export default function OrdersScreen() {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -49,20 +57,7 @@ export default function OrdersScreen() {
 
       const mapped = list.map((item: any) => ({
         id: String(item.bookingId),
-        price: Number(item.totalAmount || 0),
-
-        title: item.contactName || 'Booking',
-
-        // 🔥 FIXED
-        venue: item.description || '',
-
-        status: mapStatus(item.bookingStatus || 'pending'),
-
-        // 🔥 USE REAL EVENT TIME
-        date: item.startTime,
-
-        phone: item.contactNumber || '',
-        guestRange: `${item.minGuestCount || 0}-${item.maxGuestCount || 0}`,
+        ...item, // Spread all the original data like ManageBookings
       }));
 
       setOrders(mapped);
@@ -109,7 +104,7 @@ export default function OrdersScreen() {
         <FlatList
           data={orders}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 8, paddingBottom: 32 }}
+          contentContainerStyle={{ padding:0, paddingBottom: 32, paddingTop: 20 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -121,12 +116,19 @@ export default function OrdersScreen() {
           }
           renderItem={({ item }) => (
             <OrderCard
-              title={item.title}
-              price={item.price}
-              venue={item.venue}
-              status={item.status}
-              date={item.date}
-              onPress={() => handleOrderPress(item.id, item.status)}
+              vendorName={item.vendorName}
+              vendorLogo={item.vendorLogo}
+              contactName={item.contactName}
+              contactNumber={item.contactNumber}
+              description={item.description}
+              bookingStatus={item.bookingStatus}
+              startTime={item.startTime}
+              endTime={item.endTime}
+              totalAmount={item.totalAmount}
+              minGuestCount={item.minGuestCount}
+              maxGuestCount={item.maxGuestCount}
+              source={item.source}
+              onPress={() => handleOrderPress(item.id, item.bookingStatus)}
             />
           )}
           ListFooterComponent={

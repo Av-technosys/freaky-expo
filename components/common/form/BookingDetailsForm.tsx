@@ -1,15 +1,14 @@
 import { View, Pressable, ScrollView } from 'react-native';
 import React, { SetStateAction, useEffect, useState } from 'react';
-import { Calendar } from 'react-native-calendars';
-import { TimePickerModal } from 'react-native-paper-dates';
 import dayjs from 'dayjs';
 import Toast from 'react-native-toast-message';
+import { Feather } from '@expo/vector-icons';
 
 // React Native Reusables components
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   Select,
@@ -20,20 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import DateField from '@/components/common/DateField';
 import TimeField from '@/components/common/TimeField';
-// Icons
-import {
-  User,
-  Phone,
-  MapPin,
-  Calendar as CalendarIcon,
-  Clock,
-  Users,
-  ChevronRight,
-} from 'lucide-react-native';
-
 import { fetchEventType, createEvent } from '@/api/event';
 import { useAppDispatch } from '@/store/hooks';
 import { resetEvent, setEventId, setEventType } from '@/store/slices/eventSlice';
@@ -141,101 +128,131 @@ const handleSelectAddress = async (placeId: any) => {
   } catch {}
 }
   return (
-    <ScrollView showsVerticalScrollIndicator={false}>
-      <View className="mt-4">
-        {/* Single Card */}
-        <Card className="h-auto">
-          <CardContent className="mb-12 h-auto gap-6 pt-6">
+    <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <View className="my-4 gap-4">
+        {/* Header */}
+        {/* <View className="items-center py-2">
+          <Text className="text-lg font-semibold text-gray-900">Event Booking</Text>
+          <Text className="text-sm text-gray-500 mt-1">Create your event booking</Text>
+        </View> */}
+
+        {/* Main Form Card */}
+        <Card className="p-4">
+          {/* Contact Information */}
+          <View className="">
+            <Text className="text-sm font-semibold text-gray-700 mb-3">Contact Information</Text>
+            
             {/* Full Name */}
-            <View className="gap-2">
-              <Label>Full Name</Label>
-              <View className="flex-row items-center gap-2">
-                <User size={18} className="text-muted-foreground" />
-                <Input
-                  placeholder="Enter your full name"
-                  value={fullName}
-                  onChangeText={setFullName}
-                  className="flex-1"
-                />
+            <View className="mb-3">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="user" size={14} color="#6B7280" />
+                <Label className="text-sm text-gray-600">Full Name</Label>
               </View>
+              <Input
+                placeholder="Enter your name"
+                value={fullName}
+                onChangeText={setFullName}
+                className="h-10 text-sm"
+              />
             </View>
 
             {/* Phone */}
-            <View className="gap-2">
-              <Label>Phone Number</Label>
-              <View className="flex-row items-center gap-2">
-                <Phone size={18} className="text-muted-foreground" />
-                <Input
-                  placeholder="10-digit mobile number"
-                  value={phone}
-                  onChangeText={setPhone}
-                  keyboardType="phone-pad"
-                  className="flex-1"
-                />
+            <View className="mb-3">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="phone" size={14} color="#6B7280" />
+                <Label className="text-sm text-gray-600">Phone Number</Label>
               </View>
+              <Input
+                placeholder="10-digit mobile"
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                className="h-10 text-sm"
+              />
+              {phone.length > 0 && phone.length < 10 && (
+                <Text className="text-xs text-red-500 mt-1">Must be at least 10 digits</Text>
+              )}
             </View>
+          </View>
 
+          {/* Event Details */}
+          <View className="">
+            <Text className="text-sm font-semibold text-gray-700 mb-3">Event Details</Text>
+            
             {/* Address */}
-            <View className="gap-2">
-              <Label>Address</Label>
-              <View className="flex-row items-center gap-2">
-                <MapPin size={18} className="text-muted-foreground" />
-                <View style={{ position: 'relative', flex: 1 }}>
-  <Textarea
-    placeholder="Your full address"
-    value={address}
-    onChangeText={handleAddressSearch}
-    multiline
-    numberOfLines={2}
-    className="flex-1"
-  />
+            <View className="mb-3">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="map-pin" size={14} color="#6B7280" />
+                <Label className="text-sm text-gray-600">Event Address</Label>
+              </View>
+              <View style={{ position: 'relative', flex: 1 }}>
+                <Textarea
+                  placeholder="Event location"
+                  value={address}
+                  onChangeText={handleAddressSearch}
+                  multiline
+                  numberOfLines={2}
+                  className="min-h-[60px] text-sm"
+                />
 
-  {suggestions.length > 0 && (
-    <View
-      style={{
-        position: 'absolute',
-        top: 55,
-        left: 0,
-        right: 0,
-        backgroundColor: 'white',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        zIndex: 20,
-        maxHeight: 200
-      }}
-    >
-      <ScrollView keyboardShouldPersistTaps="handled">
-        {suggestions.map((item) => (
-          <Pressable
-            key={item.place_id}
-            onPress={() => handleSelectAddress(item.place_id)}
-            style={{ padding: 12, borderBottomWidth: 1, borderColor: '#eee' }}
-          >
-            <Text>{item.description}</Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
-  )}
-</View>
+                {suggestions.length > 0 && (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 55,
+                      left: 0,
+                      right: 0,
+                      backgroundColor: 'white',
+                      borderWidth: 1,
+                      borderColor: '#ddd',
+                      borderRadius: 8,
+                      zIndex: 20,
+                      maxHeight: 150
+                    }}
+                  >
+                    <ScrollView keyboardShouldPersistTaps="handled">
+                      {suggestions.map((item) => (
+                        <Pressable
+                          key={item.place_id}
+                          onPress={() => handleSelectAddress(item.place_id)}
+                          style={{ padding: 10, borderBottomWidth: 1, borderColor: '#eee' }}
+                        >
+                          <Text className="text-sm">{item.description}</Text>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
             </View>
 
-            <Separator />
+            {/* Date & Time Row */}
+            <View className="flex-row gap-3 mb-3">
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2 mb-1.5">
+                  <Feather name="calendar" size={14} color="#6B7280" />
+                  <Label className="text-sm text-gray-600">Date</Label>
+                </View>
+                <DateField value={date || undefined} onChange={(d) => setDate(d)} />
+              </View>
+              <View className="flex-1">
+                <View className="flex-row items-center gap-2 mb-1.5">
+                  <Feather name="clock" size={14} color="#6B7280" />
+                  <Label className="text-sm text-gray-600">Time</Label>
+                </View>
+                <TimeField value={time || undefined} onChange={(t) => setTime(t)} />
+              </View>
+            </View>
 
-            <DateField value={date || undefined} onChange={(d) => setDate(d)} />
-
-            <TimeField value={time || undefined} onChange={(t) => setTime(t)} />
-            {/* Guests - Fixed Select */}
-            <View className="gap-2">
-              <Label>Number of Guests</Label>
+            {/* Guests */}
+            <View className="mb-1">
+              <View className="flex-row items-center gap-2 mb-1.5">
+                <Feather name="users" size={14} color="#6B7280" />
+                <Label className="text-sm text-gray-600">Number of Guests</Label>
+              </View>
               <Select value={guests} onValueChange={setGuests}>
-                <SelectTrigger className="w-full">
-                  <View className="flex-row items-center gap-2">
-                    <Users size={24} className="text-muted-foreground" />
-                    <SelectValue className="px-2 text-base" placeholder="Select guest range" />
-                  </View>
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select guests" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -247,46 +264,44 @@ const handleSelectAddress = async (placeId: any) => {
                 </SelectContent>
               </Select>
             </View>
+          </View>
 
-            {/* Summary Section */}
-            {isFormValid && (
-              <>
-                <Separator />
-                <View className="gap-2 rounded-lg bg-primary/5 p-3">
-                  <Text className="font-semibold text-primary">Booking Summary</Text>
-                  <View className="flex-row justify-between">
-                    <Text className="text-sm text-muted-foreground">Date & Time:</Text>
-                    <Text className="text-sm font-medium">
-                      {date && dayjs(date).format('DD MMM')} at{' '}
-                      {time && dayjs(time).format('hh:mm A')}
-                    </Text>
-                  </View>
-                  <View className="flex-row justify-between">
-                    <Text className="text-sm text-muted-foreground">Guests:</Text>
-                    <Text className="text-sm font-medium">{guests.value}</Text>
-                  </View>
-                </View>
-              </>
-            )}
-          </CardContent>
-          <CardFooter>
-            {/* Submit Button */}
-            <AppButton disabled={!isFormValid} onPress={() => setShowEventDialog(true)}>
-              <Text className="font-semibold text-white">{submitLabel}</Text>
-            </AppButton>
-          </CardFooter>
+          {/* Booking Summary */}
+          {isFormValid && (
+            <View className="bg-blue-50 rounded-lg p-3 mb-4">
+              <Text className="text-sm font-semibold text-blue-700 mb-2">Booking Summary</Text>
+              <View className="flex-row justify-between mb-1">
+                <Text className="text-xs text-gray-600">Date & Time:</Text>
+                <Text className="text-xs font-medium text-gray-800">
+                  {date && dayjs(date).format('DD MMM')} at {time && dayjs(time).format('hh:mm A')}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-xs text-gray-600">Guests:</Text>
+                <Text className="text-xs font-medium text-gray-800">{guests?.label || 'Not selected'}</Text>
+              </View>
+            </View>
+          )}
         </Card>
+
+        {/* Submit Button */}
+        <AppButton disabled={!isFormValid} onPress={() => setShowEventDialog(true)} className="h-12">
+          <View className="flex-row items-center justify-center gap-2">
+            <Feather name="calendar" size={18} color="#fff" />
+            <Text className="text-white font-semibold">{submitLabel}</Text>
+          </View>
+        </AppButton>
 
         {/* Event Type Dialog */}
         <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
-          <DialogContent className="h-[70%] w-full">
-            {/* HEADER */}
-            <View className="border-b border-border px-4 py-4">
-              <Text className="text-lg font-semibold">Select Event Type</Text>
-              <Text className="mt-1 text-sm text-muted-foreground">Choose your event</Text>
+          <DialogContent className="h-[60%] w-full">
+            {/* Header */}
+            <View className="border-b border-gray-200 px-4 py-3">
+              <Text className="text-base font-semibold text-gray-900">Select Event Type</Text>
+              <Text className="text-xs text-gray-500 mt-0.5">Choose your event category</Text>
             </View>
 
-            {/* LIST */}
+            {/* Event List */}
             <ScrollView className="flex-1">
               {eventTypes.map((item, index) => (
                 <Pressable
@@ -295,10 +310,14 @@ const handleSelectAddress = async (placeId: any) => {
                     setShowEventDialog(false);
                     submitWithEvent(item);
                   }}
-                  className="w-full flex-row items-center justify-between border-b border-border px-4 py-4">
-                  <Text className="text-base font-medium">{item.name}</Text>
-
-                  <ChevronRight size={16} className="text-muted-foreground" />
+                  className="w-full flex-row items-center justify-between border-b border-gray-100 px-4 py-3 active:bg-gray-50">
+                  <View className="flex-1">
+                    <Text className="text-sm font-medium text-gray-900">{item.name}</Text>
+                    {item.image && (
+                      <Text className="text-xs text-gray-500 mt-0.5">Event available</Text>
+                    )}
+                  </View>
+                  <Feather name="chevron-right" size={16} color="#9CA3AF" />
                 </Pressable>
               ))}
             </ScrollView>

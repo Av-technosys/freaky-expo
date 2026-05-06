@@ -1,24 +1,30 @@
 import {
   View,
   Keyboard,
-  Pressable
-
+  Pressable,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
-import { useState } from 'react';
-import { useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import * as Location from 'expo-location';
 
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
 import StatePickerSheet from '@/components/common/StatePickerSheet';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import Screen from '@/app/provider/Screen';
+import ScreenHeader from '@/components/common/ScreenHeader';
 
 import { addAddress, editAddress } from '@/api/user';
 import { BottomSheetMethods } from '@gorhom/bottom-sheet/lib/typescript/types';
 import { US_STATES } from '@/const/global';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Textarea } from '@/components/ui/textarea';
 
 type Address = {
   id?: number;
@@ -31,6 +37,7 @@ type Address = {
   state: string;
   postalCode: string;
   country: string;
+  phoneNumber?: string;
   latitude?: number | string;
   longitude?: number | string;
 };
@@ -39,6 +46,7 @@ type Props = {
   initialData?: Address | null;
   onSuccess: () => void;
   onCancel: () => void;
+  title?: string;
 };
 
 type Suggestion = {
@@ -46,9 +54,12 @@ type Suggestion = {
   description: string;
 };
 
-export default function AddressForm({ initialData, onSuccess, onCancel }: Props) {
+export default function AddressForm({ initialData, onSuccess, onCancel, title }: Props) {
   const sheetRef = useRef<BottomSheetMethods>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const debounceRef = useRef<any>(null);
+  const [formLoading, setFormLoading] = useState(false);
   const options = US_STATES.map((s) => ({
     label: s,
     value: s,
@@ -62,7 +73,8 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Props)
     city: initialData?.city ?? '',
     state: initialData?.state ?? '',
     postalCode: initialData?.postalCode ?? '',
-    country: initialData?.country ?? 'USA',
+    country: initialData?.country ?? 'India',
+    phoneNumber: initialData?.phoneNumber ?? '',
     id: initialData?.id,
     latitude: initialData?.latitude || '0',
     longitude: initialData?.longitude || '0',
@@ -112,28 +124,93 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Props)
     }
   };
 
-  const handleSearch = async (text: string | any[]) => {
-    const searchText = Array.isArray(text) ? text.join(' ') : text;
+  const handleSearch = (text: string) => {
+    onChange('addressLineOne', text);
 
-    onChange('addressLineOne', searchText)
-
-    if (searchText.length < 3) {
-      setSuggestions([])
-      return
+    // clear previous timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
 
+    if (text.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      try {
+        setLoadingSuggestions(true);
+
+        const res = await fetch(
+          `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+            text
+          )}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}&components=country:in`
+        );
+
+        const data = await res.json();
+
+        if (data.status === 'OK') {
+          setSuggestions(data.predictions || []);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (e) {
+        setSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 400);
+  };
+
+  const handleUseCurrentLocation = async () => {
     try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        Toast.show({ type: 'error', text1: 'Permission denied' });
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const lat = location.coords.latitude;
+      const lng = location.coords.longitude;
+
       const res = await fetch(
-        `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(searchText)}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
-      )
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY}`
+      );
+      const data = await res.json();
 
-      const data = await res.json()
+      const result = data.results?.[0];
+      const address = result?.formatted_address || '';
+      const components = result?.address_components || [];
 
-      setSuggestions(data.predictions || [])
+      const get = (type: string) =>
+        components.find((c: { types: string | string[] }) => c.types.includes(type))?.long_name || '';
+
+      const city = get('locality') || get('sublocality') || get('administrative_area_level_2');
+      const state = get('administrative_area_level_1');
+      const postalCode = get('postal_code');
+
+      setForm({
+        title: 'Current Location',
+        addressLineOne: address,
+        addressLineTwo: '',
+        reciverName: '',
+        reciverNumber: '',
+        city,
+        state,
+        postalCode: postalCode,
+        country: 'India',
+        phoneNumber: '',
+        latitude: lat.toString(),
+        longitude: lng.toString(),
+      });
+
+      Toast.show({ type: 'success', text1: 'Location detected', text2: 'Address filled automatically' });
     } catch (e) {
-      setSuggestions([])
+      Toast.show({ type: 'error', text1: 'Failed to get location' });
     }
-  }
+  };
 
   const handleSelect = async (placeId: any) => {
   try {
@@ -179,91 +256,168 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Props)
 }
   return (
     <>
-      <View className="p-2">
-        {/* HEADER */}
-        <View className="mb-4 flex-row items-center gap-2">
-          <Feather name="map-pin" size={20} />
-          <Text className="text-lg font-semibold">Address</Text>
-        </View>
+      <Screen scroll>
+        <ScreenHeader 
+          title={title || (initialData?.id ? 'Edit Address' : 'Add New Address')} 
+          showBack={true}
+        />
+   
+            <View className="py-4 px-2  space-y-6">
+        
 
-        <Card>
-          <CardContent className="gap-4">
-            <Input
-              placeholder="Title"
-              value={form.title}
-              onChangeText={(v) => onChange('title', v)}
-            />
+              {/* Form Fields */}
+              <View className="space-y-8 mt-6">
+                <View>
+                  <Text className="mb-2 text-sm font-semibold text-gray-700">Address Title *</Text>
+                  <Input
+                    placeholder="e.g., Home, Office"
+                    value={form.title}
+                    onChangeText={(text) => onChange('title', text)}
+                    className="h-12 rounded-xl border-gray-200"
+                  />
+                </View>
 
-    
-     <View>
-  <Input
-    placeholder="Street Address Line 1"
-    value={form.addressLineOne}
-    onChangeText={handleSearch}
-  />
+                <View className="flex-row mt-1 gap-3">
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-semibold text-gray-700">Receiver Name *</Text>
+                    <Input
+                      placeholder="Full name"
+                      value={form.reciverName}
+                      onChangeText={(text) => onChange('reciverName', text)}
+                      className="h-12 rounded-xl border-gray-200"
+                    />
+                  </View>
 
-  {suggestions.length > 0 && (
-    <View style={{ backgroundColor: 'white', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, marginTop: 4 }}>
-      {suggestions.map((item) => (
-        <Pressable
-          key={item.place_id}
-          onPress={() => handleSelect(item.place_id)}
-          style={{ padding: 10, borderBottomWidth: 1, borderColor: '#eee' }}
-        >
-          <Text>{item.description}</Text>
-        </Pressable>
-      ))}
-    </View>
-  )}
-</View>
-            <Input
-              placeholder="Street Address Line 2"
-              value={form.addressLineTwo}
-              onChangeText={(v) => onChange('addressLineTwo', v)}
-            />
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-semibold text-gray-700">Receiver Number *</Text>
+                    <Input
+                      placeholder="Phone number"
+                      value={form.reciverNumber}
+                      onChangeText={(text) => onChange('reciverNumber', text)}
+                      className="h-12 rounded-xl border-gray-200"
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                    />
+                  </View>
+                </View>
 
-            <Input
-              placeholder="Receiver Name"
-              value={form.reciverName}
-              onChangeText={(v) => onChange('reciverName', v)}
-            />
+                <View className='mt-1' style={{ position: 'relative' }}>
+                  <Text className="mb-2 text-sm font-semibold text-gray-700">Address Line 1 *</Text>
+                  <Textarea
+                    placeholder="Street address"
+                    value={form.addressLineOne}
+                    onChangeText={handleSearch}
+                    className="h-12 rounded-xl border-gray-200"
+                    multiline
+                  />
 
-            <Input
-              placeholder="Contact Number"
-              keyboardType="phone-pad"
-              value={form.reciverNumber}
-              onChangeText={(v) => onChange('reciverNumber', v)}
-            />
+                  {/* Suggestions Dropdown */}
+                  {suggestions.length > 0 && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 80,
+                        left: 0,
+                        right: 0,
+                        backgroundColor: 'white',
+                        borderWidth: 1,
+                        borderColor: '#ddd',
+                        borderRadius: 10,
+                        zIndex: 999,
+                        elevation: 5,
 
-            <Input placeholder="City" value={form.city} onChangeText={(v) => onChange('city', v)} />
+                      }}
+                    >
+                      {suggestions.map((item) => (
+                        <Pressable
+                          key={item.place_id}
+                          onPress={() => handleSelect(item.place_id)}
+                          style={{
+                            padding: 12,
+                            borderBottomWidth: 1,
+                            borderColor: '#eee',
+                          }}
+                        >
+                          <Text>{item.description}</Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+                </View>
 
-            <Input
-              placeholder="Zip Code"
-              keyboardType="numeric"
-              value={form.postalCode}
-              onChangeText={(v) => onChange('postalCode', v)}
-            />
+                <View className='mt-5'>
+                  <Text className="mb-2 text-sm font-semibold text-gray-700">Address Line 2</Text>
+                  <Input
+                    placeholder="Apartment, suite, etc. (optional)"
+                    value={form.addressLineTwo}
+                    onChangeText={(text) => onChange('addressLineTwo', text)}
+                    className="h-12 rounded-xl border-gray-200"
+                  />
+                </View>
 
-            {/* STATE PICKER */}
-            <Pressable onPress={() => sheetRef.current?.expand()}>
-              <Input placeholder="Select State" value={form.state} editable={false} />
-            </Pressable>
-            {/* COUNTRY */}
-            <Input value="United States of America" editable={false} />
-          </CardContent>
-        </Card>
+                <View className="flex-row mt-1 gap-3">
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-semibold text-gray-700">City *</Text>
+                    <Input
+                      placeholder="City"
+                      value={form.city}
+                      onChangeText={(text) => onChange('city', text)}
+                      className="h-12 rounded-xl border-gray-200"
+                    />
+                  </View>
 
-        {/* ACTIONS */}
-        <View className="mt-5 flex-col gap-3">
-          <AppButton variant="outline" className="flex-1" onPress={onCancel}>
-            <Text>Cancel</Text>
-          </AppButton>
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-semibold text-gray-700">State *</Text>
+                    <Pressable onPress={() => sheetRef.current?.expand()}>
+                      <Input 
+                        placeholder="State" 
+                        value={form.state} 
+                        editable={false}
+                        className="h-12 rounded-xl border-gray-200"
+                      />
+                    </Pressable>
+                  </View>
+                </View>
 
-          <AppButton className="flex-1" onPress={onSubmit}>
-            <Text>{form.id ? 'Update' : 'Save'}</Text>
-          </AppButton>
-        </View>
-      </View>
+                <View className="flex-row mt-1 gap-3">
+                  <View className="flex-1">
+                    <Text className="mb-2 text-sm font-semibold text-gray-700">PIN Code *</Text>
+                    <Input
+                      placeholder="PIN Code"
+                      value={form.postalCode}
+                      onChangeText={(text) => onChange('postalCode', text)}
+                      className="h-12 rounded-xl border-gray-200"
+                      keyboardType="numeric"
+                      maxLength={6}
+                    />
+                  </View>
+
+                </View>
+              </View>
+
+              {/* Submit Button */}
+              <View className=" flex  gap-4 pt-8">
+                      {/* Location Button */}
+              <AppButton
+                variant="outline"
+                onPress={handleUseCurrentLocation}
+                className="border-orange-200  bg-orange-50">
+                <View className="flex-row items-center justify-center gap-2">
+                  <Ionicons name="location-outline" size={18} color="#F97316" />
+                  <Text className="font-semibold text-orange-600">Use Current Location</Text>
+                </View>
+              </AppButton>
+                <AppButton
+                  onPress={onSubmit}
+                  disabled={formLoading}>
+                  <Text className="font-semibold text-white">
+                    {formLoading ? 'Saving...' : (form.id ? 'Update Address' : 'Save Address')}
+                  </Text>
+                </AppButton>
+              </View>
+            </View>
+      
+      </Screen>
       <StatePickerSheet
         sheetRef={sheetRef}
         value={form.state}

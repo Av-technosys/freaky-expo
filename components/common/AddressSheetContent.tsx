@@ -185,189 +185,184 @@ const handleUseCurrentLocation = async () => {
         a?.addressLineOne?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   return (
-    <>
-      <View className="flex-1 bg-background px-2 py-4">
-        {/* Header Section */}
-        <View className="border-b border-border px-4 pb-3 pt-2">
+  
+      <View className="flex-1 bg-gray-50">
+        {/* Modern Header */}
+        <View className="bg-white px-6 pt-6 pb-4 shadow-sm">
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2">
-              <Text className="text-xl font-bold text-foreground">My Addresses</Text>
+            <View>
+              <Text className="text-2xl font-bold text-gray-900">Delivery Address</Text>
+              <Text className="mt-1 text-sm text-gray-500">Choose where to deliver</Text>
             </View>
-            <Badge variant="secondary" className="bg-muted">
-              <Text className="text-xs">{addresses.length} saved</Text>
-            </Badge>
-          </View>
-          <Text className="mt-1 text-sm text-muted-foreground">Manage your delivery addresses</Text>
-        </View>
-
-        {/* Search Section */}
-        <View className="px-4 pt-4">
-          <View className="relative">
-            <View className="absolute left-3 top-3 z-10">
-              <Feather name="search" size={18} color="#9CA3AF" />
+            <View className="h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+              <Feather name="map-pin" size={16} color="#F97316" />
             </View>
-            <Input
-              placeholder="Search by address name or location..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              className="pl-10 pr-10"
-            />
-            {searchQuery !== '' && (
-              <Pressable onPress={() => setSearchQuery('')} className="absolute right-3 top-3 z-10">
-                <Feather name="x" size={18} color="#9CA3AF" />
-              </Pressable>
-            )}
           </View>
         </View>
 
-        {/* Add Button */}
-        <View className="gap-4 px-4 py-4">
-          {/* Primary Action: Add New Address */}
-          <AppButton
-            onPress={() => {
-              setSelectedAddress(null);
-              setMode('form');
-            }}>
-            <View className="flex-row items-center gap-2">
-              <Feather name="plus" size={24} color="white" />
-              <Text>Add New Address</Text>
-            </View>
-          </AppButton>
-
-          {/* Secondary Action: Use Current Location */}
-          <AppButton
-            variant="outline"
-            onPress={handleUseCurrentLocation}>
-            <View className="flex-row items-center gap-2">
-              <Feather name="map-pin" size={18} color="black" /> {/* Match the gradient orange */}
-              <Text className="">Use Current Location</Text>
-            </View>
-          </AppButton>
+        {/* Quick Actions */}
+        <View className="px-6 py-4">
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={() => {
+                setSelectedAddress(null);
+                setMode('form');
+              }}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3 shadow-lg">
+              <Feather name="plus" size={18} color="white" />
+              <Text className="font-semibold text-white">Add Address</Text>
+            </Pressable>
+            
+            <Pressable
+              onPress={handleUseCurrentLocation}
+              className="flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 shadow-sm border border-gray-200">
+              <Ionicons name="location-outline" size={18} color="#F97316" />
+              <Text className="font-semibold text-gray-700">Use Current</Text>
+            </Pressable>
+          </View>
         </View>
-
-        <Separator className="my-4" />
 
         {/* Address List */}
-        <BottomSheetScrollView
-          contentContainerStyle={{ paddingBottom: 80 }}
-          keyboardShouldPersistTaps="handled">
-          {loading ? (
-            <AddressListSkeleton />
-          ) : filtered.length === 0 ? (
-            <View className="items-center justify-center py-12">
-              <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-muted">
-                <Feather name="map-pin" size={32} color="#9CA3AF" />
-              </View>
-              <Text className="mb-2 text-lg font-semibold text-foreground">
-                {searchQuery ? 'No matching addresses' : 'No saved addresses'}
-              </Text>
-              <Text className="text-center text-sm text-muted-foreground">
-                {searchQuery
-                  ? `No addresses found for "${searchQuery}"`
-                  : 'Add your first address to get started'}
-              </Text>
-            </View>
-          ) : (
-            filtered.map((item, index) => {
-              if (!item?.id) return null;
-
-              const isDefault = item.isDefault;
-
-              return (
-                <Card key={item.id} className="mb-3 overflow-hidden">
-                  <CardContent className="p-0">
-                    <View className="p-4">
-                      {/* Header with Title and Badges */}
-                      <View className="mb-2 flex-row items-start justify-between">
-                        <View className="flex-1 flex-row items-center gap-2">
-                          <Text className="text-base font-semibold text-foreground">
-                            {item.title}
-                          </Text>
-                          {isDefault && (
-                            <Badge variant="default" className="bg-primary/10">
-                              <Text className="text-xs text-primary">Default</Text>
-                            </Badge>
-                          )}
-                        </View>
-
-                        {/* Action Buttons */}
-                        <View className="flex-row gap-4">
-                          <Pressable
-                            onPress={() => {
-                              setSelectedAddress(item);
-                              setMode('form');
-                            }}
-                            className="p-1">
-                            <Feather name="edit" size={18} color="#F97316" />
-                          </Pressable>
-
-                          {!isDefault && (
-                            <Pressable onPress={() => handleSetCurrent(item.id)} className="p-1">
-                              <Ionicons name="checkmark-circle-outline" size={20} color="#10B981" />
-                            </Pressable>
-                          )}
-
-                          <Pressable onPress={() => setConfirmDeleteId(item.id)} className="p-1">
-                            <Feather name="trash" size={18} color="#EF4444" />
-                          </Pressable>
-                        </View>
-                      </View>
-
-                      {/* Address Details */}
-                      <View className="mt-2">
-                        <Text className="text-sm text-muted-foreground">{item.addressLineOne}</Text>
-                        {item.addressLineTwo && (
-                          <Text className="mt-0.5 text-sm text-muted-foreground">
-                            {item.addressLineTwo}
-                          </Text>
-                        )}
-                        <Text className="mt-0.5 text-sm text-muted-foreground">
-                          {[item.city, item.state, item.pincode].filter(Boolean).join(', ')}
-                        </Text>
-                      </View>
-
-                      {/* Phone Number if available */}
-                      {item.phoneNumber && (
-                        <View className="mt-3 flex-row items-center gap-2 border-t border-border pt-2">
-                          <Feather name="phone" size={14} color="#9CA3AF" />
-                          <Text className="text-xs text-muted-foreground">{item.phoneNumber}</Text>
-                        </View>
-                      )}
-                    </View>
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-        </BottomSheetScrollView>
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
-          <DialogContent className="">
-            <DialogHeader>
-              <View className="mb-2 items-center">
-                <View className="mb-3 h-14 w-14 items-center justify-center rounded-full bg-destructive/10">
-                  <Feather name="trash-2" size={28} color="#EF4444" />
+        <View className="flex-1 px-6">
+          <BottomSheetScrollView
+            contentContainerStyle={{ paddingBottom: 100 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {loading ? (
+              <AddressListSkeleton />
+            ) : filtered.length === 0 ? (
+              <View className="items-center justify-center py-16">
+                <View className="mb-4 h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-orange-50 to-orange-100">
+                  <Feather name="map-pin" size={36} color="#F97316" />
                 </View>
-                <DialogTitle>Delete Address</DialogTitle>
-                <DialogDescription>
+                <Text className="mb-2 text-xl font-bold text-gray-900">
+                  {searchQuery ? 'No matches found' : 'No addresses yet'}
+                </Text>
+                <Text className="text-center text-gray-500">
+                  {searchQuery
+                    ? `Try searching with different keywords`
+                    : 'Add your first address to get started'}
+                </Text>
+              </View>
+            ) : (
+              <View className="gap-3">
+                {filtered.map((item, index) => {
+                  if (!item?.id) return null;
+                  const isDefault = item.isDefault;
+
+                  return (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => !isDefault && handleSetCurrent(item.id)}
+                      className={`overflow-hidden rounded-2xl shadow-sm transition-all ${
+                        isDefault ? 'bg-gradient-to-r from-orange-50 to-orange-100 border-2 border-orange-200' : 'bg-white'
+                      }`}
+                    >
+                      <View className="p-4">
+                        {/* Header */}
+                        <View className="flex-row items-start justify-between">
+                          <View className="flex-1">
+                            <View className="flex-row items-center gap-2">
+                              <Text className="text-lg font-bold text-gray-900">
+                                {item.title}
+                              </Text>
+                              {isDefault && (
+                                <View className="rounded-full bg-orange-500 px-2 py-1">
+                                  <Text className="text-xs font-semibold text-white">DEFAULT</Text>
+                                </View>
+                              )}
+                            </View>
+                          </View>
+                          
+                          {/* Actions */}
+                          <View className="flex-row gap-2">
+                            <Pressable
+                              onPress={() => {
+                                setSelectedAddress(item);
+                                setMode('form');
+                              }}
+                              className="h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                              <Feather name="edit-2" size={16} color="#6B7280" />
+                            </Pressable>
+                            
+                            {!isDefault && (
+                              <Pressable
+                                onPress={() => handleSetCurrent(item.id)}
+                                className="h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                                <Ionicons name="checkmark" size={16} color="#10B981" />
+                              </Pressable>
+                            )}
+                            
+                            <Pressable
+                              onPress={() => setConfirmDeleteId(item.id)}
+                              className="h-8 w-8 items-center justify-center rounded-full bg-red-100">
+                              <Feather name="trash-2" size={16} color="#EF4444" />
+                            </Pressable>
+                          </View>
+                        </View>
+
+                        {/* Address Details */}
+                        <View className="mt-3 space-y-1">
+                          <Text className="text-gray-700">{item.addressLineOne}</Text>
+                          {item.addressLineTwo && (
+                            <Text className="text-gray-700">{item.addressLineTwo}</Text>
+                          )}
+                          <Text className="text-gray-600">
+                            {[item.city, item.state, item.pincode].filter(Boolean).join(', ')}
+                          </Text>
+                          {item.phoneNumber && (
+                            <View className="mt-2 flex-row items-center gap-2">
+                              <Feather name="phone" size={14} color="#9CA3AF" />
+                              <Text className="text-sm text-gray-600">{item.phoneNumber}</Text>
+                            </View>
+                          )}
+                        </View>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
+          </BottomSheetScrollView>
+        </View>
+        {/* Modern Delete Confirmation Dialog */}
+        <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+          <DialogContent className="mx-4 rounded-2xl">
+            <DialogHeader>
+              <View className="items-center py-4">
+                <View className="mb-4 h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-50 to-red-100">
+                  <Feather name="trash-2" size={32} color="#EF4444" />
+                </View>
+                <DialogTitle className="text-xl font-bold text-gray-900">Delete Address</DialogTitle>
+                <DialogDescription className="mt-2 text-center text-gray-600">
                   Are you sure you want to delete this address? This action cannot be undone.
                 </DialogDescription>
               </View>
             </DialogHeader>
 
-            <DialogFooter className="mt-4 flex-row gap-3">
-              <DialogClose asChild>
-                <Button variant="outline" className="flex-1">
-                  <Text>Cancel</Text>
-                </Button>
-              </DialogClose>
-              <Button variant="destructive" className="flex-1" onPress={handleDelete}>
-                <Text>Delete</Text>
-              </Button>
+            <DialogFooter className="px-6 pb-6">
+              <View className="flex-row gap-3">
+                <DialogClose asChild>
+                  <View className="flex-1">
+                    <Button variant="outline" className="h-12 w-full rounded-xl border-gray-200 bg-white">
+                      <Text className="font-semibold text-gray-700">Cancel</Text>
+                    </Button>
+                  </View>
+                </DialogClose>
+                <View className="flex-1">
+                  <Button 
+                    variant="destructive" 
+                    className="h-12 w-full rounded-xl bg-gradient-to-r from-red-500 to-red-600"
+                    onPress={handleDelete}
+                  >
+                    <Text className="font-semibold text-white">Delete</Text>
+                  </Button>
+                </View>
+              </View>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </View>
-    </>
   );
 }

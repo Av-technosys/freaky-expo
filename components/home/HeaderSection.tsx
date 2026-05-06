@@ -12,7 +12,7 @@ import HeaderSkeleton from '@/app/skeleton/home/Header';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function HeaderSection({ bottomSheetRef }: any) {
+export default function HeaderSection() {
 
   const [userData, setUserData] = useState<any>(null);
   const [currentAddress, setCurrentAddress] = useState<any>(null);
@@ -120,7 +120,7 @@ export default function HeaderSection({ bottomSheetRef }: any) {
           marginTop: 16,
         }}>
         <Pressable
-          onPress={() => bottomSheetRef.current?.expand()}
+          onPress={() => router.push({ pathname: '/AddressManagementScreen' })}
           className="flex-row items-center justify-between rounded-full bg-white px-4 py-3">
           {/* LEFT */}
           <View className="flex-1 flex-row items-center">

@@ -34,7 +34,7 @@ export default function TimeField({ value, onChange, label = 'Select Time' }: Pr
 
   return (
     <View className="gap-2">
-      <Label>{label}</Label>
+      {/* <Label>{label}</Label> */}
 
       <Button
         variant="outline"
@@ -42,7 +42,7 @@ export default function TimeField({ value, onChange, label = 'Select Time' }: Pr
         onPress={() => setVisible(true)}>
         <Clock size={18} color="#999" />
 
-        <Text className="ml-2 text-base font-normal text-foreground">
+        <Text className="ml-2 text-sm font-normal text-foreground">
           {value ? dayjs(value).format('hh:mm A') : 'Pick a time'}
         </Text>
       </Button>

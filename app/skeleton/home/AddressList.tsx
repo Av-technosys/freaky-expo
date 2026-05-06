@@ -7,17 +7,9 @@ export default function AddressListSkeleton() {
   return (
     <View className="px-4">
 
-      {/* Header */}
-      <View className="mb-4">
-        <Skeleton className="h-6 w-40 mb-2" />
-        <Skeleton className="h-4 w-32" />
-      </View>
-
+ 
       {/* Search */}
       <Skeleton className="h-11 w-full rounded-lg mb-4" />
-
-      {/* Button */}
-      <Skeleton className="h-12 w-full rounded-xl mb-4" />
 
       {/* Divider */}
       <Skeleton className="h-[1px] w-full mb-4" />
