@@ -81,7 +81,7 @@ export default function CartProductsScreen({ items, events, loading, onDelete }:
                     price={item.price}
                     quantity={item.quantity}
                     onPress={() =>
-                      router.push({
+                      router.navigate({
                         pathname: '/CartProductDetail',
                         params: {
                           cartItemId: item.cartItemId,
@@ -133,7 +133,7 @@ export default function CartProductsScreen({ items, events, loading, onDelete }:
                     price={totalPrice}
                     quantity={1} // Representing 1 event package
                     onPress={() =>
-                      router.push({
+                      router.navigate({
                         pathname: '/CartProductDetail',
                         params: {
                           eventId: event.eventId,

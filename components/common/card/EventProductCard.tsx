@@ -48,7 +48,7 @@ export default function ProductCard({
   priceSlabs = [],
 }: ProductCardProps) {
   const handleImagePress = () => {
-    router.push({
+    router.navigate({
       pathname: '/ProductDetails',
       params: { productId: id },
     });

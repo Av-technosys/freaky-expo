@@ -166,7 +166,7 @@ export default function OrderDetailsScreen() {
   };
 
   const handleAddReview = () => {
-    router.push({
+    router.navigate({
       pathname: '/AddReviewsScreen',
       params: {
         eventId: bookingId,

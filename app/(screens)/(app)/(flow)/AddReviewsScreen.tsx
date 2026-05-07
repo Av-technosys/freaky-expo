@@ -171,10 +171,10 @@ export default function AddReview() {
 
   const uploadToS3 = async (uploadUrl: string, fileUri: string, mimeType: string) => {
     try {
-      console.log('🚀 START UPLOAD');
-      console.log('📂 FILE URI:', fileUri);
-      console.log('📦 MIME TYPE:', mimeType);
-      console.log('🔗 UPLOAD URL:', uploadUrl);
+      // console.log('🚀 START UPLOAD');
+      // console.log('📂 FILE URI:', fileUri);
+      // console.log('📦 MIME TYPE:', mimeType);
+      // console.log('🔗 UPLOAD URL:', uploadUrl);
 
       // 🔍 Extract time from URL (CRITICAL DEBUG)
       const url = new URL(uploadUrl);
@@ -419,7 +419,7 @@ export default function AddReview() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerClassName=" pb-8"
+          contentContainerClassName=" py-4"
         >
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             {/* Event Card */}

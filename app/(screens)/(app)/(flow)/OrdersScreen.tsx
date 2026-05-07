@@ -79,7 +79,7 @@ export default function OrdersScreen() {
   };
 
   const handleOrderPress = (bookingId: string, status: string) => {
-    router.push({
+    router.navigate({
       pathname: '/OrderDetailsScreen',
       params: {
         bookingId,

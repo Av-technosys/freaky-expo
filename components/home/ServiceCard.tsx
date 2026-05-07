@@ -33,7 +33,7 @@ export default function ServiceCard({ item }: any) {
   return (
     <Pressable
       onPress={() =>
-        router.push({
+        router.navigate({
           pathname: '/ProductDetails',
           params: {
             productId: item?.productId,

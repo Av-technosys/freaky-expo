@@ -85,7 +85,7 @@ export default function EventTypeSelector() {
           onPress={() => {
             if (!selected) return;
 
-            router.push({
+            router.navigate({
               pathname: '/eventDetails',
               params: { eventTypeId: selected },
             });

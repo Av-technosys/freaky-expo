@@ -81,7 +81,7 @@ export default function CategoriesScreen() {
           return (
             <Pressable
               onPress={() =>
-                router.push({
+                router.navigate({
                   pathname: '/CategoryProducts',
                   params: {
                     typeId: item.id,

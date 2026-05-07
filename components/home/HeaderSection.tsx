@@ -99,7 +99,7 @@ export default function HeaderSection() {
           {/* Bell */}
           <Pressable
             onPress={() =>
-              router.push({
+              router.navigate({
                 pathname: '/NotificationsScreen',
               })
             }
@@ -120,7 +120,7 @@ export default function HeaderSection() {
           marginTop: 16,
         }}>
         <Pressable
-          onPress={() => router.push({ pathname: '/AddressManagementScreen' })}
+          onPress={() => router.navigate({ pathname: '/AddressManagementScreen' })}
           className="flex-row items-center justify-between rounded-full bg-white px-4 py-3">
           {/* LEFT */}
           <View className="flex-1 flex-row items-center">

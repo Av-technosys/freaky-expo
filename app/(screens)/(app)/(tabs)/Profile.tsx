@@ -97,7 +97,7 @@ export default function ProfileScreen() {
             {section.items.map((item: any, idx: number) => (
               <Pressable
                 key={idx}
-                onPress={() => router.push(item.route as any)}
+                onPress={() => router.navigate(item.route as any)}
                 className={`flex-row items-center justify-between px-3 ${
                   isSingleItem ? 'py-0' : 'py-3'
                 } ${idx !== section.items.length - 1 ? 'border-b border-gray-100' : ''}`}>
@@ -143,7 +143,7 @@ export default function ProfileScreen() {
             phone={user?.number}
             email={user?.email}
             profileImage={user?.profileImage}
-            onEdit={() => router.push('/ProfileEditScreen')}
+            onEdit={() => router.navigate('/ProfileEditScreen')}
           />
 
           {/* Sections */}

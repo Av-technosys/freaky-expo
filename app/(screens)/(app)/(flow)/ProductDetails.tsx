@@ -145,7 +145,7 @@ const [selectedSlabIndex, setSelectedSlabIndex] = useState<number | null>(null)
           <AppButton
             variant="default"
             onPress={() =>
-              router.push({
+              router.navigate({
                 pathname: '/AddProduct',
                 params: {
                   productId: product.productId,

@@ -124,7 +124,7 @@ export function SignInForm() {
 
             {/* ✅ Forgot below input */}
             <Pressable  className="mt-1 items-end">
-              <Text onPress={() => router.push('/forgetPassword')} className="text-md underline">
+              <Text onPress={() => router.navigate('/forgetPassword')} className="text-md underline">
                 Forgot password?
               </Text>
             </Pressable>
@@ -144,7 +144,7 @@ export function SignInForm() {
               {/* SIGNUP */}
           <Text className="mt-2 text-center text-sm">
             Don’t have an account?{' '}
-            <Text className="font-medium underline" onPress={() => router.push('/signUp')}>
+            <Text className="font-medium underline" onPress={() => router.navigate('/signUp')}>
               Sign up
             </Text>
           </Text>

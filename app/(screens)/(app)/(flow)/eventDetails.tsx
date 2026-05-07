@@ -13,7 +13,7 @@ export default function EventDetailsScreen() {
   const handleSubmit = (data: any) => {
     dispatch(setBookingDetails(data));
 
-    router.push('/eventProducts');
+    router.navigate('/eventProducts');
   };
 
   return (

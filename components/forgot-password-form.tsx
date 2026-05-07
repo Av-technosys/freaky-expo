@@ -42,7 +42,7 @@ export function ForgotPasswordForm() {
         text1: 'OTP sent successfully',
       });
 
-      router.push({
+      router.navigate({
         pathname: '/otpVerification',
         params: { email: username, flow: 'forgotPassword' },
       });

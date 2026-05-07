@@ -46,7 +46,7 @@ export default function CustomerReviewsSection({
 
         <Pressable
           onPress={() =>
-            router.push({
+            router.navigate({
               pathname: '/reviews',
               params: { data: JSON.stringify(reviews) },
             })

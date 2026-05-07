@@ -124,7 +124,7 @@ const handleConfirm = async () => {
     if (flow === 'forgotPassword') {
       Toast.show({ type: 'success', text1: 'OTP accepted 🎉' });
 
-      router.push({
+      router.navigate({
         pathname: '/resetPassword',
         params: {
           username,

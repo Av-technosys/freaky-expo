@@ -95,7 +95,7 @@ const mapped = list.map((item: any) => {
   };
 
   const handleOrderPress = (bookingId: string, status: string) => {
-    router.push({
+    router.navigate({
       pathname: '/OrderDetailsScreen',
       params: {
         bookingId,

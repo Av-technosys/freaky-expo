@@ -241,7 +241,7 @@ export default function EventProductSection() {
       return;
     }
 
-    router.push({
+    router.navigate({
       pathname: '/cart',
       params: { event: 'true' }
     })
@@ -291,7 +291,7 @@ export default function EventProductSection() {
 
     //   setLoading(false);
 
-    //   router.push('/ManageBookings');
+    //   router.navigate('/ManageBookings');
     // } catch (error) {
     //   setLoading(false);
 

@@ -27,7 +27,7 @@ export default function ScreenHeader({
         return (
           <Pressable
             onPress={() =>
-              router.push({
+              router.navigate({
                 pathname: '/NotificationsScreen',
               })
             }

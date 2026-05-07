@@ -30,7 +30,7 @@ export default function NotFound({
     if (onPress) return onPress();
 
     // fallback navigation (optional)
-    router.push('/home');
+    router.navigate('/home');
   };
 
   return (

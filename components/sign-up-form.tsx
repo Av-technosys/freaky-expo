@@ -68,7 +68,7 @@ export function SignUpForm() {
       });
       // loginSuccess({ username: email });
       console.log('Signup payload:', payload , response.data);
-      router.push({
+      router.navigate({
         pathname: '/otpVerification',
         params: { flow: 'signup', email: payload.email },
       });
@@ -159,7 +159,7 @@ export function SignUpForm() {
           {/* LOGIN LINK */}
           <Text className="mt-2 text-center text-sm">
             Already have an account?{' '}
-            <Text className="font-medium underline" onPress={() => router.push('/login')}>
+            <Text className="font-medium underline" onPress={() => router.navigate('/login')}>
               Login
             </Text>
           </Text>

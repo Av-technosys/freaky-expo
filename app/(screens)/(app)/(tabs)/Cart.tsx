@@ -113,7 +113,7 @@
 //             title="Oops! No Booking yet"
 //             description="It seems that you’ve got a blank state."
 //             ctaLabel="Book Now Event"
-//             onPress={() => router.push('/event')} // ✅ Expo navigation
+//             onPress={() => router.navigate('/event')} // ✅ Expo navigation
 //           />
 //         ) : (
 //           <CartProductsScreen loading={false} items={items} events={events} onDelete={handleDelete} />
@@ -253,7 +253,7 @@ export default function CartScreen() {
             title="Oops! No Booking yet"
             description="It seems that you’ve got a blank state."
             ctaLabel="Book Now Event"
-            onPress={() => router.push('/event')}
+            onPress={() => router.navigate('/event')}
           />
         ) : (
           <View className="flex-1 mb-16">

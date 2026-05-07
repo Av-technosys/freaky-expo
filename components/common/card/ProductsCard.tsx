@@ -43,7 +43,7 @@ export default function ProductCard({
   return (
     <Pressable
       onPress={() =>
-        router.push({
+        router.navigate({
           pathname: '/ProductDetails',
           params: {
             productId: id,
