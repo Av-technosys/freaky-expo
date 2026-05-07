@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, ScrollView, Pressable, Platform, Alert } from 'react-native';
+import { View, ScrollView, Pressable, Platform, Alert, Modal } from 'react-native';
 
 // UI Components
 import { Text } from '@/components/ui/text';
@@ -19,14 +19,6 @@ import AddressForm from '@/components/common/form/AddressForm';
 // Icons
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { toast } from '@/components/common/ToastManager';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
 
 interface Suggestion {
   description: string;
@@ -123,10 +115,6 @@ export default function AddressManagementScreen() {
   };
 
   const renderForm = () => (
-    <>
-
-          <ScreenHeader title="My Addresses" showBack={true} />
-
     <AddressForm
       initialData={selectedAddress}
       showHeader={false}
@@ -140,7 +128,6 @@ export default function AddressManagementScreen() {
         setSelectedAddress(null);
       }}
     />
-    </>
   );
 
   const filtered = addresses.filter((a) =>
@@ -228,87 +215,87 @@ export default function AddressManagementScreen() {
                 const isDefault = currentAddressId === item.id;
 
                 return (
-                  <Card
+                  <Pressable
                     key={item.id}
-                    onTouchEnd={() => {
+                    onPress={() => {
                       if (!isDefault) {
                         handleSetCurrent(item.id!);
                       }
-                    }}
-                    className={`-py-6 mt-3 overflow-hidden rounded-2xl border ${
-                      isDefault
-                        ? 'border-orange-300 bg-gradient-to-br from-orange-50 via-orange-50/80 to-orange-100/60 shadow-md shadow-orange-200/50'
-                        : 'border-gray-200 bg-white shadow-sm hover:shadow-md active:shadow-sm'
-                    } `}>
-                    <CardContent className="p-0">
-                      <View className="p-5">
-                        {/* Header with Title and Actions */}
-                        <View className="mb-4 flex-row items-start justify-between">
-                          <View className="flex-1 flex-row flex-wrap items-center gap-2">
-                            <Text
-                              className={`text-lg font-bold ${isDefault ? 'text-gray-800' : 'text-gray-900'}`}>
-                              {item.title}
+                    }}>
+                    <Card
+                      className={`-py-6 mt-3 overflow-hidden rounded-2xl border ${
+                        isDefault ? 'border-orange-300' : 'border-gray-200 bg-white'
+                      }`}>
+                      <CardContent className="p-0">
+                        <View className="p-5">
+                          {/* Header with Title and Actions */}
+                          <View className="mb-4 flex-row items-start justify-between">
+                            <View className="flex-1 flex-row flex-wrap items-center gap-2">
+                              <Text
+                                className={`text-lg font-bold ${isDefault ? 'text-gray-800' : 'text-gray-900'}`}>
+                                {item.title}
+                              </Text>
+                              {isDefault && (
+                                <View className="rounded-full bg-orange-500 px-2.5 py-1 shadow-sm shadow-orange-300/50">
+                                  <Text className="text-xs font-bold uppercase tracking-wide text-white">
+                                    Default
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+
+                            <View className="flex-row items-center gap-5">
+                              <Pressable
+                                hitSlop={10}
+                                onPress={() => handleEdit(item)}
+                                className="p-1">
+                                <Feather name="edit-2" size={18} color="#000" />
+                              </Pressable>
+
+                              <Pressable
+                                hitSlop={10}
+                                onPress={() => handleDelete(item.id!)}
+                                className="p-1">
+                                <Feather name="trash-2" size={18} color="#000" />
+                              </Pressable>
+                            </View>
+                          </View>
+
+                          {/* Address Details */}
+                          <View className="space-y-2">
+                            <Text className="text-base leading-6 text-gray-700">
+                              {item.addressLineOne}
                             </Text>
-                            {isDefault && (
-                              <View className="rounded-full bg-orange-500 px-2.5 py-1 shadow-sm shadow-orange-300/50">
-                                <Text className="text-xs font-bold uppercase tracking-wide text-white">
-                                  Default
+                            {item.addressLineTwo && (
+                              <Text className="text-base leading-6 text-gray-600">
+                                {item.addressLineTwo}
+                              </Text>
+                            )}
+                            <Text className="text-sm text-gray-500">
+                              {[item.city, item.state, item.postalCode].filter(Boolean).join(' • ')}
+                            </Text>
+
+                            {/* Phone Number with better styling */}
+                            {item.phoneNumber && (
+                              <View className="mt-3 flex-row items-center gap-2">
+                                <View className="h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+                                  <Feather name="phone" size={14} color="#EA580C" />
+                                </View>
+                                <Text className="text-sm font-medium text-gray-600">
+                                  {item.phoneNumber}
                                 </Text>
                               </View>
                             )}
                           </View>
 
-                          <View className="flex-row items-center gap-5">
-                            <Pressable
-                              hitSlop={10}
-                              onPress={() => handleEdit(item)}
-                              className="p-1">
-                              <Feather name="edit-2" size={18} color="#000" />
-                            </Pressable>
-
-                            <Pressable
-                              hitSlop={10}
-                              onPress={() => handleDelete(item.id!)}
-                              className="p-1">
-                              <Feather name="trash-2" size={18} color="#000" />
-                            </Pressable>
-                          </View>
-                        </View>
-
-                        {/* Address Details */}
-                        <View className="space-y-2">
-                          <Text className="text-base leading-6 text-gray-700">
-                            {item.addressLineOne}
-                          </Text>
-                          {item.addressLineTwo && (
-                            <Text className="text-base leading-6 text-gray-600">
-                              {item.addressLineTwo}
-                            </Text>
-                          )}
-                          <Text className="text-sm text-gray-500">
-                            {[item.city, item.state, item.postalCode].filter(Boolean).join(' • ')}
-                          </Text>
-
-                          {/* Phone Number with better styling */}
-                          {item.phoneNumber && (
-                            <View className="mt-3 flex-row items-center gap-2">
-                              <View className="h-8 w-8 items-center justify-center rounded-full bg-orange-100">
-                                <Feather name="phone" size={14} color="#EA580C" />
-                              </View>
-                              <Text className="text-sm font-medium text-gray-600">
-                                {item.phoneNumber}
-                              </Text>
-                            </View>
+                          {/* Decorative badge for default card */}
+                          {isDefault && (
+                            <View className="absolute -right-8 -top-8 h-16 w-16 rotate-45 bg-gradient-to-r from-orange-400 to-orange-500 opacity-20" />
                           )}
                         </View>
-
-                        {/* Decorative badge for default card */}
-                        {isDefault && (
-                          <View className="absolute -right-8 -top-8 h-16 w-16 rotate-45 bg-gradient-to-r from-orange-400 to-orange-500 opacity-20" />
-                        )}
-                      </View>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Pressable>
                 );
               })}
             </View>
@@ -322,63 +309,56 @@ export default function AddressManagementScreen() {
         onConfirm={confirmDelete}
       />
 
-      {/* Set Current Address Confirmation Dialog */}
-      {confirmSetCurrentId && (
-        <Dialog
-          open={!!confirmSetCurrentId}
-          onOpenChange={(open) => !open && setConfirmSetCurrentId(null)}>
-          <DialogContent className="mx-4 rounded-2xl">
-            <DialogHeader>
-              <View className="items-center py-4">
-                {/* Icon */}
-                <View className="mb-4 h-14 w-14 items-center justify-center rounded-full bg-green-50">
-                  <Ionicons name="checkmark-circle" size={28} color="#10B981" />
-                </View>
-
-                {/* Title */}
-                <DialogTitle className="text-xl font-bold text-gray-900">
-                  Set as Default
-                </DialogTitle>
-
-                {/* Description */}
-                <DialogDescription className="mt-2 text-center text-base text-gray-600">
-                  Set this address as your default delivery address?
-                </DialogDescription>
+      {/* Set Current Address Confirmation Modal */}
+      <Modal
+        visible={!!confirmSetCurrentId}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setConfirmSetCurrentId(null)}>
+        <View className="flex-1 items-center justify-center bg-black/50">
+          <View className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6">
+            {/* Icon */}
+            <View className="mb-4 flex items-center justify-center">
+              <View className="h-14 w-14 items-center justify-center rounded-full bg-green-50">
+                <Ionicons name="checkmark-circle" size={28} color="#10B981" />
               </View>
-            </DialogHeader>
+            </View>
 
-            <DialogFooter className="px-6 pb-6">
-              <View className="flex-row gap-3">
-                {/* Cancel */}
-                <View className="flex-1">
-                  <Button
-                    variant="outline"
-                    className="h-11 rounded-xl border-gray-200 bg-white"
-                    onPress={() => setConfirmSetCurrentId(null)}>
-                    <Text className="font-semibold text-gray-700">Cancel</Text>
-                  </Button>
-                </View>
+            {/* Title */}
+            <Text className="mb-2 text-center text-xl font-bold text-gray-900">Set as Default</Text>
 
-                {/* Confirm */}
-                <View className="flex-1">
-                  <AppButton
-                    variant="default"
-                    className="h-11 rounded-xl"
-                    onPress={confirmSetCurrent}>
-                    <Text className="font-semibold text-white">Confirm</Text>
-                  </AppButton>
-                </View>
+            {/* Description */}
+            <Text className="mb-6 text-center text-base text-gray-600">
+              Set this address as your default delivery address?
+            </Text>
+
+            {/* Buttons */}
+            <View className="flex-row gap-3">
+              {/* Cancel */}
+              <View className="flex-1">
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-xl border-gray-200 bg-white"
+                  onPress={() => setConfirmSetCurrentId(null)}>
+                  <Text className="font-semibold text-gray-700">Cancel</Text>
+                </Button>
               </View>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+
+              {/* Confirm */}
+              <View className="flex-1">
+                <AppButton
+                  variant="default"
+                  className="h-11 rounded-xl"
+                  onPress={confirmSetCurrent}>
+                  <Text className="font-semibold text-white">Confirm</Text>
+                </AppButton>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 
-  return (
-    <>
-      {mode === 'form' ? renderForm() : renderList()}
-    </>
-  );
+  return <>{mode === 'form' ? renderForm() : renderList()}</>;
 }

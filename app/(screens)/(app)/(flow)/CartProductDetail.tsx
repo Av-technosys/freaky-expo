@@ -53,11 +53,11 @@ export default function CartProductDetailScreen() {
 
   // Single Item
   const selectedCartItem = useCartStore((state) => state.getItemById(cartItemId));
-
+  console.log('selectedCartItem', selectedCartItem);
   // Event
   const events = useCartStore((state) => state.events);
   const selectedEvent = events.find((e) => e.eventId.toString() === eventId);
-
+console.log("selectedEvent", selectedEvent)
   const [paying, setPaying] = useState(false);
 
   if (!hasHydrated) {
@@ -90,8 +90,8 @@ export default function CartProductDetailScreen() {
   let title = '';
   let subTitle = '';
   let subtotal = 0;
-let sourceId: number | null = null;
-let bookingDraftId: number | null = null;
+  let sourceId: number | null = null;
+  let bookingDraftId: number | null = null;
   let source = 'CART' as 'CART' | 'EVENT';
   let bookingDetails: any = {};
   let totalQuantity = 0;
@@ -242,8 +242,8 @@ if (source === 'CART' && !bookingDraftId) {
 
         {/* IF IT'S AN EVENT, LIST THE PRODUCTS */}
         {isEvent && (
-          <Card className="mt-4 rounded-2xl border border-gray-100 bg-white p-4">
-            <Text className="mb-4 text-base font-bold text-gray-950">Services Included</Text>
+          <Card className=" mt-4 rounded-2xl border border-gray-100 bg-white px-3">
+            <Text className="mb-1 text-base font-bold text-gray-950">Services Included</Text>
             <View className="gap-3">
               {displayProducts.map((p, index) => (
                 <View key={index} className="flex-row justify-between items-center py-2 border-b border-gray-50">
@@ -258,8 +258,8 @@ if (source === 'CART' && !bookingDraftId) {
           </Card>
         )}
 
-        <Card className="mt-4 rounded-2xl border border-gray-100 bg-white p-4">
-          <Text className="mb-4 text-base font-bold text-gray-950">Booking Information</Text>
+        <Card className="mt-4 rounded-2xl border border-gray-100 bg-white px-3">
+          <Text className="mb-1 text-base font-bold text-gray-950">Booking Information</Text>
           <View className="gap-4">
             <InfoRow icon="calendar" label="Date" value={formattedDate} />
             <InfoRow
@@ -282,8 +282,8 @@ if (source === 'CART' && !bookingDraftId) {
           </View>
         </Card>
 
-        <Card className="mt-4 rounded-2xl border border-gray-100 bg-white p-4">
-          <Text className="mb-4 text-base font-bold text-gray-950">Customer Details</Text>
+        <Card className="mt-4 rounded-2xl border border-gray-100 bg-white px-3">
+          <Text className="mb-1 text-base font-bold text-gray-950">Customer Details</Text>
           <View className="gap-4">
             <InfoRow
               icon="user"
@@ -305,8 +305,8 @@ if (source === 'CART' && !bookingDraftId) {
           </View>
         </Card>
 
-        <Card className="mt-4 rounded-2xl border border-gray-100 bg-white p-4">
-          <Text className="mb-4 text-base font-bold text-gray-950">Payment Summary</Text>
+        <Card className="mt-4 rounded-2xl border border-gray-100 bg-white px-3">
+          <Text className="mb-1 text-base font-bold text-gray-950">Payment Summary</Text>
 
           <View className="gap-3 border-b border-gray-100 pb-4">
             <MoneyRow label={isEvent ? "Services Total" : `Item price x ${totalQuantity}`} value={subtotal.toFixed(2)} />

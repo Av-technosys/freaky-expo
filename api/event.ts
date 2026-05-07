@@ -45,15 +45,14 @@ export const saveInBookingDraft = async (payload: {
   eventId: any;
   productId: any;
   quantity: any;
-  startTime : any;
-  endTime : any;
-  slabIndex: any;
-  price: any;
+  startTime: any;
+  endTime: any;
+  minGuestCount?: number;
+  maxGuestCount?: number;
 }) => {
   const response = await privateApi.post('/event/create_eventitem', payload);
   return response.data;
 };
-
 export const deleteEventItem = async (eventItemId: number) => {
   const response = await privateApi.delete(
     `/event/delete_eventitem/${eventItemId}`

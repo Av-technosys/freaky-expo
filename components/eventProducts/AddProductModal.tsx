@@ -108,7 +108,10 @@ export default function AddProductModal({
               return (
                 <TouchableOpacity
                   key={index}
-                  onPress={() => setSelectedSlabIndex(index)}
+                  onPress={() => {
+                    console.log('Price slab selected:', { index, slab: item });
+                    setSelectedSlabIndex(index);
+                  }}
                   className="flex-row items-center border-b py-4">
                   <Text className="flex-1">{item.lowerSlab}</Text>
                   <Text className="flex-1 text-center">{item.upperSlab ?? '-'}</Text>

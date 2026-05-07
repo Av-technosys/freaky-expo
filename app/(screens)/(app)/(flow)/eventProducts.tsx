@@ -134,16 +134,30 @@ export default function EventProductSection() {
     } else {
       price = Number(selectedProduct?.price);
     }
+    console.log('selectedSlabIndex', selectedSlabIndex);
+
+console.log(
+  'selected slab',
+  selectedProduct?.priceSlabs?.[selectedSlabIndex ?? 0]
+);
+
+console.log('final price', price);
     try {
-      await saveInBookingDraft({
-        eventId,
-        productId: selectedProductId,
-        quantity,
-        slabIndex,
-        price,
-        startTime: startTime?.toISOString(),
-        endTime: endTime?.toISOString(),
-      });
+ const selectedSlab =
+  selectedProduct?.pricingType === 'TIER'
+    ? selectedProduct?.priceSlabs?.[selectedSlabIndex ?? 0]
+    : null;
+
+await saveInBookingDraft({
+  eventId,
+  productId: selectedProductId,
+  quantity,
+  startTime: startTime?.toISOString(),
+  endTime: endTime?.toISOString(),
+
+  minGuestCount: selectedSlab?.lowerSlab,
+  maxGuestCount: selectedSlab?.upperSlab,
+});
 
       dispatch(
         addProduct({
@@ -380,7 +394,9 @@ export default function EventProductSection() {
                   ? { uri: `${process.env.EXPO_PUBLIC_AWS_IMAGE_URL}/${item.bannerImage}` }
                   : require('@/assets/images/image_not_found.jpg')
               }
-              added={(selections[activeStep] ?? []).some((p) => p.productId === item.productId)}
+              added={(selections[activeStep] ?? []).some(
+                (p) => p.productId === item.productId
+              )}
               disabled={!item.isAvailable}
               onAdd={() => {
                 setSelectedProductId(item.productId);
