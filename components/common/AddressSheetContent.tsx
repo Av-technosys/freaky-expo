@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { Feather, Ionicons } from '@expo/vector-icons';
 
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 import { getAddresses, deleteAddress, setCurrentAddress } from '@/api/user';
 import AddressForm from '@/components/common/form/AddressForm';
@@ -80,16 +80,12 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
     try {
       await deleteAddress({ id: confirmDeleteId });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Address deleted',
-        text2: 'Address has been removed successfully',
-      });
+      toast.success('Address deleted', 'Address has been removed successfully');
 
       setConfirmDeleteId(null);
       loadAddresses();
     } catch {
-      Toast.show({ type: 'error', text1: 'Delete failed', text2: 'Please try again' });
+      toast.error('Delete failed', 'Please try again');
     }
   };
 
@@ -97,15 +93,11 @@ export default function AddressSheetContent({ isOpen, onClose }: Props) {
     try {
       await setCurrentAddress({ id });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Address updated',
-        text2: 'Default address changed successfully',
-      });
+      toast.success('Address updated', 'Default address changed successfully');
 
       loadAddresses();
     } catch {
-      Toast.show({ type: 'error', text1: 'Update failed', text2: 'Please try again' });
+      toast.error('Update failed', 'Please try again');
     }
   };
 
@@ -114,7 +106,7 @@ const handleUseCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync()
 
     if (status !== 'granted') {
-      Toast.show({ type: 'error', text1: 'Permission denied' })
+      toast.error('Permission denied');
       return
     }
 
@@ -160,7 +152,7 @@ const handleUseCurrentLocation = async () => {
 
     setMode('form')
   } catch (e) {
-    Toast.show({ type: 'error', text1: 'Failed to get location' })
+    toast.error('Failed to get location');
   }
 }
   if (mode === 'form') {

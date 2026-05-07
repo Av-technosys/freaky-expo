@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
 import { router } from 'expo-router';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 import Screen from '@/app/provider/Screen';
 import ScreenHeader from '@/components/common/ScreenHeader';
@@ -63,10 +63,7 @@ export default function OrdersScreen() {
       setOrders(mapped);
     } catch (e) {
       console.log('orders error', e);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load orders',
-      });
+      toast.error('Failed to load orders');
     } finally {
       setLoading(false);
       setRefreshing(false);

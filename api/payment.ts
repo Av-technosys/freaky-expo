@@ -1,11 +1,15 @@
 import { privateApi } from './axios'
 
-
-export const createPaymentOrder = async (payload: { source: 'CART' | 'EVENT'; sourceId: number }) => {
+export const createPaymentOrder = async (
+  payload: {
+    source: 'CART' | 'EVENT';
+    sourceId?: number | null;
+    bookingDraftId?: number | null;
+  }
+) => {
   const response = await privateApi.post('/payment/create-order', payload)
   return response.data
 }
-
 export const verifyPayment = async (payload: {
   razorpay_order_id: string
   razorpay_payment_id: string

@@ -16,7 +16,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
 import StatePickerSheet from '@/components/common/StatePickerSheet';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 import Screen from '@/app/provider/Screen';
 import ScreenHeader from '@/components/common/ScreenHeader';
 
@@ -47,6 +47,7 @@ type Props = {
   onSuccess: () => void;
   onCancel: () => void;
   title?: string;
+  showHeader?: boolean;
 };
 
 type Suggestion = {
@@ -54,7 +55,7 @@ type Suggestion = {
   description: string;
 };
 
-export default function AddressForm({ initialData, onSuccess, onCancel, title }: Props) {
+export default function AddressForm({ initialData, onSuccess, onCancel, title, showHeader = true }: Props) {
   const sheetRef = useRef<BottomSheetMethods>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
@@ -96,7 +97,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
       !form.state ||
       !form.postalCode
     ) {
-      Toast.show({ type: 'error', text1: 'Fill all required fields' });
+      toast.error('Fill all required fields');
       return;
     }
 
@@ -107,20 +108,20 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
           latitude: String(form.latitude ?? ''),
           longitude: String(form.longitude ?? ''),
         });
-        Toast.show({ type: 'success', text1: 'Address updated' });
+      toast.success('Address updated');
       } else {
         await addAddress({
           ...form,
           latitude: String(form.latitude ?? ''),
           longitude: String(form.longitude ?? ''),
         });
-        Toast.show({ type: 'success', text1: 'Address added' });
+        toast.success('Address added');
       }
       await AsyncStorage.setItem('addressRefetch', 'true')
 
       onSuccess();
     } catch (err) {
-      Toast.show({ type: 'error', text1: 'Failed to save address' });
+      toast.error('Failed to save address');
     }
   };
 
@@ -167,7 +168,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
       const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== 'granted') {
-        Toast.show({ type: 'error', text1: 'Permission denied' });
+        toast.error('Permission denied');
         return;
       }
 
@@ -206,9 +207,9 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
         longitude: lng.toString(),
       });
 
-      Toast.show({ type: 'success', text1: 'Location detected', text2: 'Address filled automatically' });
+      toast.success('Location detected', 'Address filled automatically');
     } catch (e) {
-      Toast.show({ type: 'error', text1: 'Failed to get location' });
+      toast.error('Failed to get location');
     }
   };
 
@@ -257,10 +258,12 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
   return (
     <>
       <Screen scroll>
-        <ScreenHeader 
-          title={title || (initialData?.id ? 'Edit Address' : 'Add New Address')} 
-          showBack={true}
-        />
+        {showHeader && (
+          <ScreenHeader 
+            title={title || (initialData?.id ? 'Edit Address' : 'Add New Address')} 
+            showBack={true}
+          />
+        )}
    
             <View className="py-4 px-2  space-y-6">
         
@@ -277,7 +280,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
                   />
                 </View>
 
-                <View className="flex-row mt-1 gap-3">
+                <View className="flex-row mt-3 gap-3">
                   <View className="flex-1">
                     <Text className="mb-2 text-sm font-semibold text-gray-700">Receiver Name *</Text>
                     <Input
@@ -301,7 +304,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
                   </View>
                 </View>
 
-                <View className='mt-1' style={{ position: 'relative' }}>
+                <View className='mt-3' style={{ position: 'relative' }}>
                   <Text className="mb-2 text-sm font-semibold text-gray-700">Address Line 1 *</Text>
                   <Textarea
                     placeholder="Street address"
@@ -345,7 +348,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
                   )}
                 </View>
 
-                <View className='mt-5'>
+                <View className='mt-7'>
                   <Text className="mb-2 text-sm font-semibold text-gray-700">Address Line 2</Text>
                   <Input
                     placeholder="Apartment, suite, etc. (optional)"
@@ -355,7 +358,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
                   />
                 </View>
 
-                <View className="flex-row mt-1 gap-3">
+                <View className="flex-row mt-3 gap-3">
                   <View className="flex-1">
                     <Text className="mb-2 text-sm font-semibold text-gray-700">City *</Text>
                     <Input
@@ -379,7 +382,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel, title }:
                   </View>
                 </View>
 
-                <View className="flex-row mt-1 gap-3">
+                <View className="flex-row mt-3 gap-3">
                   <View className="flex-1">
                     <Text className="mb-2 text-sm font-semibold text-gray-700">PIN Code *</Text>
                     <Input

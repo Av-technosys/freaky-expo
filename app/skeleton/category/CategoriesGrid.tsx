@@ -9,9 +9,8 @@ export default function CategoriesSkeleton() {
       {Array.from({ length: 6 }).map((_, i) => (
         <View key={i} className="w-[48%] mb-4">
 
-          <View className="border border-orange-200 rounded-3xl p-4 items-center">
-            <Skeleton className="h-20 w-20 rounded-xl mb-3" />
-            <Skeleton className="h-4 w-20" />
+<View className="border border-gray-200 rounded-3xl p-4 items-center">            <Skeleton className="h-20 w-20 rounded-xl mb-3" />
+            <Skeleton className="h-8 w-20" />
           </View>
 
         </View>

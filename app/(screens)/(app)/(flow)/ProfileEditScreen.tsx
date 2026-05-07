@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 import { Feather } from '@expo/vector-icons';
 // import * as ImagePicker from 'expo-image-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -50,7 +50,7 @@ export default function ProfileEditScreen() {
           profileImage: data.profileImage ?? null,
         });
       } catch {
-        Toast.show({ type: 'error', text1: 'Failed to load user' });
+        toast.error('Failed to load user');
       } finally {
         setInitialLoading(false);
       }
@@ -128,10 +128,10 @@ const uploadRes = await fetch(uploadUrl, {
         profileImage: tempProfileImage ?? user.profileImage, // IMPORTANT
       });
 
-      Toast.show({ type: 'success', text1: 'Profile updated' });
+      toast.success('Profile updated');
       router.back();
     } catch {
-      Toast.show({ type: 'error', text1: 'Update failed' });
+      toast.error('Update failed');
     } finally {
       setLoading(false);
     }

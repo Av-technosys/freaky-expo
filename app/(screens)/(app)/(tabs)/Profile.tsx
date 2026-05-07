@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 import Screen from '@/app/provider/Screen';
 import ScreenHeader from '@/components/common/ScreenHeader';
@@ -45,17 +45,11 @@ export default function ProfileScreen() {
     try {
       await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'idToken']);
 
-      Toast.show({
-        type: 'success',
-        text1: 'Logged out successfully',
-      });
+      toast.success('Logged out successfully');
 
       router.replace('/login');
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Logout failed',
-      });
+      toast.error('Logout failed');
     }
   };
 
@@ -84,16 +78,16 @@ export default function ProfileScreen() {
     return (
       <View key={sectionIndex} className="gap-4">
         {/* Section Title */}
-        <Text className="px-1 text-sm font-semibold uppercase tracking-wide text-gray-500">
+        <Text className="px-1 text-bold font-semibold uppercase tracking-wide text-gray-500">
           {section.title}
         </Text>
 
         {/* Section Items */}
         <Card
-          className={`rounded-2xl border border-gray-100 bg-white shadow-sm ${
+          className={`rounded-2xl -py-6 border border-gray-100 bg-white shadow-sm ${
             isSingleItem ? 'w-full' : ''
           }`}>
-          <CardContent className="p-0">
+          <CardContent className="p-2">
             {section.items.map((item: any, idx: number) => (
               <Pressable
                 key={idx}
@@ -108,7 +102,7 @@ export default function ProfileScreen() {
                   </View>
 
                   {/* Text */}
-                  <Text className="text-md text-gray-800">{item.title}</Text>
+                  <Text className="text-bold text-gray-800">{item.title}</Text>
                 </View>
 
                 <Feather name="chevron-right" size={18} color="#D1D5DB" />
@@ -136,7 +130,7 @@ export default function ProfileScreen() {
 
       {/* Data State */}
       {!loading && user && (
-        <View className="mt-4 px-2">
+        <View className="mt-4">
           {/* Profile Card */}
           <ProfileInfoCard
             name={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`}

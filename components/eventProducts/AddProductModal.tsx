@@ -16,7 +16,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import TimeField from '@/components/common/TimeField';
 import { Minus, Plus } from 'lucide-react-native';
-import Toast from 'react-native-toast-message';
 
 type Props = {
   visible: boolean;

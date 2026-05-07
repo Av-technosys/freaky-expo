@@ -14,7 +14,7 @@ import { AppButton } from '@/components/common/AppButton';
 import CartItemCard from '../common/card/CartItemCard';
 
 import type { CartItem, CartEventItem } from '@/store/cartStore';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 type Props = {
   items: CartItem[];
@@ -144,7 +144,7 @@ export default function CartProductsScreen({ items, events, loading, onDelete }:
                       // Optionally set delete for the whole event or show a different modal
                       // For now, we omit onDelete so they have to delete services individually inside the event details
                       // If you want them to delete the whole event, we'd pass event.eventId.
-                      Toast.show({ type: 'info', text1: 'Delete event services inside the event details screen' });
+                      toast.info('Delete event services inside the event details screen');
                     }}
                   />
                 );

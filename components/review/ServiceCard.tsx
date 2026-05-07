@@ -55,7 +55,7 @@ export function ServiceCard({
 
   return (
     <View className="mb-6 rounded-3xl bg-card border border-border/40 overflow-hidden shadow-sm">
-      <View className="p-5">
+      <View className="p-2">
         <View className="flex-row items-center">
           <Image
             source={getImageSource(service.bannerImage)}
@@ -69,7 +69,7 @@ export function ServiceCard({
           </View>
         </View>
 
-        <View className="mt-5 bg-muted/30 p-4 rounded-2xl">
+        <View className="mt-2 bg-muted/30 p-4 rounded-2xl">
           <Text className="text-sm font-medium text-muted-foreground mb-3 text-center">Rate this service</Text>
           <StarRating value={service.rating} onChange={onRatingChange} size={28} showLabels={false} />
         </View>

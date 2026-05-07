@@ -17,7 +17,7 @@ import { getAllReviews, deleteReview } from '@/api/review';
 import { getProductsByProductId } from '@/api/product';
 
 // Toast
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 type ReviewUIModel = {
   id: number;
@@ -99,18 +99,10 @@ export default function Reviews() {
       setDeletingId(reviewId);
       await deleteReview(reviewId);
       setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-      Toast.show({
-        type: 'success',
-        text1: 'Review deleted',
-        text2: 'Your review has been removed successfully',
-      });
+      toast.success('Review deleted', 'Your review has been removed successfully');
     } catch (error) {
       console.error('Delete failed', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Delete failed',
-        text2: 'Please try again later',
-      });
+      toast.error('Delete failed', 'Please try again later');
     } finally {
       setDeletingId(null);
     }
@@ -151,11 +143,7 @@ export default function Reviews() {
       setReviews(mapped);
     } catch (error) {
       console.error('Failed to load reviews:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load reviews',
-        text2: 'Please pull down to refresh',
-      });
+      toast.error('Failed to load reviews', 'Please pull down to refresh');
     } finally {
       setLoading(false);
     }

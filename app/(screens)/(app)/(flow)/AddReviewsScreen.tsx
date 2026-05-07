@@ -14,7 +14,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import dayjs from 'dayjs';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 // Components
 import { Text } from '@/components/ui/text';
@@ -120,11 +120,7 @@ export default function AddReview() {
       setEvent(eventData);
     } catch (err) {
       console.error('Failed to load event', err);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load event',
-        text2: 'Please try again',
-      });
+      toast.error('Failed to load event', 'Please try again');
     } finally {
       setLoading(false);
     }
@@ -156,11 +152,7 @@ export default function AddReview() {
       setServices(mappedServices);
     } catch (err) {
       console.error('Failed to load services', err);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load services',
-        text2: 'Please try again',
-      });
+      toast.error('Failed to load services', 'Please try again');
     } finally {
       setServicesLoading(false);
     }
@@ -226,19 +218,11 @@ export default function AddReview() {
       const isVideo = file.type === 'video';
 
       if (isVideo && !canAddVideo(service.media)) {
-        Toast.show({
-          type: 'error',
-          text1: 'Upload limit reached',
-          text2: 'You can upload only 1 video and max 4 media items.',
-        });
+        toast.error('Upload limit reached', 'You can upload only 1 video and max 4 media items.');
         return;
       }
       if (!isVideo && !canAddImage(service.media)) {
-        Toast.show({
-          type: 'error',
-          text1: 'Upload limit reached',
-          text2: 'You can upload only 4 images.',
-        });
+        toast.error('Upload limit reached', 'You can upload only 4 images.');
         return;
       }
 
@@ -283,17 +267,11 @@ export default function AddReview() {
           )
         );
 
-        Toast.show({
-          type: 'success',
-          text1: 'Media uploaded',
-        });
+        toast.success('Media uploaded');
 
       } catch (error) {
         console.error('❌ Upload failed FULL:', error);
-        Toast.show({
-          type: 'error',
-          text1: 'Upload failed',
-        });
+        toast.error('Upload failed');
       } finally {
         setMediaLoading(false);
       }
@@ -317,11 +295,7 @@ export default function AddReview() {
 
   const handleSubmit = async () => {
     if (eventRating === 0) {
-      Toast.show({
-        type: 'error',
-        text1: 'Rating required',
-        text2: 'Please rate the event',
-      });
+      toast.error('Rating required', 'Please rate the event');
       return;
     }
 
@@ -344,19 +318,11 @@ export default function AddReview() {
 
     try {
       await addReview(payload);
-      Toast.show({
-        type: 'success',
-        text1: 'Review submitted',
-        text2: 'Thank you for your feedback!',
-      });
+      toast.success('Review submitted', 'Thank you for your feedback!');
       router.back();
     } catch (err) {
       console.error(err);
-      Toast.show({
-        type: 'error',
-        text1: 'Submission failed',
-        text2: 'Please try again',
-      });
+      toast.error('Submission failed', 'Please try again');
     }
   };
 
@@ -424,7 +390,7 @@ export default function AddReview() {
           <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             {/* Event Card */}
             <View className="mb-6 rounded-3xl bg-card border border-border/40 overflow-hidden shadow-sm">
-              <View className="p-6">
+              <View className="p-2">
                 <View className="flex-row items-center">
                   <View className="h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-300 shadow-sm border border-orange-400/20">
                     <Feather name="gift" size={32} color="white" />
@@ -461,8 +427,8 @@ export default function AddReview() {
             </View>
 
             {/* Event Rating Section */}
-            <View className="mb-8 rounded-3xl bg-card border border-border/40 p-6 shadow-sm">
-              <View className="items-center mb-6">
+            <View className="mb-6 rounded-3xl bg-card border border-border/40 p-2 shadow-sm">
+              <View className="items-center mb-2">
                 <Text className="text-xl font-bold text-foreground tracking-tight mb-2">Overall Experience</Text>
                 <Text className="text-sm font-medium text-muted-foreground text-center">
                   How was your overall experience with this event?
@@ -487,8 +453,8 @@ export default function AddReview() {
 
             {/* Services Section */}
             {services.length > 0 && (
-              <View className="mb-8">
-                <View className="flex-row items-center mb-5 ml-1">
+              <View className="mb-2">
+                <View className="flex-row items-center mb-2 ml-1">
                   <View className="h-6 w-1.5 rounded-full bg-primary mr-3" />
                   <Text className="text-xl font-bold text-foreground tracking-tight">
                     Review Services

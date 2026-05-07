@@ -11,7 +11,7 @@ import RootProvider from './provider/RootProvider';
 import { useEffect } from 'react';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from '@/store';
-import Toast from 'react-native-toast-message';
+import { ToastProvider } from '@/components/common/ToastManager';
 import { AppState } from 'react-native'; // 👈 ADD THIS
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
@@ -34,15 +34,16 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <QueryClientProvider client={queryClient}>
             <RootProvider>
-              <ThemeProvider value={NAV_THEME['light']}>
-                <StatusBar style="dark" />
+              <ToastProvider>
+                <ThemeProvider value={NAV_THEME['light']}>
+                  <StatusBar style="dark" />
 
-                {/* 👇 also add this */}
-                <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
+                  {/* 👇 also add this */}
+                  <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />
 
-                <Toast />
-                <PortalHost />
-              </ThemeProvider>
+                  <PortalHost />
+                </ThemeProvider>
+              </ToastProvider>
             </RootProvider>
           </QueryClientProvider>
         </GestureHandlerRootView>

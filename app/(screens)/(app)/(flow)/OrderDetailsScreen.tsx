@@ -19,7 +19,7 @@ import ScreenHeader from '@/components/common/ScreenHeader';
 import { fetchBookingbyId } from '@/api/booking';
 
 // Toast
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 import Screen from '@/app/provider/Screen';
 import { AppButton } from '@/components/common/AppButton';
 
@@ -98,11 +98,7 @@ export default function OrderDetailsScreen() {
         setBooking(res.data?.booking || null);
       } catch (err) {
         console.error('Failed to fetch booking details', err);
-        Toast.show({
-          type: 'error',
-          text1: 'Failed to load order details',
-          text2: 'Please try again',
-        });
+        toast.error('Failed to load order details', 'Please try again');
       } finally {
         setLoading(false);
       }
@@ -154,11 +150,7 @@ export default function OrderDetailsScreen() {
   };
 
   const handleDownloadInvoice = () => {
-    Toast.show({
-      type: 'info',
-      text1: 'Coming Soon',
-      text2: 'Invoice download will be available soon',
-    });
+    toast.info('Coming Soon', 'Invoice download will be available soon');
   };
 
   const handlePayNow = () => {
@@ -322,12 +314,12 @@ export default function OrderDetailsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="pb-8"
+        contentContainerClassName="mt-6"
         className="flex-1"
       >
         {/* MAIN BOOKING CARD */}
         {booking && (
-          <Card className="mx-2 -py-6 mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow">
+          <Card className="-py-6 mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white shadow">
             <View className="flex-row">
               <View className="w-2" style={{ backgroundColor: getStatusColor(booking.bookingStatus) }} />
               

@@ -7,8 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { useNavigation } from '@react-navigation/native';
 import { getProductsByProductTypeId, getProductTypes } from '@/api/product';
 import { deleteEventItem, saveInBookingDraft } from '@/api/event';
-import { addItemToBooking, createBooking } from '@/api/booking';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 // Components
 import { Text } from '@/components/ui/text';
@@ -109,17 +108,17 @@ export default function EventProductSection() {
       selectedProductId,
     });
     if (!eventId || !selectedProductId) {
-      Toast.show({ type: 'error', text1: 'Missing event or product information.' });
+      toast.error('Missing event or product information.');
       return;
     }
 
     if (!startTime || !endTime) {
-      Toast.show({ type: 'error', text1: 'Please select start and end times.' });
+      toast.error('Please select start and end times.');
       return;
     }
 
     if (selectedProduct?.pricingType === 'TIER' && selectedSlabIndex === null) {
-      Toast.show({ type: 'error', text1: 'Please select a price slab.' });
+      toast.error('Please select a price slab.');
       return;
     }
 
@@ -158,9 +157,9 @@ export default function EventProductSection() {
 
       setShowAddProductModal(false);
 
-      Toast.show({ type: 'success', text1: 'Product added successfully' });
+      toast.success('Product added successfully');
     } catch (error) {
-      Toast.show({ type: 'error', text1: 'Failed to add product' });
+      toast.error('Failed to add product');
     }
   };
 

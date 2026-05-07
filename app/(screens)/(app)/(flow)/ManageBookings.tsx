@@ -8,7 +8,7 @@ import OrderCardSkeleton from '@/app/skeleton/OrderCard';
 import EmptyState from '@/components/eventProducts/EmptyProductsState';
 
 import { fetchBookings } from '@/api/booking';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 import { router } from 'expo-router';
 
 type Booking = {
@@ -79,10 +79,7 @@ const mapped = list.map((item: any) => {
   } catch (err) {
     console.error('Failed to fetch bookings', err);
 
-    Toast.show({
-      type: 'error',
-      text1: 'Failed to load bookings',
-    });
+    toast.error('Failed to load bookings');
   } finally {
     setLoading(false);
     setRefreshing(false);

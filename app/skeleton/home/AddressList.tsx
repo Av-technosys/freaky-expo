@@ -9,7 +9,7 @@ export default function AddressListSkeleton() {
 
  
       {/* Search */}
-      <Skeleton className="h-11 w-full rounded-lg mb-4" />
+      <Skeleton className="h-11 w-full rounded-lg mt-4" />
 
       {/* Divider */}
       <Skeleton className="h-[1px] w-full mb-4" />

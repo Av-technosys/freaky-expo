@@ -18,7 +18,7 @@ import {
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
 import { AppButton } from '@/components/common/AppButton';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 
 import { addCartItem } from '@/api/cart';
 import { Textarea } from '@/components/ui/textarea';
@@ -118,19 +118,11 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
         },
       });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Added to cart successfully!',
-      });
+      toast.success('Success', 'Added to cart successfully!');
 
       onSuccess?.();
     } catch (err) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to add to cart.',
-      });
+      toast.error('Error', 'Failed to add to cart.');
     } finally {
       setLoading(false);
     }
@@ -251,7 +243,7 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
                       borderWidth: 1,
                       borderColor: '#ddd',
                       borderRadius: 8,
-                      zIndex: 20,
+                      zIndex: 1000,
                       maxHeight: 150,
                     }}>
                     <ScrollView keyboardShouldPersistTaps="handled">
@@ -288,7 +280,7 @@ export default function AddToCartForm({ product, onSuccess }: Props) {
             </View>
 
             {/* Guests */}
-            <View className="mb-1">
+            <View className="mt-1">
               <View className="flex-row items-center gap-2 mb-1.5">
                 <Feather name="users" size={14} color="#6B7280" />
                 <Label nativeID="guests" className="text-sm text-gray-600">Number of Guests</Label>

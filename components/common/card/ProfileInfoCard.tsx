@@ -32,16 +32,16 @@ export function ProfileInfoCard({ name, phone, email, profileImage, onEdit }: Pr
 
       {/* INFO */}
       <View className="ml-4 flex-1">
-        <Text className="text-base font-semibold text-gray-900">{name}</Text>
+        <Text className="text-bold font-semibold text-gray-900">{name}</Text>
 
         <View className="mt-1 flex-row items-center">
           <Feather name="phone" size={14} color="#6B7280" />
-          <Text className="ml-2 text-sm text-gray-500">{phone}</Text>
+          <Text className="ml-2 text-bold text-gray-500">{phone}</Text>
         </View>
 
         <View className="mt-1 flex-row items-center">
           <Feather name="mail" size={14} color="#6B7280" />
-          <Text numberOfLines={1} className="ml-2 text-sm text-gray-500">
+          <Text numberOfLines={1} className="ml-2 text-bold text-gray-500">
             {email}
           </Text>
         </View>

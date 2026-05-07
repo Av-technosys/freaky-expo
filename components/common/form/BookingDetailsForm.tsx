@@ -1,7 +1,7 @@
 import { View, Pressable, ScrollView } from 'react-native';
 import React, { SetStateAction, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import Toast from 'react-native-toast-message';
+import { toast } from '@/components/common/ToastManager';
 import { Feather } from '@expo/vector-icons';
 
 // React Native Reusables components
@@ -72,6 +72,8 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
       description: address,
       startTime: start.toISOString(),
       endTime: end.toISOString(),
+      minGuestCount: guests?.min,
+      maxGuestCount: guests?.max,
     };
 
     try {
@@ -87,9 +89,9 @@ export default function BookingDetailsForm({ onSubmit, submitLabel = 'Continue' 
       onSubmit(payload);
       const res = await createEvent(payload);
       dispatch(setEventId(res?.data?.eventId));
-      Toast.show({ type: 'success', text1: 'Event created successfully' });
+      toast.success('Event created successfully');
     } catch {
-      Toast.show({ type: 'error', text1: 'Failed to create event' });
+      toast.error('Failed to create event');
     }
   };
 
@@ -128,7 +130,6 @@ const handleSelectAddress = async (placeId: any) => {
   } catch {}
 }
   return (
-    <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
       <View className="my-4 gap-4">
         {/* Header */}
         {/* <View className="items-center py-2">
@@ -206,7 +207,7 @@ const handleSelectAddress = async (placeId: any) => {
                       borderWidth: 1,
                       borderColor: '#ddd',
                       borderRadius: 8,
-                      zIndex: 20,
+                      zIndex: 1000,
                       maxHeight: 150
                     }}
                   >
@@ -268,8 +269,8 @@ const handleSelectAddress = async (placeId: any) => {
 
           {/* Booking Summary */}
           {isFormValid && (
-            <View className="bg-blue-50 rounded-lg p-3 mb-4">
-              <Text className="text-sm font-semibold text-blue-700 mb-2">Booking Summary</Text>
+            <View className="bg-orange-50 rounded-lg p-3 mb-4">
+              <Text className="text-sm font-semibold text-orange-500 mb-2">Booking Summary</Text>
               <View className="flex-row justify-between mb-1">
                 <Text className="text-xs text-gray-600">Date & Time:</Text>
                 <Text className="text-xs font-medium text-gray-800">
@@ -324,6 +325,5 @@ const handleSelectAddress = async (placeId: any) => {
           </DialogContent>
         </Dialog>
       </View>
-    </ScrollView>
   );
 }

@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import Toast from 'react-native-toast-message';
-
+import { toast } from '@/components/common/ToastManager';
 import Screen from '@/app/provider/Screen';
 import ScreenHeader from '@/components/common/ScreenHeader';
 import NotFound from '@/components/common/NotFound';
@@ -91,7 +90,8 @@ export default function CartProductDetailScreen() {
   let title = '';
   let subTitle = '';
   let subtotal = 0;
-  let sourceId = 0;
+let sourceId: number | null = null;
+let bookingDraftId: number | null = null;
   let source = 'CART' as 'CART' | 'EVENT';
   let bookingDetails: any = {};
   let totalQuantity = 0;
@@ -102,7 +102,7 @@ export default function CartProductDetailScreen() {
     totalQuantity = selectedCartItem.quantity || 1;
     const itemPrice = Number(selectedCartItem.price || 0);
     subtotal = itemPrice * totalQuantity;
-    sourceId = Number(selectedCartItem.bookingDraftId || 0);
+    bookingDraftId = Number(selectedCartItem.bookingDraftId || null);
     source = 'CART';
     title = selectedCartItem.title || 'Cart Item';
     subTitle = selectedCartItem.vendorName || 'Vendor not specified';
@@ -125,8 +125,8 @@ export default function CartProductDetailScreen() {
     displayProducts = selectedEvent.services;
   }
 
-  const serviceFee = subtotal * 0.08;
-  const tax = subtotal * 0.1;
+  const serviceFee = 0;
+  const tax = 0;
   const total = subtotal + serviceFee + tax;
 
   const eventDate = bookingDetails.date ? new Date(bookingDetails.date) : null;
@@ -143,16 +143,22 @@ export default function CartProductDetailScreen() {
     try {
       setPaying(true)
 
-      if (!sourceId) {
-        Toast.show({ type: 'error', text1: 'Invalid booking' })
-        return
-      }
+if (source === 'EVENT' && !sourceId) {
+  toast.error('Invalid event booking');
+  return
+}
+
+if (source === 'CART' && !bookingDraftId) {
+  toast.error('Invalid cart booking');
+  return
+}
 
       const RazorpayCheckout = require('react-native-razorpay').default
 
       const order = await createPaymentOrder({
         source,
-        sourceId
+        sourceId,
+        bookingDraftId,
       })
 
       const paymentData = await RazorpayCheckout.open({
@@ -176,12 +182,12 @@ export default function CartProductDetailScreen() {
         sourceId: 0
       })
 
-      Toast.show({ type: 'success', text1: 'Payment successful' })
+      toast.success('Payment successful');
       router.replace('/ManageBookings')
 
     } catch (e) {
       console.log('Payment error:', e)
-      Toast.show({ type: 'error', text1: 'Payment failed or cancelled' })
+      toast.error('Payment failed or cancelled');
     } finally {
       setPaying(false)
     }
