@@ -7,21 +7,16 @@ import { router, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import dayjs from 'dayjs';
 
-// React Native Reusables components
 import { Text } from '@/components/ui/text';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 
-// Components
 import ScreenHeader from '@/components/common/ScreenHeader';
 
-// API
-import { fetchBookingbyId } from '@/api/booking';
-
-// Toast
 import { toast } from '@/components/common/ToastManager';
 import Screen from '@/app/provider/Screen';
 import { AppButton } from '@/components/common/AppButton';
+import { useBookingById } from '@/api/booking'
+
 
 type OrderStackParamList = {
   OrderDetailsScreen: {
@@ -83,28 +78,18 @@ type Booking = {
 export default function OrderDetailsScreen() {
   const route = useRoute<OrderDetailsRouteProp>();
   const navigation = useNavigation<any>();
-  const { bookingId, status } = route.params;
-  const [loading, setLoading] = useState(true);
-  const [bookingItems, setBookingItems] = useState<BookingItem[]>([]);
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const { bookingId } = route.params;
 
-  useEffect(() => {
-    const loadBookingDetails = async () => {
-      try {
-        setLoading(true);
-        const res = await fetchBookingbyId(bookingId);
-        console.log('Fetched booking details', res);
-        setBookingItems(res.data?.items || []);
-        setBooking(res.data?.booking || null);
-      } catch (err) {
-        console.error('Failed to fetch booking details', err);
-        toast.error('Failed to load order details', 'Please try again');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadBookingDetails();
-  }, [bookingId]);
+const {
+  data,
+  isLoading,
+
+} = useBookingById(bookingId)
+const booking = data?.data?.booking ?? null
+const bookingItems = data?.data?.items ?? []
+
+
+
 
   const isPaid = booking?.paymentStatus === 'PAID';
   const totalAmount = Number(booking?.totalAmount || 0);
@@ -162,7 +147,7 @@ export default function OrderDetailsScreen() {
       pathname: '/AddReviewsScreen',
       params: {
         eventId: bookingId,
-        productIds: JSON.stringify(bookingItems.map(b => b.productId)),
+        productIds: JSON.stringify(bookingItems.map((b: { productId: any; }) => b.productId)),
       },
     });
   };
@@ -277,7 +262,7 @@ export default function OrderDetailsScreen() {
     );
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-gray-50">
         <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
@@ -475,7 +460,7 @@ export default function OrderDetailsScreen() {
             <Text className="mb-3 text-lg font-bold text-gray-900">
               Services ({bookingItems.length})
             </Text>
-            {bookingItems.map((item) => (
+            {bookingItems.map((item: any) => (
               <OrderItemCard key={item.id} item={item} />
             ))}
           </View>

@@ -15,7 +15,7 @@ import { getAddresses, deleteAddress, setCurrentAddress, userDetails } from '@/a
 import AddressListSkeleton from '@/app/skeleton/home/AddressList';
 import DeleteAddressModal from '@/components/common/DeleteAddressModal';
 import AddressForm from '@/components/common/form/AddressForm';
-
+import { useQueryClient } from '@tanstack/react-query';
 // Icons
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { toast } from '@/components/common/ToastManager';
@@ -51,6 +51,8 @@ export default function AddressManagementScreen() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [confirmSetCurrentId, setConfirmSetCurrentId] = useState<number | null>(null);
   const [currentAddressId, setCurrentAddressId] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+
 
   const loadAddresses = async () => {
     try {
@@ -98,21 +100,32 @@ export default function AddressManagementScreen() {
     setConfirmSetCurrentId(id);
   };
 
-  const confirmSetCurrent = async () => {
-    if (!confirmSetCurrentId) return;
+ const confirmSetCurrent = async () => {
+  if (!confirmSetCurrentId) return;
 
-    try {
-      await setCurrentAddress({ id: confirmSetCurrentId });
+  try {
+    await setCurrentAddress({ id: confirmSetCurrentId });
 
-      setCurrentAddressId(confirmSetCurrentId);
+    setCurrentAddressId(confirmSetCurrentId);
 
-      toast.success('Address updated', 'Default address changed successfully');
+    queryClient.invalidateQueries({
+      queryKey: ['user-details'],
+    });
 
-      setConfirmSetCurrentId(null);
-    } catch {
-      toast.error('Update failed', 'Please try again');
-    }
-  };
+    queryClient.invalidateQueries({
+      queryKey: ['current-address'],
+    });
+
+    toast.success(
+      'Address updated',
+      'Default address changed successfully'
+    );
+
+    setConfirmSetCurrentId(null);
+  } catch {
+    toast.error('Update failed', 'Please try again');
+  }
+};
 
   const renderForm = () => (
     <AddressForm

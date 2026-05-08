@@ -1,7 +1,7 @@
 
 import axios from 'axios';
 
-const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || ""
+const BASE_URL = `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1` || ""
 
 export const publicApi = axios.create({
   baseURL: BASE_URL,

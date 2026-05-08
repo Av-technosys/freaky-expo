@@ -1,121 +1,121 @@
+import { View } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useState, useEffect } from 'react';
 
-import { View } from 'react-native'
-import { useRouter, useFocusEffect } from 'expo-router'
-import { useState, useCallback } from 'react'
-import { toast } from '@/components/common/ToastManager'
-import { Text } from '@/components/ui/text'
-import Screen from '@/app/provider/Screen'
-import ScreenHeader from '@/components/common/ScreenHeader'
-import NotFound from '@/components/common/NotFound'
-import { useLocalSearchParams } from 'expo-router'
-import CartProductsScreen from '@/components/cart/CartProuctScreen'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { toast } from '@/components/common/ToastManager';
+import { Text } from '@/components/ui/text';
+import Screen from '@/app/provider/Screen';
+import ScreenHeader from '@/components/common/ScreenHeader';
+import NotFound from '@/components/common/NotFound';
 
-import { deleteCartItem, fetchCartItems } from '@/api/cart'
-import { useCartStore } from '@/store/cartStore'
-import CartSkeleton from '@/app/skeleton/cartList'
+import CartProductsScreen from '@/components/cart/CartProuctScreen';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-type TabType = 'services' | 'events'
+import { useCartStore } from '@/store/cartStore';
+import CartSkeleton from '@/app/skeleton/cartList';
+
+// ✅ React Query only
+import { useCartItems, useDeleteCartItem } from '@/api/cart';
+
+type TabType = 'services' | 'events';
 
 export default function CartScreen() {
-  const router = useRouter()
-  const { event } = useLocalSearchParams<{ event?: string }>()
+  const router = useRouter();
+  const { event } = useLocalSearchParams<{ event?: string }>();
 
-  const items = useCartStore((state) => state.items)
-  const events = useCartStore((state) => state.events)
-  const removeFromCart = useCartStore((state) => state.removeFromCart)
-  const setItems = useCartStore((state) => state.setItems)
-  const setEvents = useCartStore((state) => state.setEvents)
+  const items = useCartStore((state) => state.items);
+  const events = useCartStore((state) => state.events);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const setItems = useCartStore((state) => state.setItems);
+  const setEvents = useCartStore((state) => state.setEvents);
 
-  const [loading, setLoading] = useState(true)
-  const initialTab: TabType = event === 'true' ? 'events' : 'services'
-  const [tab, setTab] = useState<TabType>(initialTab)
-
+  const initialTab: TabType = event === 'true' ? 'events' : 'services';
+  const [tab, setTab] = useState<TabType>(initialTab);
   const handleTabChange = (value: string) => {
     if (value === 'services' || value === 'events') {
-      setTab(value)
+      setTab(value);
     }
-  }
+  };
 
-  useFocusEffect(
-    useCallback(() => {
-      loadCartFromApi()
-    }, [])
-  )
+  const { data, isLoading } = useCartItems();
+  const { mutateAsync: deleteCart } = useDeleteCartItem();
 
-  const loadCartFromApi = async () => {
-    try {
-      setLoading(true)
-      const res = await fetchCartItems()
+useEffect(() => {
+  if (!data) return
 
-      const mapItem = (item: any) => ({
-        cartItemId: item.bookingDraftId.toString(),
-        bookingDraftId: item.bookingDraftId,
-        cartId: res.cartId,
-        productId: item.productId?.toString(),
-        title: item.productName || 'Event',
-        vendorName: '',
-        price: Number(item.price || 0),
-        quantity: item.quantity || 1,
-        bookingDetails: {
-          fullName: item.contactName || item.eventContactName || '',
-          phone: item.contactNumber || item.eventContactNumber || '',
-          address: '',
-          date: item.startTime || item.eventStartTime || new Date().toISOString(),
-          time:
-            item.startTime || item.eventStartTime
-              ? new Date(item.startTime || item.eventStartTime).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })
-              : '',
-          guests: `${item.minGuestCount || item.eventMinGuest || 0} - ${item.maxGuestCount || item.eventMaxGuest || 0}`,
-          vendorNote: null,
-        },
-      })
+  const res = data
 
-      setItems(res.items ? res.items.map(mapItem) : [])
+  const mapItem = (item: any) => ({
+    cartItemId: item.bookingDraftId.toString(),
+    bookingDraftId: item.bookingDraftId,
+    cartId: res.cartId,
+    productId: item.productId?.toString(),
+    title: item.productName || 'Event',
+    vendorName: '',
+    price: Number(item.price || 0),
+    quantity: item.quantity || 1,
+    bookingDetails: {
+      fullName: item.contactName || item.eventContactName || '',
+      phone: item.contactNumber || item.eventContactNumber || '',
+      address: '',
+      date:
+        item.startTime || item.eventStartTime || new Date().toISOString(),
+      time: item.startTime || item.eventStartTime
+        ? new Date(item.startTime || item.eventStartTime).toLocaleTimeString(
+            [],
+            {
+              hour: '2-digit',
+              minute: '2-digit',
+            }
+          )
+        : '',
+      guests: `${item.minGuestCount || item.eventMinGuest || 0} - ${
+        item.maxGuestCount || item.eventMaxGuest || 0
+      }`,
+      vendorNote: null,
+    },
+  })
 
-      const mappedEvents = res.events
-        ? res.events.map((eventObj: any) => ({
+  setItems(res.items ? res.items.map(mapItem) : [])
+
+  setEvents(
+    res.events
+      ? res.events.map((eventObj: any) => ({
           eventId: eventObj.eventId,
           eventDetails: eventObj.eventDetails,
           services: eventObj.services.map(mapItem),
         }))
-        : []
+      : []
+  )
+}, [data])
 
-      setEvents(mappedEvents)
-    } catch (err) {
-      console.log('Failed to fetch cart', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleDelete = async (cartItemId: string) => {
-    const item = items.find((cartItem) => cartItem.cartItemId === cartItemId)
+  const item = items.find(
+    (cartItem) => cartItem.cartItemId === cartItemId
+  )
+
+  try {
+    if (item?.bookingDraftId) {
+      await deleteCart(item.bookingDraftId)
+    }
+
     removeFromCart(cartItemId)
 
-    try {
-      if (item?.bookingDraftId) {
-        await deleteCartItem(item.bookingDraftId)
-      }
-
-      toast.success('Item removed from cart')
-    } catch {
-      toast.error('Failed to remove item')
-    }
+    toast.success('Item removed from cart')
+  } catch {
+    toast.error('Failed to remove item')
   }
+}
 
-  const hasItems = items.length > 0 || events.length > 0
+  const hasItems = items.length > 0 || events.length > 0;
 
   return (
     <Screen>
       <ScreenHeader title="Cart" rightType="menu" />
 
-      <View className="flex-1 mb-16">
-
-        {loading ? (
+      <View className="mb-16 flex-1">
+        {isLoading ? (
           <CartSkeleton />
         ) : !hasItems ? (
           <NotFound
@@ -125,12 +125,13 @@ export default function CartScreen() {
             onPress={() => router.navigate('/event')}
           />
         ) : (
-          <View className="flex-1 mb-16">
+          <View className="mb-16 flex-1">
             <Tabs className="pt-8" value={tab} onValueChange={handleTabChange}>
               <TabsList className="mb-4 w-full">
                 <TabsTrigger value="services" className="flex-1">
                   <Text>Services ({items.length})</Text>
                 </TabsTrigger>
+
                 <TabsTrigger value="events" className="flex-1">
                   <Text>Events ({events.length})</Text>
                 </TabsTrigger>
@@ -156,8 +157,7 @@ export default function CartScreen() {
             </Tabs>
           </View>
         )}
-
       </View>
     </Screen>
-  )
+  );
 }

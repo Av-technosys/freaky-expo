@@ -1,78 +1,24 @@
-// components/home/HeaderSection.tsx
-
 import { View, Pressable } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { ChevronDown, MapPin, Bell, Search } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback, useEffect, useState } from 'react';
+import { router } from 'expo-router';
+import { useUserDetails, useCurrentAddress } from '@/api/user';
 
-import { userDetails, fetchCurrentAddress } from '@/api/user';
-import Toast from 'react-native-toast-message';
 import HeaderSkeleton from '@/app/skeleton/home/Header';
-import { router, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HeaderSection() {
+  const { data: userRes, isLoading: userLoading } = useUserDetails();
 
-  const [userData, setUserData] = useState<any>(null);
-  const [currentAddress, setCurrentAddress] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const userData = userRes?.data;
+  const addressId = userData?.currentAddressId;
 
-  const fetchUserDetails = async () => {
-    try {
-      setLoading(true);
+  const { data: addressRes, isLoading: addressLoading } =
+    useCurrentAddress(addressId);
 
-      const res = await userDetails();
-      if (res?.data) {
-        setUserData(res.data);
-        console.log(res?.data);
+  const currentAddress = addressRes?.data;
 
-        const addressId = res.data.currentAddressId;
-
-        if (addressId) {
-          const addressRes = await fetchCurrentAddress(addressId);
-          if (addressRes?.data) {
-            setCurrentAddress(addressRes.data);
-          } else {
-            setCurrentAddress(null);
-          }
-        } else {
-          setCurrentAddress(null);
-        }
-      } else {
-        setUserData(null);
-        setCurrentAddress(null);
-      }
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to load user details.',
-      });
-      setUserData(null);
-      setCurrentAddress(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUserDetails();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      const checkRefetch = async () => {
-        const shouldRefetch = await AsyncStorage.getItem('addressRefetch')
-
-        if (shouldRefetch === 'true') {
-          await fetchUserDetails()
-          await AsyncStorage.setItem('addressRefetch', 'false')
-        }
-      }
-
-      checkRefetch()
-    }, [])
-  )
+  const loading = userLoading || addressLoading;
 
   if (loading) {
     return <HeaderSkeleton />;
@@ -87,7 +33,9 @@ export default function HeaderSection() {
             Hi, {userData?.firstName ? userData.firstName : 'Guest'} 👋
           </Text>
 
-          <Text className="text-2xl font-semibold">Welcome back</Text>
+          <Text className="text-2xl font-semibold">
+            Welcome back
+          </Text>
         </View>
 
         <View className="flex-row gap-3">
@@ -99,11 +47,10 @@ export default function HeaderSection() {
           {/* Bell */}
           <Pressable
             onPress={() =>
-              router.navigate({
-                pathname: '/NotificationsScreen',
-              })
+              router.navigate({ pathname: '/NotificationsScreen' })
             }
-            className="h-12 w-12 items-center justify-center rounded-full bg-white shadow">
+            className="h-12 w-12 items-center justify-center rounded-full bg-white shadow"
+          >
             <Bell size={20} color="#5e5e5e" />
           </Pressable>
         </View>
@@ -118,10 +65,14 @@ export default function HeaderSection() {
           borderRadius: 40,
           padding: 2,
           marginTop: 16,
-        }}>
+        }}
+      >
         <Pressable
-          onPress={() => router.navigate({ pathname: '/AddressManagementScreen' })}
-          className="flex-row items-center justify-between rounded-full bg-white px-4 py-3">
+          onPress={() =>
+            router.navigate({ pathname: '/AddressManagementScreen' })
+          }
+          className="flex-row items-center justify-between rounded-full bg-white px-4 py-3"
+        >
           {/* LEFT */}
           <View className="flex-1 flex-row items-center">
             <MapPin size={16} color="#999" />

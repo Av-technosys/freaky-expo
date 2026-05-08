@@ -1,5 +1,11 @@
 import { privateApi } from './axios';
 
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
+
 
 export type Address = {
   id?: number;
@@ -93,3 +99,68 @@ export const fetchCurrentAddress = async (addressId: number) => {
   return response.data;
 };
 
+
+export const useAddresses = () => {
+  return useQuery({
+    queryKey: ['addresses'],
+    queryFn: getAddresses,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+
+export const useCurrentAddress = (addressId: number) => {
+  return useQuery({
+    queryKey: ['current-address', addressId],
+    queryFn: () => fetchCurrentAddress(addressId),
+    enabled: !!addressId,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+
+export const useUserDetails = () => {
+  return useQuery({
+    queryKey: ['user-details'],
+    queryFn: userDetails,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useSetCurrentAddress = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: setCurrentAddress,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['addresses'],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['current-address'],
+      });
+    },
+  });
+};
+
+
+
+export const useEditAddress = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: editAddress,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['addresses'],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['current-address'],
+      });
+    },
+  });
+};

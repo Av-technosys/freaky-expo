@@ -56,18 +56,8 @@ export default function DeleteAddressModal({ isOpen, onClose, onConfirm }: Props
                 variant="destructive"
                 className="h-12 w-full overflow-hidden rounded-xl p-0"
                 onPress={onConfirm}>
-                <LinearGradient
-                  colors={['#ef4444', '#dc2626']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderRadius: 12,
-                  }}>
+            
                   <Text className="font-semibold text-white">Delete</Text>
-                </LinearGradient>
               </Button>
             </View>
           </View>

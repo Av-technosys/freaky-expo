@@ -2,7 +2,7 @@ import axios from 'axios';
 import { tokenStorage } from '../api/services/tokenStorage';
 
 
-const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || ""
+const BASE_URL = `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1` || ""
 
 export const refreshIdToken = async () => {
 
