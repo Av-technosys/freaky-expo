@@ -1,8 +1,6 @@
 import React from 'react';
 import { View, Pressable, Modal, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Card, CardContent } from '@/components/ui/card';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { AppButton } from '../common/AppButton';
 
@@ -34,7 +32,7 @@ export default function ServiceSelectionModal({
       <View className="flex-1 items-center justify-center bg-black/60 px-4">
         <View className="w-full max-w-sm rounded-3xl bg-white shadow-2xl">
           {/* Header */}
-          <View className="relative border-b border-gray-100 px-6 pt-6 pb-4">
+          <View className="relative border-b border-gray-100 px-6 pb-4 pt-6">
             <View className="absolute right-4 top-4">
               <Pressable
                 onPress={onClose}
@@ -46,9 +44,7 @@ export default function ServiceSelectionModal({
               <View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-orange-50">
                 <Feather name="check-square" size={24} color="#F97316" />
               </View>
-              <Text className="text-xl font-bold text-gray-900">
-                Choose Your Services
-              </Text>
+              <Text className="text-xl font-bold text-gray-900">Choose Your Services</Text>
               <Text className="mt-1 text-center text-sm text-gray-500">
                 Select the services you want to include
               </Text>
@@ -56,18 +52,21 @@ export default function ServiceSelectionModal({
           </View>
 
           {/* Service List */}
-          <ScrollView className="max-h-80 px-6 py-4">
+          {/* Service List */}
+          <ScrollView
+            className="max-h-[40vh] px-6 py-4"
+            contentContainerStyle={{ paddingBottom: 16 }}
+            showsVerticalScrollIndicator={false}>
             <View className="space-y-3">
-              {steps.map((step, index) => {
+              {steps.map((step) => {
                 const checked = tempEnabledSteps.includes(step.key);
+
                 return (
                   <Pressable
                     key={step.id}
                     onPress={() => onStepToggle(step.key)}
-                    className={`rounded-2xl border-2 p-4 transition-all ${
-                      checked
-                        ? 'border-orange-200 bg-orange-50'
-                        : 'border-gray-200 bg-white'
+                    className={`mt-2 rounded-2xl border p-2 ${
+                      checked ? 'border-orange-200 bg-orange-50' : 'border-gray-200 bg-white'
                     }`}>
                     <View className="flex-row items-center justify-between">
                       <View className="flex-1">
@@ -78,10 +77,9 @@ export default function ServiceSelectionModal({
                                 ? 'border-orange-500 bg-orange-500'
                                 : 'border-gray-300 bg-white'
                             }`}>
-                            {checked && (
-                              <Feather name="check" size={14} color="#FFFFFF" />
-                            )}
+                            {checked && <Feather name="check" size={14} color="#FFFFFF" />}
                           </View>
+
                           <Text
                             className={`text-base font-semibold ${
                               checked ? 'text-orange-700' : 'text-gray-700'
@@ -89,12 +87,12 @@ export default function ServiceSelectionModal({
                             {step.label}
                           </Text>
                         </View>
+
                         {checked && (
-                          <Text className="mt-1 text-xs text-orange-600">
-                            Service included
-                          </Text>
+                          <Text className="mt-1 text-xs text-orange-600">Service included</Text>
                         )}
                       </View>
+
                       {checked && (
                         <View className="h-8 w-8 items-center justify-center rounded-full bg-orange-100">
                           <Feather name="check-circle" size={16} color="#F97316" />
@@ -120,7 +118,7 @@ export default function ServiceSelectionModal({
                 </Text>
               </View>
             </AppButton>
-            
+
             {tempEnabledSteps.length === 0 && (
               <Text className="mt-2 text-center text-xs text-gray-500">
                 Please select at least one service
