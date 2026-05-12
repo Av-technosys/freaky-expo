@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Pressable, Modal } from 'react-native';
+import { View, Pressable, Modal, ScrollView } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { Card, CardContent } from '@/components/ui/card';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,43 +31,103 @@ export default function ServiceSelectionModal({
 }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 items-center justify-center bg-black/40">
-        <Card className="w-[90%] rounded-2xl">
-          <CardContent className="p-5">
-            <View className="items-end">
-              <Pressable onPress={onClose}>
-                <Text className="text-2xl">✕</Text>
+      <View className="flex-1 items-center justify-center bg-black/60 px-4">
+        <View className="w-full max-w-sm rounded-3xl bg-white shadow-2xl">
+          {/* Header */}
+          <View className="relative border-b border-gray-100 px-6 pt-6 pb-4">
+            <View className="absolute right-4 top-4">
+              <Pressable
+                onPress={onClose}
+                className="h-8 w-8 items-center justify-center rounded-full bg-gray-100">
+                <Feather name="x" size={18} color="#6B7280" />
               </Pressable>
             </View>
-            <View className="relative mb-4 items-center">
-              <View className="absolute left-0 right-0 top-1/2 h-[1px] bg-orange-400" />
-              <Text className="bg-white px-4 text-lg font-semibold text-orange-500">
+            <View className="items-center">
+              <View className="mb-3 h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-orange-50">
+                <Feather name="check-square" size={24} color="#F97316" />
+              </View>
+              <Text className="text-xl font-bold text-gray-900">
                 Choose Your Services
               </Text>
+              <Text className="mt-1 text-center text-sm text-gray-500">
+                Select the services you want to include
+              </Text>
             </View>
-            <View className="mt-2">
-              {steps.map((step) => {
+          </View>
+
+          {/* Service List */}
+          <ScrollView className="max-h-80 px-6 py-4">
+            <View className="space-y-3">
+              {steps.map((step, index) => {
                 const checked = tempEnabledSteps.includes(step.key);
                 return (
                   <Pressable
                     key={step.id}
                     onPress={() => onStepToggle(step.key)}
-                    className="mb-2 flex-row items-center justify-between rounded-xl px-3 py-2">
-                    <Text
-                      className={`text-lg font-medium ${checked ? 'text-orange-600' : 'text-orange-500'}`}>
-                      {step.label}
-                    </Text>
-                    <View
-                      className={`h-6 w-6 items-center justify-center rounded-md border ${checked ? 'border-orange-500 bg-orange-500' : 'border-gray-400'}`}>
-                      {checked && <Feather name="check" size={16} color="#fff" />}
+                    className={`rounded-2xl border-2 p-4 transition-all ${
+                      checked
+                        ? 'border-orange-200 bg-orange-50'
+                        : 'border-gray-200 bg-white'
+                    }`}>
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1">
+                        <View className="flex-row items-center gap-3">
+                          <View
+                            className={`h-6 w-6 items-center justify-center rounded-lg border-2 ${
+                              checked
+                                ? 'border-orange-500 bg-orange-500'
+                                : 'border-gray-300 bg-white'
+                            }`}>
+                            {checked && (
+                              <Feather name="check" size={14} color="#FFFFFF" />
+                            )}
+                          </View>
+                          <Text
+                            className={`text-base font-semibold ${
+                              checked ? 'text-orange-700' : 'text-gray-700'
+                            }`}>
+                            {step.label}
+                          </Text>
+                        </View>
+                        {checked && (
+                          <Text className="mt-1 text-xs text-orange-600">
+                            Service included
+                          </Text>
+                        )}
+                      </View>
+                      {checked && (
+                        <View className="h-8 w-8 items-center justify-center rounded-full bg-orange-100">
+                          <Feather name="check-circle" size={16} color="#F97316" />
+                        </View>
+                      )}
                     </View>
                   </Pressable>
                 );
               })}
             </View>
-            <AppButton onPress={onConfirm}>Confirm</AppButton> 
-          </CardContent>
-        </Card>
+          </ScrollView>
+
+          {/* Footer */}
+          <View className="border-t border-gray-100 px-6 py-4">
+            <AppButton
+              onPress={onConfirm}
+              className="h-12 rounded-2xl"
+              disabled={tempEnabledSteps.length === 0}>
+              <View className="flex-row items-center justify-center gap-2">
+                <Feather name="check" size={18} color="white" />
+                <Text className="font-semibold text-white">
+                  Confirm {tempEnabledSteps.length > 0 && `(${tempEnabledSteps.length})`}
+                </Text>
+              </View>
+            </AppButton>
+            
+            {tempEnabledSteps.length === 0 && (
+              <Text className="mt-2 text-center text-xs text-gray-500">
+                Please select at least one service
+              </Text>
+            )}
+          </View>
+        </View>
       </View>
     </Modal>
   );
