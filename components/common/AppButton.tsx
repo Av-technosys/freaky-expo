@@ -1,7 +1,7 @@
 
 
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -21,7 +21,7 @@ export function AppButton({ variant = 'default', className, ...props }: Props) {
           colors={gradientColors}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
-          className="absolute inset-0"
+          style={StyleSheet.absoluteFill}
         />
         <Button
           {...props}
@@ -43,7 +43,7 @@ export function AppButton({ variant = 'default', className, ...props }: Props) {
           colors={gradientColors}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
-          className="absolute inset-0"
+          style={StyleSheet.absoluteFill}
         />
         <View className="flex-1 bg-white rounded-xl">
           <Button
