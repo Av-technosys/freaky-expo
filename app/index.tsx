@@ -18,7 +18,7 @@ export default function IntroScreen() {
     }
 
     if (!accessToken || !idToken || !refreshToken) {
-      router.replace('/authIntro');
+      router.replace('/authintro');
       return;
     }
 
