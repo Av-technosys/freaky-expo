@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { router } from 'expo-router';
 
 type RightType = 'notification' | 'menu' | 'none';
@@ -18,8 +17,14 @@ export default function ScreenHeader({
   rightType = 'none',
   showBack = true,
 }: ScreenHeaderProps) {
-  const navigation = useNavigation<any>();
-  const index = useNavigationState((state) => state.index);
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
+    router.replace('/home');
+  };
 
   const renderRight = () => {
     switch (rightType) {
@@ -58,7 +63,7 @@ export default function ScreenHeader({
       <View className="flex-row items-center justify-between">
         {/* LEFT */}
         {showBack ? (
-          <Pressable onPress={() => navigation.goBack()}>
+          <Pressable onPress={handleBack}>
             <Feather name="arrow-left" size={24} color="#000" />
           </Pressable>
         ) : (
