@@ -54,7 +54,7 @@ export function SignInForm() {
 
       Toast.show({ type: 'success', text1: 'Welcome back 👋' });
 
-      router.replace('/home');
+      router.replace('/PermissionScreen');
     } catch (err: any) {
       Toast.show({
         type: 'error',
@@ -144,7 +144,7 @@ export function SignInForm() {
               {/* SIGNUP */}
           <Text className="mt-2 text-center text-sm">
             Don’t have an account?{' '}
-            <Text className="font-medium underline" onPress={() => router.navigate('/signUp')}>
+            <Text className="font-medium underline" onPress={() => router.navigate('/signup')}>
               Sign up
             </Text>
           </Text>

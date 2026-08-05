@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import type { RootState } from '@/store';
+import * as Location from 'expo-location';
 
 export default function IntroScreen() {
   console.log('IntroScreen rendered');
@@ -20,12 +21,17 @@ export default function IntroScreen() {
         autoPlay
         loop={false}
         resizeMode="cover"
-        onAnimationFinish={() => {
+        onAnimationFinish={async () => {
           if (!isConnected) {
             router.replace('/no-internet');
           } else if (!isLoggedIn) {
-            router.replace('/authIntro');
+            router.replace('/authintro');
           } else {
+            const locationPermission = await Location.getForegroundPermissionsAsync();
+            if (locationPermission.status !== 'granted') {
+              router.replace('/LocationPermissionScreen');
+              return;
+            }
             router.replace('/home');
           }
         }}

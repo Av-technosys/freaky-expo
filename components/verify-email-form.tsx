@@ -116,7 +116,7 @@ const handleConfirm = async () => {
       const user = decodeIdToken(accessToken);
       dispatch(loginSuccess(user));
 
-      router.replace('/home');
+      router.replace('/PermissionScreen');
       return;
     }
 
@@ -125,7 +125,7 @@ const handleConfirm = async () => {
       Toast.show({ type: 'success', text1: 'OTP accepted 🎉' });
 
       router.navigate({
-        pathname: '/resetPassword',
+        pathname: '/resetpassword',
         params: {
           username,
           code, // just pass OTP forward

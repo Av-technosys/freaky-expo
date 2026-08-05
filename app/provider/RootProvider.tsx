@@ -6,7 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 export default function RootProvider({ children }: { children: React.ReactNode }) {
   return (
     <SafeAreaProvider>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" hidden={false} translucent={false} backgroundColor="#ffffff" />
       {children}
     </SafeAreaProvider>
   );

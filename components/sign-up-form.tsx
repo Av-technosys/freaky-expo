@@ -69,7 +69,7 @@ export function SignUpForm() {
       // loginSuccess({ username: email });
       console.log('Signup payload:', payload , response.data);
       router.navigate({
-        pathname: '/otpVerification',
+        pathname: '/OtpVerification',
         params: { flow: 'signup', email: payload.email },
       });
     } catch (error: any) {

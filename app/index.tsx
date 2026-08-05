@@ -4,6 +4,7 @@ import LottieView from 'lottie-react-native';
 import { router } from 'expo-router';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 export default function IntroScreen() {
   const isConnected = useNetworkStatus();
@@ -18,7 +19,14 @@ export default function IntroScreen() {
     }
 
     if (!accessToken || !idToken || !refreshToken) {
-      router.replace('/authIntro');
+      router.replace('/authintro');
+      return;
+    }
+
+    const locationPermission = await Location.getForegroundPermissionsAsync();
+
+    if (locationPermission.status !== 'granted') {
+      router.replace('/LocationPermissionScreen');
       return;
     }
 

@@ -18,7 +18,7 @@ export default function AddProduct() {
           vendorName: String(vendorName),
           price: Number(price),
         }}
-        onSuccess={() => router.navigate('/cart')}
+        onSuccess={() => router.navigate('/Cart')}
       />
       
     </Screen>
