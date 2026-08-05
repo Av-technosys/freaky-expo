@@ -61,7 +61,7 @@ export function ResetPasswordForm() {
         text1: 'Password reset successful 🎉',
       });
 
-      router.replace('/passwordSuccess');
+      router.replace('/PasswordSuccess');
 
     } catch {
       Toast.show({

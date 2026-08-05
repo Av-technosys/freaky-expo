@@ -47,9 +47,6 @@ export default function CartItemCard({
                 <Text className="text-base font-semibold text-black" numberOfLines={1}>
                   {title}
                 </Text>
-                <Text className="mt-0.5 text-xs text-gray-500" numberOfLines={1}>
-                  {vendorName || 'Vendor not specified'}
-                </Text>
               </View>
 
               <View className="items-end">

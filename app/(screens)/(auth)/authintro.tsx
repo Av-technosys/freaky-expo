@@ -57,7 +57,7 @@ export default function AuthIntroScreen() {
 
         {/* ACTIONS */}
         <View className="mt-8 w-full gap-4 px-6 pb-6">
-          <AppButton size="lg" onPress={() => router.replace('/signUp')}>
+          <AppButton size="lg" onPress={() => router.replace('/signup')}>
             Sign Up
           </AppButton>
 

@@ -9,7 +9,6 @@ import { AppButton } from '@/components/common/AppButton';
 import Screen from '@/app/provider/Screen';
 import VendorHeaderCard from '@/components/ProductDetails/Header';
 import Details from '@/components/ProductDetails/Details';
-import VendorDetailsCard from '@/components/ProductDetails/VendorDetails';
 import ReviewSection from '@/components/ProductDetails/ReviewSection';
 import { getProductsByProductId, fetchProductReview } from '@/api/product';
 import { fetchVendorDetail } from '@/api/vendor';
@@ -101,10 +100,9 @@ const [selectedSlabIndex, setSelectedSlabIndex] = useState<number | null>(null)
 
         {/* HEADER */}
         <VendorHeaderCard
-          name={vendor?.businessName ?? 'Vendor'}
+          name={product.title ?? 'Service'}
           location={`${vendor?.city ?? ''} ${vendor?.state ?? ''}`}
           rating={product.rating}
-          logo={vendorLogo}
           mediaImages={
             product.media
               ?.filter((m: any) => m.mediaType === 'image')
@@ -123,19 +121,6 @@ const [selectedSlabIndex, setSelectedSlabIndex] = useState<number | null>(null)
           priceSlabs={product.priceSlabs}
           selectedIndex={selectedIndex}
           setSelectedIndex={setSelectedIndex}
-        />
-
-        {/* VENDOR */}
-        <VendorDetailsCard
-          name={vendor?.legalEntityName}
-          location={`${vendor?.streetAddressLine1}, ${vendor?.city}, ${vendor?.state}`}
-          vendorId={vendor?.vendorId?.toString()}
-          serviceId={productId?.toString()}
-          email={vendor?.primaryContactEmail}
-          logo={vendor?.logoUrl ? { uri: `${S3_BASE_URL}/${vendor.logoUrl}` } : undefined}
-          facebook={vendor?.facebookURL}
-          instagram={vendor?.instagramURL}
-          youtube={vendor?.youtubeURL}
         />
 
         {/* REVIEWS */}

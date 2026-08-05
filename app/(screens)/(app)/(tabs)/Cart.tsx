@@ -122,7 +122,7 @@ useEffect(() => {
             title="Oops! No Booking yet"
             description="It seems that you’ve got a blank state."
             ctaLabel="Book Now Event"
-            onPress={() => router.navigate('/event')}
+            onPress={() => router.navigate('/Event')}
           />
         ) : (
           <View className="mb-16 flex-1">

@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import { ScrollView, TextInput, View, Text } from 'react-native';
-import Screen from '@/app/provider/Screen';
-import ScreenHeader from '@/components/common/ScreenHeader';
+import { useMemo, useState } from 'react';
+import { Pressable, ScrollView, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { router } from 'expo-router';
+import { ChevronDown, ChevronUp, Search } from 'lucide-react-native';
+import Feather from '@expo/vector-icons/Feather';
 
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-
 import { Button } from '@/components/ui/button';
-import { Icon } from '@/components/ui/icon';
-import Feather from '@expo/vector-icons/Feather';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Text } from '@/components/ui/text';
 
 type FAQItem = {
   id: number;
@@ -22,95 +25,135 @@ type FAQItem = {
 const FAQ_DATA: FAQItem[] = [
   {
     id: 1,
-    question: 'How do I reset my password?',
+    question: 'How can i connect vendor ?',
     answer:
-      'Go to Login → Forgot Password → enter email → verify OTP → set new password.',
+      'Here are the step-by-step instructions you can give for that line:\n\n1. Go to the Login Page.\n2. Click on “Forgot Password” below the login form.\n3. Enter your registered email address or phone number.\n4. Check your inbox (or SMS) for a password reset link/code.\n5. Click the link or enter the code on the reset page.\n6. Create a new password and confirm it.\n7. Click “Submit” to save your new password.\n8. Now, log in using your new password.',
   },
   {
     id: 2,
-    question: 'How do I contact support?',
-    answer: 'Use Help section or email support@example.com.',
+    question: 'How do i contact customer support ?',
+    answer: 'You can contact customer support from Profile > Help & Support or Contact Us.',
   },
   {
     id: 3,
-    question: 'What payment methods are supported?',
-    answer: 'UPI, Cards, Net Banking.',
+    question: 'What payment method do you use ?',
+    answer: 'Freaky Chimp supports online payments through the available checkout methods.',
   },
   {
     id: 4,
-    question: 'How do I see order history?',
-    answer: 'Profile → Orders section.',
+    question: 'How do i see order history',
+    answer: 'Open Profile, then go to your bookings or orders section to see order history.',
+  },
+  {
+    id: 5,
+    question: 'How do i update my profile ?',
+    answer: 'Open Profile Details, edit the required fields, and tap Done.',
+  },
+  {
+    id: 6,
+    question: 'How can i connect vendor ?',
+    answer: 'Use the vendor connection flow from your event or service booking journey.',
   },
 ];
 
+function FAQRow({
+  item,
+  open,
+  onOpenChange,
+}: {
+  item: FAQItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Collapsible open={open} onOpenChange={onOpenChange}>
+      <View className="py-[22px]">
+        <View className="flex-row items-start justify-between gap-3">
+          <Text className="flex-1 text-[14px] font-extrabold leading-5 text-[#4a4a4a]">
+            {item.id}. {item.question}
+          </Text>
+
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="icon" className="-mr-2 -mt-2 h-9 w-9">
+              {open ? (
+                <ChevronUp size={20} color="#444444" strokeWidth={2.4} />
+              ) : (
+                <ChevronDown size={20} color="#444444" strokeWidth={2.4} />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+        </View>
+
+        <CollapsibleContent>
+          <Text className="mt-4 text-[14px] font-semibold leading-[19px] text-[#6b6b6b]">
+            {item.answer}
+          </Text>
+        </CollapsibleContent>
+      </View>
+      <Separator className="bg-[#d7d7d7]" />
+    </Collapsible>
+  );
+}
+
 export default function FAQScreen() {
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
+  const [openId, setOpenId] = useState<number | null>(1);
 
-  const filtered = FAQ_DATA.filter(item => {
-    if (!search.trim()) return true;
-
-    const q = search.toLowerCase();
-    return (
-      item.question.toLowerCase().includes(q) ||
-      item.answer.toLowerCase().includes(q)
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return FAQ_DATA;
+    return FAQ_DATA.filter(
+      (item) =>
+        item.question.toLowerCase().includes(query) ||
+        item.answer.toLowerCase().includes(query)
     );
-  });
+  }, [search]);
 
   return (
-    <Screen scroll>
-      <ScreenHeader title="FAQs" rightType="notification" showBack />
-
-      {/* SEARCH */}
-      <View className="px-2 mt-8">
-        <View className="flex-row items-center border border-gray-300 rounded-xl px-4 h-12">
-          <Feather name="search" size={18} color="#000" />
-          <TextInput
-            placeholder="Search your question"
-            placeholderTextColor="#999"
-            className="ml-3 flex-1 text-black"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
-      </View>
-
-      {/* CONTENT */}
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <StatusBar style="dark" />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 34,
+          paddingBottom: Math.max(insets.bottom, 0) + 42,
+        }}
       >
-        <Text className="text-2xl font-semibold mb-4">
+        <Pressable
+          onPress={() => (router.canGoBack() ? router.back() : router.replace('/Profile'))}
+          className="h-8 w-8 justify-center"
+        >
+          <Feather name="arrow-left" size={24} color="#111111" />
+        </Pressable>
+
+        <View className="mt-[27px] h-[43px] flex-row items-center rounded-md border border-[#d0d7e2] bg-white px-4">
+          <Search size={19} color="#4b5563" strokeWidth={2} />
+          <Input
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Search your question"
+            placeholderTextColor="#6f6f6f"
+            className="h-[41px] flex-1 border-0 bg-transparent px-2 text-[14px] shadow-none"
+          />
+        </View>
+
+        <Text className="mt-[33px] text-[22px] font-extrabold leading-7 text-black">
           Frequently Asked Questions
         </Text>
 
-        <View className="gap-3">
-          {filtered.map(item => (
-            <Collapsible key={item.id} className="border border-gray-200 rounded-2xl overflow-hidden">
-
-              {/* HEADER */}
-              <View className="flex-row items-center justify-between px-4 py-3">
-                <Text className="flex-1 pr-3 font-medium text-black">
-                  {item.id}. {item.question}
-                </Text>
-
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Feather name="chevron-down" size={18} color="#000" />
-                  </Button>
-                </CollapsibleTrigger>
-              </View>
-
-              {/* ANSWER */}
-              <CollapsibleContent className="px-4 pb-4">
-                <Text className="text-gray-600 leading-5">
-                  {item.answer}
-                </Text>
-              </CollapsibleContent>
-
-            </Collapsible>
+        <View className="mt-[26px]">
+          {filtered.map((item) => (
+            <FAQRow
+              key={item.id}
+              item={item}
+              open={openId === item.id}
+              onOpenChange={(isOpen) => setOpenId(isOpen ? item.id : null)}
+            />
           ))}
         </View>
       </ScrollView>
-    </Screen>
+    </SafeAreaView>
   );
 }

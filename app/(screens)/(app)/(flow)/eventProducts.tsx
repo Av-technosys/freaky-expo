@@ -255,7 +255,7 @@ await saveInBookingDraft({
     }
 
     router.navigate({
-      pathname: '/cart',
+      pathname: '/Cart',
       params: { event: 'true' }
     })
     // try {

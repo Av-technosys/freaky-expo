@@ -48,17 +48,6 @@ export default function VendorHeaderCard({
             <AntDesign name="star" size={12} color="#facc15" style={{ marginLeft: 4 }} />
           </View>
         </View>
-
-        {/* RIGHT LOGO */}
-        <View className="h-28 w-28 items-center justify-center overflow-hidden rounded-xl bg-gray-100">
-          <AspectRatio ratio={1} className="w-[80%]">
-            <Image
-              source={logo?.uri ? logo : require('@/assets/images/vendor-logo.png')}
-              className="h-full w-full"
-              resizeMode="contain"
-            />
-          </AspectRatio>
-        </View>
       </View>
 
       {/* CAROUSEL */}

@@ -80,7 +80,7 @@ console.log("selectedEvent", selectedEvent)
           title="Not found"
           description="This item or event is no longer available in your cart."
           ctaLabel="Back to Cart"
-          onPress={() => router.replace('/cart')}
+          onPress={() => router.replace('/Cart')}
         />
       </Screen>
     );
@@ -103,9 +103,8 @@ console.log("selectedEvent", selectedEvent)
     const itemPrice = Number(selectedCartItem.price || 0);
     subtotal = itemPrice * totalQuantity;
     bookingDraftId = Number(selectedCartItem.bookingDraftId || null);
-    source = 'CART';
     title = selectedCartItem.title || 'Cart Item';
-    subTitle = selectedCartItem.vendorName || 'Vendor not specified';
+    subTitle = '';
   } else if (isEvent && selectedEvent) {
     bookingDetails = {
       fullName: selectedEvent.eventDetails.contactName,

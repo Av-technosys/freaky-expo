@@ -15,10 +15,10 @@ import { StatusBar } from 'expo-status-bar';
 import {
   ChevronDown,
   ChevronRight,
-  MapPin,
+  CircleUserRound,
+  Navigation,
   Search,
   Star,
-  UserRound,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -168,7 +168,7 @@ function Header({ address, searchStyle }: { address?: any; searchStyle?: any }) 
           onPress={() => router.navigate('/AddressManagementScreen' as never)}
           style={styles.locationAction}
         >
-          <MapPin size={22} color="#fff" fill="#fff" strokeWidth={2.5} />
+          <Navigation size={20} color="#ffffff" fill="#ffffff" strokeWidth={2.2} />
           <View style={styles.locationText}>
             <View style={styles.cityRow}>
               <Text style={styles.city} numberOfLines={1}>{city}</Text>
@@ -178,7 +178,7 @@ function Header({ address, searchStyle }: { address?: any; searchStyle?: any }) 
           </View>
         </Pressable>
         <Pressable onPress={() => router.navigate('/Profile' as never)} style={styles.profileAction}>
-          <UserRound size={22} color="#050505" strokeWidth={1.8} />
+          <CircleUserRound size={23} color="#050505" strokeWidth={1.8} />
         </Pressable>
       </View>
       <Animated.View style={searchStyle}>
@@ -484,7 +484,7 @@ export default function HomeScreen() {
         <View style={styles.navClearance} />
       </Animated.ScrollView>
       <Animated.View
-        pointerEvents="none"
+        pointerEvents="auto"
         style={[
           styles.stickySearch,
           {
@@ -534,12 +534,12 @@ const styles = StyleSheet.create({
   viewAll: { color: '#ff5037', fontSize: 14, lineHeight: 18, fontWeight: '500' },
   offerWrapper: { height: Math.round((SCREEN_WIDTH - 32) * (186 / 348)), marginHorizontal: 16, marginTop: 11, borderRadius: 6, overflow: 'hidden' },
   offerImage: { width: '100%', height: '100%' },
-  floatingEventPill: { position: 'absolute', zIndex: 20, elevation: 12, width: Math.min(332, SCREEN_WIDTH - 32), alignSelf: 'center', height: 54, backgroundColor: '#f4774c', borderRadius: 28, flexDirection: 'row', alignItems: 'center', paddingLeft: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 5 },
-  eventPillImage: { width: 43, height: 43, borderRadius: 22 },
-  eventPillBody: { flex: 1, marginLeft: 10 },
+  floatingEventPill: { position: 'absolute', zIndex: 20, elevation: 12, width: Math.min(294, SCREEN_WIDTH - 64), alignSelf: 'center', height: 68, backgroundColor: '#f4774c', borderRadius: 34, flexDirection: 'row', alignItems: 'center', paddingLeft: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 7 },
+  eventPillImage: { width: 52, height: 52, borderRadius: 26 },
+  eventPillBody: { flex: 1, marginLeft: 12 },
   eventPillTitle: { color: '#fff', fontSize: 14, lineHeight: 17, fontWeight: '700' },
-  eventPillSubtitle: { color: '#fff', fontSize: 12, lineHeight: 14, marginTop: 1 },
-  eventPillNext: { width: 45, height: 45, marginRight: 4, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: '#dd7651' },
+  eventPillSubtitle: { color: '#fff', fontSize: 11, lineHeight: 14, marginTop: 2 },
+  eventPillNext: { width: 38, height: 38, marginRight: 8, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: '#dd7651' },
   portraitRail: { gap: RAIL_GAP, paddingHorizontal: SIDE_PADDING, marginTop: RAIL_TOP_GAP },
   portraitCard: { width: 151, height: 266, overflow: 'hidden', borderRadius: 6, justifyContent: 'flex-end' },
   portraitImage: { width: '100%', height: '100%' },

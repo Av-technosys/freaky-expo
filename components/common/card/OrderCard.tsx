@@ -90,17 +90,9 @@ export default function OrderCard({
             <View className="flex-row items-start justify-between gap-3 mb-3">
               <View className="flex-1">
                 <View className="flex-row items-center gap-2">
-                  {vendorLogo ? (
-                    <Image 
-                      source={{ uri: vendorLogo }}
-                      className="h-6 w-6 rounded-md"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Feather name="briefcase" size={16} color="#F97316" />
-                  )}
+                  <Feather name="gift" size={16} color="#F97316" />
                   <Text className="text-base font-semibold text-black" numberOfLines={1}>
-                    {vendorName || 'Vendor'}
+                    Booking Details
                   </Text>
                 </View>
                 

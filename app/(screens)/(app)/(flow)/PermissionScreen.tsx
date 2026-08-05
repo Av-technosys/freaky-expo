@@ -1,190 +1,113 @@
-import { useEffect, useState } from 'react';
-import { View, Pressable } from 'react-native';
-import Screen from '@/app/provider/Screen';
-import ScreenHeader from '@/components/common/ScreenHeader';
-import { Text } from '@/components/ui/text';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from 'react';
+import { Pressable, Switch, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
+import { router } from 'expo-router';
+import {
+  Bell,
+  Mail,
+  MessageCircle,
+  MessageSquareMore,
+  Phone,
+} from 'lucide-react-native';
 import Feather from '@expo/vector-icons/Feather';
 
-import * as Location from 'expo-location';
-import * as Contacts from 'expo-contacts';
+import { Separator } from '@/components/ui/separator';
+import { Text } from '@/components/ui/text';
 
-import { PermissionDialog } from '@/components/PermissionDialog';
+type ReminderKey = 'whatsapp' | 'push' | 'email' | 'sms' | 'voice';
 
-export default function PermissionScreen() {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<any>(null);
+type ReminderItem = {
+  key: ReminderKey;
+  title: string;
+  icon: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+};
 
-  const [status, setStatus] = useState<any>({
-    location: null,
-    contact: null,
-    message: null,
-  });
-
-  // 🔥 PERMISSION LIST
-const permissions = [
-  {
-    key: 'location',
-    title: 'Location Permission',
-    description:
-      'We use your location to show nearby services, improve accuracy, and personalize results.',
-    icon: 'map-pin',
-  },
-  {
-    key: 'message',
-    title: 'Notification Permission',
-    description:
-      'Get real-time updates, booking alerts, and important notifications from the app.',
-    icon: 'bell',
-  },
-  {
-    key: 'contact',
-    title: 'Contact Permission',
-    description:
-      'We access contacts to help you connect and invite friends easily.',
-    icon: 'users',
-  },
+const REMINDERS: ReminderItem[] = [
+  { key: 'whatsapp', title: 'WhatsApp', icon: MessageCircle },
+  { key: 'push', title: 'Push Notification', icon: Bell },
+  { key: 'email', title: 'Email', icon: Mail },
+  { key: 'sms', title: 'SMS', icon: MessageSquareMore },
+  { key: 'voice', title: 'Voice Call', icon: Phone },
 ];
 
-  // 🔥 SAFE NOTIFICATION PERMISSION (EXPO GO FRIENDLY)
-  const requestNotificationPermission = async () => {
-    try {
-      const Notifications = await import('expo-notifications');
+export default function PermissionScreen() {
+  const insets = useSafeAreaInsets();
+  const [enabled, setEnabled] = useState<Record<ReminderKey, boolean>>({
+    whatsapp: true,
+    push: true,
+    email: true,
+    sms: true,
+    voice: true,
+  });
 
-      const { status } =
-        await Notifications.requestPermissionsAsync();
-
-      return status;
-    } catch (e) {
-      console.log('Notifications not supported in Expo Go');
-      return 'unavailable';
-    }
+  const toggle = (key: ReminderKey) => {
+    setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
   };
-
-  // 🔥 REQUEST PERMISSION SWITCH
-  const requestPermission = async (key: string) => {
-    switch (key) {
-      case 'location': {
-        const { status } =
-          await Location.requestForegroundPermissionsAsync();
-        return status;
-      }
-
-      case 'contact': {
-        const { status } =
-          await Contacts.requestPermissionsAsync();
-        return status;
-      }
-
-      case 'message': {
-        return await requestNotificationPermission();
-      }
-
-      default:
-        return 'undetermined';
-    }
-  };
-
-  // 🔥 CHECK STATUS ON LOAD
-  const checkStatus = async () => {
-    const location = await Location.getForegroundPermissionsAsync();
-    const contact = await Contacts.getPermissionsAsync();
-
-    let messageStatus = 'unavailable';
-
-    try {
-      const Notifications = await import('expo-notifications');
-      const res = await Notifications.getPermissionsAsync();
-      messageStatus = res.status;
-    } catch (e) {
-      messageStatus = 'unavailable';
-    }
-
-    setStatus({
-      location: location.status,
-      contact: contact.status,
-      message: messageStatus,
-    });
-  };
-
-  useEffect(() => {
-    checkStatus();
-  }, []);
 
   return (
-    <>
-    <Screen scroll>
-      <ScreenHeader title="Permission" showBack />
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <StatusBar style="dark" />
 
-      <View className=" mt-10">
+      <View
+        className="flex-1 px-4"
+        style={{
+          paddingTop: 34,
+          paddingBottom: Math.max(insets.bottom, 0) + 24,
+        }}
+      >
+        <View className="flex-row items-center">
+          <Pressable
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/Profile'))}
+            className="-ml-1 h-8 w-8 justify-center"
+          >
+            <Feather name="arrow-left" size={24} color="#111111" />
+          </Pressable>
+          <Text className="ml-2 text-base font-extrabold text-[#111111]">Settings</Text>
+        </View>
 
-        <Card className="rounded-2xl border border-gray-200">
-          <CardContent className="p-0">
+        <Text className="mt-[29px] text-[22px] font-extrabold leading-7 text-black">
+          Notification & Reminders
+        </Text>
 
-            {permissions.map((item, index) => (
-              <Pressable
-                key={index}
-                onPress={() => {
-                  setSelected(item);
-                  setOpen(true);
-                }}
-                className="flex-row items-center justify-between px-4 py-4"
-              >
-                <View className="flex-row items-center gap-3">
+        <View className="mt-[31px]">
+          {REMINDERS.map((item) => {
+            const Icon = item.icon;
 
-                  <View className="rounded-xl bg-orange-100 p-2">
-                    <Feather
-                      name={item.icon as any}
-                      size={16}
-                      color="#F97316"
-                    />
-                  </View>
-
-                  <View>
-                    <Text className="font-medium text-gray-700">
+            return (
+              <View key={item.key}>
+                <View className="h-[63px] flex-row items-center justify-between">
+                  <View className="flex-row items-center">
+                    <Icon size={21} color="#111111" strokeWidth={1.9} />
+                    <Text className="ml-3 text-[14px] font-extrabold text-[#4a4a4a]">
                       {item.title}
                     </Text>
-
-                    <Text className="text-xs text-gray-400">
-                      {status[item.key] === 'granted'
-                        ? 'Allowed'
-                        : status[item.key] === 'unavailable'
-                        ? 'Not supported in Expo Go'
-                        : 'Tap to allow'}
-                    </Text>
                   </View>
 
+                  <Switch
+                    value={enabled[item.key]}
+                    onValueChange={() => toggle(item.key)}
+                    trackColor={{ false: '#d1d5db', true: '#0a8553' }}
+                    thumbColor="#ffffff"
+                    ios_backgroundColor="#d1d5db"
+                  />
                 </View>
+                <Separator className="bg-[#d8d8d8]" />
+              </View>
+            );
+          })}
+        </View>
 
-                <Feather name="chevron-right" size={18} color="#9CA3AF" />
-              </Pressable>
-            ))}
-
-          </CardContent>
-        </Card>
+        <View className="mt-6 rounded-md bg-[#eeeeee] px-3 py-3">
+          <Text className="text-[15px] font-medium leading-5 text-black">
+            Order related message
+          </Text>
+          <Text className="mt-2 text-[12px] font-medium leading-[17px] text-[#7b7b7b]">
+            Order related messages can’t be turnes off as they are important for service
+            experience
+          </Text>
+        </View>
       </View>
-   </Screen>
-      {/* 🔥 DIALOG */}
-      {selected && (
-        <PermissionDialog
-          visible={open}
-          title={selected.title}
-          description={selected.description}
-          isGranted={status[selected.key] === 'granted'}
-          onClose={() => setOpen(false)}
-
-          onAllow={async () => {
-            const result = await requestPermission(selected.key);
-
-            setStatus((prev: any) => ({
-              ...prev,
-              [selected.key]: result,
-            }));
-
-            setOpen(false);
-          }}
-        />
-      )}
- </>
+    </SafeAreaView>
   );
 }

@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
       });
 
       router.navigate({
-        pathname: '/otpVerification',
+        pathname: '/OtpVerification',
         params: { email: username, flow: 'forgotPassword' },
       });
 

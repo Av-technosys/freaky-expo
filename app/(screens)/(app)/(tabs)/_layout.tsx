@@ -9,10 +9,10 @@ export default function TabsLayout() {
       tabBar={(props) => <MyTabBar {...props} />}
     >
       <Tabs.Screen name="home" options={{ title: 'Home' }} />
-      <Tabs.Screen name="categories" options={{ title: 'Categories' }} />
-      <Tabs.Screen name="event" options={{ title: 'Event' }} />
-      <Tabs.Screen name="cart" options={{ title: 'Cart' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="Cart" options={{ title: 'Cart' }} />
+      <Tabs.Screen name="Event" options={{ title: 'Event' }} />
+      <Tabs.Screen name="Profile" options={{ title: 'Profile' }} />
+      <Tabs.Screen name="Categories" options={{ title: 'Categories' }} />
     </Tabs>
   );
 }
