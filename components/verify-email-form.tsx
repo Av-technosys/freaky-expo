@@ -116,7 +116,7 @@ const handleConfirm = async () => {
       const user = decodeIdToken(accessToken);
       dispatch(loginSuccess(user));
 
-      router.replace('/home');
+      router.replace('/PermissionScreen');
       return;
     }
 

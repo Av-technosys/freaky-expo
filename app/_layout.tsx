@@ -36,7 +36,12 @@ export default function RootLayout() {
             <RootProvider>
               <ToastProvider>
                 <ThemeProvider value={NAV_THEME['light']}>
-                  <StatusBar style="dark" />
+                  <StatusBar
+                    style="dark"
+                    hidden={false}
+                    translucent={false}
+                    backgroundColor="#ffffff"
+                  />
 
                   {/* 👇 also add this */}
                   <Stack initialRouteName="index" screenOptions={{ headerShown: false }} />

@@ -54,7 +54,7 @@ export function SignInForm() {
 
       Toast.show({ type: 'success', text1: 'Welcome back 👋' });
 
-      router.replace('/home');
+      router.replace('/PermissionScreen');
     } catch (err: any) {
       Toast.show({
         type: 'error',

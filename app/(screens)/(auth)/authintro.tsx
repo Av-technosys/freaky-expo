@@ -61,7 +61,7 @@ export default function AuthIntroScreen() {
             Sign Up
           </AppButton>
 
-          <AppButton variant="outline" size="lg" onPress={() => router.replace('/login')}>
+          <AppButton variant="outline" size="lg" onPress={() => router.push('/login')}>
             Log In
           </AppButton>
         </View>

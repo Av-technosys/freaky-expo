@@ -1,24 +1,27 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   Dimensions,
   Image,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
+  StatusBar as NativeStatusBar,
   StyleSheet,
   View,
   type ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ChevronDown,
   ChevronRight,
-  CircleUserRound,
-  Navigation,
+  MapPin,
   Search,
   Star,
+  UserRound,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 
@@ -168,7 +171,7 @@ function Header({ address, searchStyle }: { address?: any; searchStyle?: any }) 
           onPress={() => router.navigate('/AddressManagementScreen' as never)}
           style={styles.locationAction}
         >
-          <Navigation size={20} color="#ffffff" fill="#ffffff" strokeWidth={2.2} />
+          <MapPin size={22} color="#ffffff" strokeWidth={1.9} />
           <View style={styles.locationText}>
             <View style={styles.cityRow}>
               <Text style={styles.city} numberOfLines={1}>{city}</Text>
@@ -178,7 +181,7 @@ function Header({ address, searchStyle }: { address?: any; searchStyle?: any }) 
           </View>
         </Pressable>
         <Pressable onPress={() => router.navigate('/Profile' as never)} style={styles.profileAction}>
-          <CircleUserRound size={23} color="#050505" strokeWidth={1.8} />
+          <UserRound size={25} color="#ffffff" strokeWidth={1.9} />
         </Pressable>
       </View>
       <Animated.View style={searchStyle}>
@@ -388,6 +391,27 @@ export default function HomeScreen() {
     outputRange: [1, 1, 0.985],
     extrapolate: 'clamp',
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      NativeStatusBar.setHidden(false, 'fade');
+      NativeStatusBar.setBarStyle('light-content', true);
+
+      if (Platform.OS === 'android') {
+        NativeStatusBar.setBackgroundColor('#050505', true);
+      }
+
+      return () => {
+        NativeStatusBar.setHidden(false, 'fade');
+        NativeStatusBar.setBarStyle('dark-content', true);
+
+        if (Platform.OS === 'android') {
+          NativeStatusBar.setBackgroundColor('#ffffff', true);
+        }
+      };
+    }, []),
+  );
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
@@ -399,7 +423,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar style="light" backgroundColor="#050505" />
+      <StatusBar style="light" backgroundColor="#050505" hidden={false} translucent={false} />
       <Animated.ScrollView
         style={styles.screen}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom }]}
@@ -511,7 +535,7 @@ const styles = StyleSheet.create({
   cityRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   city: { color: '#fff', fontSize: 19, lineHeight: 23, fontWeight: '700' },
   street: { color: '#a4a4a4', fontSize: 15, lineHeight: 18, marginTop: 2 },
-  profileAction: { width: 36, height: 36, borderRadius: 7, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' },
+  profileAction: { width: 34, height: 36, alignItems: 'center', justifyContent: 'center' },
   searchAction: { height: 46, marginTop: 12, borderRadius: 10, backgroundColor: '#fff', paddingHorizontal: 15, alignItems: 'center', flexDirection: 'row' },
   stickySearchAction: { marginTop: 0, borderWidth: 1, borderColor: '#e7e7e9', backgroundColor: '#f8f8f9', borderRadius: 12 },
   searchCopy: { marginLeft: 12, color: '#65656a', fontSize: 14 },
@@ -534,12 +558,12 @@ const styles = StyleSheet.create({
   viewAll: { color: '#ff5037', fontSize: 14, lineHeight: 18, fontWeight: '500' },
   offerWrapper: { height: Math.round((SCREEN_WIDTH - 32) * (186 / 348)), marginHorizontal: 16, marginTop: 11, borderRadius: 6, overflow: 'hidden' },
   offerImage: { width: '100%', height: '100%' },
-  floatingEventPill: { position: 'absolute', zIndex: 20, elevation: 12, width: Math.min(294, SCREEN_WIDTH - 64), alignSelf: 'center', height: 68, backgroundColor: '#f4774c', borderRadius: 34, flexDirection: 'row', alignItems: 'center', paddingLeft: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 7 },
-  eventPillImage: { width: 52, height: 52, borderRadius: 26 },
-  eventPillBody: { flex: 1, marginLeft: 12 },
-  eventPillTitle: { color: '#fff', fontSize: 14, lineHeight: 17, fontWeight: '700' },
-  eventPillSubtitle: { color: '#fff', fontSize: 11, lineHeight: 14, marginTop: 2 },
-  eventPillNext: { width: 38, height: 38, marginRight: 8, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: '#dd7651' },
+  floatingEventPill: { position: 'absolute', zIndex: 20, elevation: 12, width: Math.min(294, SCREEN_WIDTH - 64), alignSelf: 'center', height: 58, backgroundColor: '#f4774c', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', borderRadius: 29, flexDirection: 'row', alignItems: 'center', paddingLeft: 6, shadowColor: '#3b160d', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 9 },
+  eventPillImage: { width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' },
+  eventPillBody: { flex: 1, marginLeft: 11 },
+  eventPillTitle: { color: '#fff', fontSize: 15, lineHeight: 18, fontWeight: '700' },
+  eventPillSubtitle: { color: 'rgba(255,255,255,0.9)', fontSize: 11, lineHeight: 14, marginTop: 1 },
+  eventPillNext: { width: 36, height: 36, marginRight: 8, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(151,66,39,0.36)' },
   portraitRail: { gap: RAIL_GAP, paddingHorizontal: SIDE_PADDING, marginTop: RAIL_TOP_GAP },
   portraitCard: { width: 151, height: 266, overflow: 'hidden', borderRadius: 6, justifyContent: 'flex-end' },
   portraitImage: { width: '100%', height: '100%' },
