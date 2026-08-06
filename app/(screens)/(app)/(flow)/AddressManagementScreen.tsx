@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Image, Modal, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
+import * as Location from 'expo-location';
 import {
   ChevronLeft,
   Crosshair,
@@ -21,6 +22,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
+import {
+  getGooglePlaceAddress,
+  googleStaticMapUrl,
+  hasGoogleMapsKey,
+  reverseGeocodeGoogleLocation,
+  searchGooglePlaces,
+  type GooglePlacePrediction,
+} from '@/lib/googleMaps';
 
 type Address = {
   id?: number;
@@ -39,24 +48,6 @@ type Address = {
 };
 
 type Mode = 'list' | 'search' | 'form';
-
-const SUGGESTIONS = [
-  {
-    title: 'Manglam Metropolis Tower',
-    detail: 'Purani Chungi, Panchsheel Colony, Nirmohi Nagar, Jaipur, Rajasthan, India',
-    city: 'Jaipur',
-  },
-  {
-    title: '245, Mangla Marg',
-    detail: 'Chhota Akhara, Krishna nagar, Jaipur',
-    city: 'Jaipur',
-  },
-  {
-    title: 'Manglam Marg',
-    detail: 'Jaipur, Rajasthan, India',
-    city: 'Jaipur',
-  },
-];
 
 const emptyAddress: Address = {
   title: 'Home',
@@ -100,41 +91,18 @@ function Header({
   );
 }
 
-function StaticMapPreview() {
+function StaticMapPreview({ latitude, longitude }: { latitude: number; longitude: number }) {
+  const mapUrl = hasGoogleMapsKey() ? googleStaticMapUrl(latitude, longitude) : null;
+
   return (
     <View className="h-[226px] overflow-hidden bg-[#dfe7ef]">
-      <View className="absolute left-0 right-0 top-0 h-full">
-        {Array.from({ length: 8 }).map((_, index) => (
-          <View
-            key={`h-${index}`}
-            className="absolute h-[1px] bg-white/70"
-            style={{ top: 24 + index * 26, left: 0, right: 0, transform: [{ rotate: index % 2 ? '8deg' : '-6deg' }] }}
-          />
-        ))}
-        {Array.from({ length: 7 }).map((_, index) => (
-          <View
-            key={`v-${index}`}
-            className="absolute w-[1px] bg-white/75"
-            style={{ left: 30 + index * 45, top: 0, bottom: 0, transform: [{ rotate: index % 2 ? '-12deg' : '10deg' }] }}
-          />
-        ))}
-      </View>
-
-      <View className="absolute left-[70px] top-[58px] rounded-sm bg-white/80 px-2 py-1">
-        <Text className="text-[10px] text-[#697386]">Manglam Metropolis Tower</Text>
-      </View>
-      <View className="absolute right-[58px] top-[92px] rounded-sm bg-white/80 px-2 py-1">
-        <Text className="text-[10px] text-[#697386]">Birsh Sahakar Marg</Text>
-      </View>
-      <View className="absolute left-[16px] top-[139px] rounded-sm bg-white/80 px-2 py-1">
-        <Text className="text-[10px] text-[#697386]">SHREE SHYAM ENTERPRISES</Text>
-      </View>
+      {mapUrl ? <Image source={{ uri: mapUrl }} className="h-full w-full" resizeMode="cover" /> : null}
 
       <View className="absolute left-1/2 top-[74px] -ml-[65px] rounded bg-[#232323] px-3 py-2">
         <Text className="text-[11px] font-semibold text-white">Place the pin accurately on map</Text>
       </View>
 
-      <View className="absolute left-1/2 top-[116px] -ml-4 h-8 w-8 items-center justify-center rounded-full bg-[#6542f4] shadow">
+      <View className="absolute left-1/2 top-[116px] -ml-4 h-8 w-8 items-center justify-center rounded-full bg-[#ff5a2a] shadow">
         <MapPin size={21} color="#ffffff" fill="#ffffff" strokeWidth={2} />
       </View>
 
@@ -163,6 +131,8 @@ export default function AddressManagementScreen() {
   const [currentAddressId, setCurrentAddressId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<GooglePlacePrediction[]>([]);
+  const [searchingPlaces, setSearchingPlaces] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<number | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [saving, setSaving] = useState(false);
@@ -185,15 +155,31 @@ export default function AddressManagementScreen() {
     loadAddresses();
   }, []);
 
-  const suggestions = useMemo(() => {
-    const search = query.trim().toLowerCase();
-    if (!search) return SUGGESTIONS;
-    return SUGGESTIONS.filter(
-      (item) =>
-        item.title.toLowerCase().includes(search) ||
-        item.detail.toLowerCase().includes(search)
-    );
-  }, [query]);
+  useEffect(() => {
+    if (mode !== 'search' || query.trim().length < 2) {
+      setSuggestions([]);
+      setSearchingPlaces(false);
+      return;
+    }
+
+    let active = true;
+    const timeout = setTimeout(async () => {
+      try {
+        setSearchingPlaces(true);
+        const results = await searchGooglePlaces(query);
+        if (active) setSuggestions(results);
+      } catch (error) {
+        if (active) toast.error(error instanceof Error ? error.message : 'Unable to search places');
+      } finally {
+        if (active) setSearchingPlaces(false);
+      }
+    }, 300);
+
+    return () => {
+      active = false;
+      clearTimeout(timeout);
+    };
+  }, [mode, query]);
 
   const openNewAddress = () => {
     setSelectedAddress(null);
@@ -215,16 +201,58 @@ export default function AddressManagementScreen() {
     setMode('form');
   };
 
-  const selectSuggestion = (suggestion: (typeof SUGGESTIONS)[number]) => {
-    setForm((prev) => ({
-      ...prev,
-      addressLineOne: suggestion.title,
-      addressLineTwo: suggestion.detail,
-      city: suggestion.city,
-      state: 'Rajasthan',
-      country: 'India',
-    }));
-    setMode('form');
+  const selectSuggestion = async (suggestion: GooglePlacePrediction) => {
+    try {
+      setSearchingPlaces(true);
+      const address = await getGooglePlaceAddress(suggestion.place_id);
+      setForm((prev) => ({
+        ...prev,
+        addressLineOne: address.addressLineOne || suggestion.structured_formatting?.main_text || suggestion.description,
+        addressLineTwo: address.formattedAddress,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country || 'India',
+        latitude: String(address.latitude),
+        longitude: String(address.longitude),
+      }));
+      setMode('form');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to select this place');
+    } finally {
+      setSearchingPlaces(false);
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      const permission = await Location.requestForegroundPermissionsAsync();
+      if (permission.status !== 'granted') {
+        toast.error('Location permission is required');
+        return;
+      }
+
+      setSearchingPlaces(true);
+      const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const address = await reverseGeocodeGoogleLocation(location.coords.latitude, location.coords.longitude);
+      setForm((prev) => ({
+        ...prev,
+        title: 'Current Location',
+        addressLineOne: address.addressLineOne || address.formattedAddress,
+        addressLineTwo: address.formattedAddress,
+        city: address.city,
+        state: address.state,
+        postalCode: address.postalCode,
+        country: address.country || 'India',
+        latitude: String(address.latitude),
+        longitude: String(address.longitude),
+      }));
+      setMode('form');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to get current location');
+    } finally {
+      setSearchingPlaces(false);
+    }
   };
 
   const onChange = (key: keyof Address, value: string) => {
@@ -316,15 +344,15 @@ export default function AddressManagementScreen() {
               <Input
                 value={query}
                 onChangeText={setQuery}
-                placeholder="Manglam"
-                placeholderTextColor="#111111"
+                placeholder="Search address"
+                placeholderTextColor="#98a2b3"
                 className="h-9 flex-1 border-0 bg-transparent px-1 text-[14px] shadow-none"
               />
             </View>
           </View>
 
           <Pressable
-            onPress={() => selectSuggestion(SUGGESTIONS[0])}
+            onPress={handleUseCurrentLocation}
             className="mt-4 flex-row items-center border-b border-[#eeeeee] bg-[#f8f8f8] px-5 py-4"
           >
             <Crosshair size={14} color="#ff5a2a" strokeWidth={2} />
@@ -332,9 +360,11 @@ export default function AddressManagementScreen() {
           </Pressable>
 
           <View className="px-4">
+            {searchingPlaces ? <Text className="py-5 text-center text-[14px] text-[#777777]">Searching places...</Text> : null}
+            {!searchingPlaces && query.trim().length >= 2 && suggestions.length === 0 ? <Text className="py-5 text-center text-[14px] text-[#777777]">No places found</Text> : null}
             {suggestions.map((item) => (
               <Pressable
-                key={item.title}
+                key={item.place_id}
                 onPress={() => selectSuggestion(item)}
                 className="flex-row border-b border-[#ededed] py-4"
               >
@@ -342,8 +372,8 @@ export default function AddressManagementScreen() {
                   <MapPin size={12} color="#8a8a8a" strokeWidth={2} />
                 </View>
                 <View className="ml-4 flex-1">
-                  <Text className="text-[18px] font-semibold text-[#323232]">{item.title}</Text>
-                  <Text className="mt-1 text-[14px] leading-[20px] text-[#777777]">{item.detail}</Text>
+                  <Text className="text-[18px] font-semibold text-[#323232]">{item.structured_formatting?.main_text || item.description}</Text>
+                  <Text className="mt-1 text-[14px] leading-[20px] text-[#777777]">{item.structured_formatting?.secondary_text || item.description}</Text>
                 </View>
               </Pressable>
             ))}
@@ -365,7 +395,7 @@ export default function AddressManagementScreen() {
             <Header title="Manage Addresses" onBack={goBack} onClose={() => setMode('list')} />
           </View>
 
-          <StaticMapPreview />
+          <StaticMapPreview latitude={Number(form.latitude) || 26.9124} longitude={Number(form.longitude) || 75.7873} />
 
           <View className="-mt-5 rounded-t-[24px] bg-white px-4 pb-6 pt-3">
             <View className="mb-3 h-1 w-10 self-center rounded-full bg-[#d9d9d9]" />

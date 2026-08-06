@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,9 +11,12 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 import {
   Bell,
+  Camera,
   ChevronRight,
   CircleAlert,
   CreditCard,
@@ -24,11 +28,13 @@ import {
   UserRound,
 } from 'lucide-react-native';
 
-import { userDetails } from '@/api/user';
+import { setProfilePicture, userDetails } from '@/api/user';
 import { toast } from '@/components/common/ToastManager';
 import ProfileSkeleton from '@/app/skeleton/Profile';
 import NotFound from '@/components/common/NotFound';
 import { Text } from '@/components/ui/text';
+import { uploadImage } from '@/lib/uploadImage';
+import { getMediaUrl } from '@/utils/image';
 
 type IconComponent = ComponentType<{
   size?: number;
@@ -85,21 +91,29 @@ export default function ProfileScreen() {
 
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const loadUser = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    try {
+      const res = await userDetails();
+      setUser(res?.data ?? null);
+    } catch (error) {
+      console.log('Failed to load user', error);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await userDetails();
-        setUser(res?.data);
-      } catch (error) {
-        console.log('Failed to load user', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    void loadUser(true);
+  }, [loadUser]);
 
-    load();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      if (!loading) void loadUser();
+    }, [loadUser, loading]),
+  );
 
   const handleLogout = async () => {
     try {
@@ -111,13 +125,44 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleAvatarPress = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        toast.error('Please allow photo library access to upload a profile image.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      const image = result.assets?.[0];
+      if (result.canceled || !image) return;
+
+      setUploadingAvatar(true);
+      const profileImage = await uploadImage(image, 'profile-images');
+      await setProfilePicture({ profileImage });
+      setUser((current: any) => ({ ...current, profileImage }));
+      toast.success('Profile image updated');
+    } catch (error) {
+      console.warn('Unable to update profile image', error);
+      toast.error('Unable to update profile image');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const displayName = useMemo(() => {
     const fullName = `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim();
-    return fullName || user?.fullName || 'Michael Chen';
+    return fullName || user?.fullName || user?.name || 'Your profile';
   }, [user]);
 
-  const phoneNumber = user?.number || user?.phone || '+91 1212121212';
-  const isProfileIncomplete = !user?.firstName || !user?.lastName || !user?.number;
+  const phoneNumber = user?.number || user?.phone || 'Add your mobile number';
+  const profileImage = getMediaUrl(user?.profileImage || user?.avatar || user?.avatarUrl);
+  const isProfileIncomplete = !user?.firstName || !user?.lastName || !(user?.number || user?.phone);
 
   const quickActions: QuickAction[] = [
     { title: 'Payment\nMethod', icon: CreditCard, onPress: () => router.navigate('/ManagePaymentMethods') },
@@ -170,6 +215,22 @@ export default function ProfileScreen() {
           <Text style={styles.title}>Profile</Text>
 
           <View style={styles.profileMetaRow}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Upload profile image"
+              disabled={uploadingAvatar}
+              onPress={handleAvatarPress}
+              style={styles.avatarButton}
+            >
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+              ) : (
+                <UserRound size={31} color="#697386" strokeWidth={1.6} />
+              )}
+              <View style={styles.avatarCameraBadge}>
+                <Camera size={11} color="#ffffff" strokeWidth={2.4} />
+              </View>
+            </Pressable>
             <View style={styles.profileTextBlock}>
               {isProfileIncomplete ? (
                 <View style={styles.statusPill}>
@@ -250,6 +311,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 22,
+  },
+  avatarButton: {
+    width: 62,
+    height: 62,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 13,
+    borderWidth: 1,
+    borderColor: '#e0e5eb',
+    borderRadius: 31,
+    backgroundColor: '#f7f8fa',
+    overflow: 'visible',
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  avatarCameraBadge: {
+    position: 'absolute',
+    right: -1,
+    bottom: -1,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    borderRadius: 11,
+    backgroundColor: '#ff5a2a',
   },
   profileTextBlock: {
     flex: 1,

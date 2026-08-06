@@ -1,4 +1,4 @@
-import { Image, Pressable, ScrollView, StyleSheet, View, useWindowDimensions, type ImageSourcePropType } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View, type ImageSourcePropType } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -10,20 +10,19 @@ import { Text } from '@/components/ui/text';
 type Service = { id: string; title: string; price: string; image: ImageSourcePropType };
 
 const SERVICES: Service[] = [
-  { id: 'decoration', title: 'Decoration', price: 'Starting from Rs4,999', image: require('@/assets/images/service1.png') },
-  { id: 'photography', title: 'Photography', price: 'Starting from Rs2,999', image: require('@/assets/images/event2.png') },
-  { id: 'tent-canopy', title: 'Tent & Canopy', price: 'Starting from Rs1,999', image: require('@/assets/images/service2.png') },
-  { id: 'kids-entertainment', title: "Kid's Entertainment", price: 'Starting from Rs3,499', image: require('@/assets/images/party.png') },
-  { id: 'artist-performer', title: 'Artist & Performer', price: 'Starting from Rs149', image: require('@/assets/images/eventType1.jpg') },
-  { id: 'dj-music', title: 'DJ & Music', price: 'Starting from Rs7299', image: require('@/assets/images/eventType3.jpg') },
+  { id: 'decoration', title: 'Decoration', price: 'Starting from ₹4,999', image: require('@/assets/images/home/image 1694.png') },
+  { id: 'photography', title: 'Photography', price: 'Starting from ₹2,999', image: require('@/public/camera.png') },
+  { id: 'tent-canopy', title: 'Tent & Canopy', price: 'Starting from ₹1,999', image: require('@/assets/images/home/image 1664.png') },
+  { id: 'kids-entertainment', title: "Kid's Entertainment", price: 'Starting from ₹3,499', image: require('@/assets/images/home/image 1705.png') },
+  { id: 'artist-performer', title: 'Artist & Performer', price: 'Starting from ₹149', image: require('@/assets/images/home/image 1714.png') },
+  { id: 'dj-music', title: 'DJ & Music', price: 'Starting from ₹7,299', image: require('@/assets/images/home/image 1701.png') },
 ];
 
 export default function EventServicesScreen() {
   const insets = useSafeAreaInsets();
-  const { height: screenHeight } = useWindowDimensions();
   const { eventName } = useLocalSearchParams<{ eventName?: string }>();
-  const serviceCardHeight = Math.min(78, Math.max(66, (screenHeight - insets.top - insets.bottom - 146) / 6));
-  const serviceImageSize = serviceCardHeight - 12;
+  const serviceCardHeight = 96;
+  const serviceImageSize = 84;
   const title = eventName || 'Birthday';
 
   return (
@@ -70,20 +69,20 @@ export default function EventServicesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#ffffff' },
-  content: { paddingHorizontal: 16, paddingTop: 22 },
+  content: { paddingHorizontal: 16, paddingTop: 21 },
   header: { flexDirection: 'row', alignItems: 'center' },
   backButton: { width: 32, height: 38, alignItems: 'flex-start', justifyContent: 'center' },
   headerCopy: { flex: 1, alignItems: 'center' },
   headerSpacer: { width: 32 },
-  headerTitle: { color: '#111111', fontSize: 17, lineHeight: 21, fontWeight: '700' },
-  headerSubtitle: { marginTop: 3, color: '#727272', fontSize: 12, lineHeight: 15 },
-  list: { marginTop: 22, gap: 9 },
+  headerTitle: { color: '#111111', fontSize: 19, lineHeight: 24, fontWeight: '800' },
+  headerSubtitle: { marginTop: 4, color: '#727272', fontSize: 15, lineHeight: 19 },
+  list: { marginTop: 27, gap: 14 },
   serviceCard: { overflow: 'hidden', borderRadius: 8 },
   serviceContent: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: 6 },
-  serviceImage: { borderRadius: 6 },
-  serviceCopy: { flex: 1, marginLeft: 10, justifyContent: 'center' },
-  serviceTitle: { color: '#202124', fontSize: 14, lineHeight: 17, fontWeight: '700' },
-  servicePrice: { marginTop: 2, color: '#777777', fontSize: 10, lineHeight: 13 },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6 },
-  rating: { marginLeft: 5, color: '#525252', fontSize: 10, lineHeight: 13 },
+  serviceImage: { borderRadius: 7 },
+  serviceCopy: { flex: 1, marginLeft: 15, justifyContent: 'center' },
+  serviceTitle: { color: '#202124', fontSize: 18, lineHeight: 22, fontWeight: '800' },
+  servicePrice: { marginTop: 3, color: '#777777', fontSize: 15, lineHeight: 19, fontWeight: '500' },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', marginTop: 9 },
+  rating: { marginLeft: 6, color: '#525252', fontSize: 14, lineHeight: 18 },
 });

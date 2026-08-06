@@ -37,6 +37,20 @@ export type CartEventItem = {
   services: CartItem[];
 };
 
+export type EventCartFeature = {
+  icon: 'person' | 'clock' | 'camera' | 'balloon' | 'link' | 'sparkles' | 'dj' | 'music' | 'sound' | 'star' | 'fun' | 'anchor';
+  label: string;
+};
+
+export type EventCartService = {
+  id: string;
+  title: string;
+  packageName: string;
+  price: number;
+  imageUri: string;
+  features: EventCartFeature[];
+};
+
 type CartState = {
   items: CartItem[];
   events: CartEventItem[];
@@ -48,6 +62,11 @@ type CartState = {
   removeFromCart: (cartItemId: string) => void;
   clearCart: () => void;
   getItemById: (cartItemId?: string | string[]) => CartItem | undefined;
+  eventServices: EventCartService[];
+  lastAddedEventServiceId: string | null;
+  addEventService: (service: EventCartService) => void;
+  removeEventService: (serviceId: string) => void;
+  clearEventServices: () => void;
 };
 
 const toParamValue = (value?: string | string[]) => (Array.isArray(value) ? value[0] : value);
@@ -85,10 +104,50 @@ export const useCartStore = create<CartState>()(
         if (!id) return undefined;
         return get().items.find((item) => item.cartItemId === id);
       },
+      eventServices: [],
+      lastAddedEventServiceId: null,
+      addEventService: (service) =>
+        set((state) =>
+          state.eventServices.some((item) => item.id === service.id)
+            ? {
+                eventServices: state.eventServices.map((item) =>
+                  item.id === service.id ? service : item
+                ),
+                lastAddedEventServiceId: service.id,
+              }
+            : {
+                eventServices: [...state.eventServices, service],
+                lastAddedEventServiceId: service.id,
+              }
+        ),
+      removeEventService: (serviceId) =>
+        set((state) => {
+          const eventServices = state.eventServices.filter((service) => service.id !== serviceId);
+          return {
+            eventServices,
+            lastAddedEventServiceId:
+              state.lastAddedEventServiceId === serviceId
+                ? eventServices[eventServices.length - 1]?.id ?? null
+                : state.lastAddedEventServiceId,
+          };
+        }),
+      clearEventServices: () => set({ eventServices: [], lastAddedEventServiceId: null }),
     }),
     {
       name: 'cart-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version < 1) {
+          return {
+            ...(persistedState as Partial<CartState>),
+            eventServices: [],
+            lastAddedEventServiceId: null,
+          };
+        }
+
+        return persistedState as CartState;
+      },
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },
