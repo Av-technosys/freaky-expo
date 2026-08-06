@@ -6,16 +6,13 @@ import { router } from 'expo-router';
 import {
   Bell,
   Mail,
-  MessageCircle,
-  MessageSquareMore,
-  Phone,
 } from 'lucide-react-native';
 import Feather from '@expo/vector-icons/Feather';
 
 import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 
-type ReminderKey = 'whatsapp' | 'push' | 'email' | 'sms' | 'voice';
+type ReminderKey = 'push' | 'email';
 
 type ReminderItem = {
   key: ReminderKey;
@@ -24,21 +21,15 @@ type ReminderItem = {
 };
 
 const REMINDERS: ReminderItem[] = [
-  { key: 'whatsapp', title: 'WhatsApp', icon: MessageCircle },
   { key: 'push', title: 'Push Notification', icon: Bell },
   { key: 'email', title: 'Email', icon: Mail },
-  { key: 'sms', title: 'SMS', icon: MessageSquareMore },
-  { key: 'voice', title: 'Voice Call', icon: Phone },
 ];
 
 export default function PermissionScreen() {
   const insets = useSafeAreaInsets();
   const [enabled, setEnabled] = useState<Record<ReminderKey, boolean>>({
-    whatsapp: true,
     push: true,
     email: true,
-    sms: true,
-    voice: true,
   });
 
   const toggle = (key: ReminderKey) => {
