@@ -28,6 +28,14 @@ import { AppButton } from '../AppButton';
 import { GUEST_OPTIONS } from '@/const/global';
 import { Textarea } from '@/components/ui/textarea';
 
+type EventDetailsFormProps = {
+  children: React.ReactNode;
+};
+
+export function EventDetailsForm({ children }: EventDetailsFormProps) {
+  return <View style={{ flex: 1 }}>{children}</View>;
+}
+
 type Suggestion = {
   place_id: string;
   description: string;

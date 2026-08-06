@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { Home, SlidersHorizontal, SquarePlus } from 'lucide-react-native';
+import { Home, Plus, SlidersHorizontal, SquarePlus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
@@ -28,7 +28,8 @@ function TabItem({ label, active, onPress, icon }: TabItemProps) {
       style={styles.tab}
     >
       {icon === 'home' ? <Home size={22} color={color} fill={active ? color : 'none'} strokeWidth={2.35} /> : null}
-      {icon === 'event' ? <SquarePlus size={21} color={color} strokeWidth={2} /> : null}
+      {icon === 'event' && active ? <View style={styles.activeEventIcon}><Plus size={14} color="#ffffff" strokeWidth={2.8} /></View> : null}
+      {icon === 'event' && !active ? <SquarePlus size={21} color={color} strokeWidth={2} /> : null}
       {icon === 'manage' ? <SlidersHorizontal size={22} color={color} strokeWidth={2} /> : null}
       <Text style={[styles.tabLabel, { color }]}>{label}</Text>
     </Pressable>
@@ -40,7 +41,11 @@ export default function MyTabBar({ state, navigation }: BottomTabBarProps) {
   const focusedRoute = state.routes[state.index]?.name.toLowerCase();
   const isHome = focusedRoute === 'home';
   const isEvent = focusedRoute === 'event';
-  const isManage = focusedRoute === 'profile';
+  const isManage = focusedRoute === 'manage';
+
+  if (focusedRoute === 'cart') {
+    return null;
+  }
 
   const navigateTo = (routeName: string) => {
     const route = state.routes.find((item) => item.name.toLowerCase() === routeName.toLowerCase());
@@ -52,7 +57,7 @@ export default function MyTabBar({ state, navigation }: BottomTabBarProps) {
       <View style={styles.bar}>
         <TabItem label="Home" icon="home" active={isHome} onPress={() => navigateTo('home')} />
         <TabItem label="Event" icon="event" active={isEvent} onPress={() => navigateTo('Event')} />
-        <TabItem label="Manage" icon="manage" active={isManage} onPress={() => navigateTo('Profile')} />
+        <TabItem label="Manage" icon="manage" active={isManage} onPress={() => navigateTo('Manage')} />
       </View>
     </View>
   );
@@ -84,5 +89,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 15,
     fontWeight: '600',
+  },
+  activeEventIcon: {
+    width: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+    backgroundColor: ACTIVE_COLOR,
   },
 });
