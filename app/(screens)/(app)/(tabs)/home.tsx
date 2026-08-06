@@ -196,7 +196,7 @@ function CategoryCard({ category }: { category: Category }) {
     <Pressable
       onPress={() =>
         router.navigate({
-          pathname: '/CategoryProducts' as never,
+          pathname: '/EventServices' as never,
           params: { eventTypeId: category.id, eventName: category.name },
         })
       }
