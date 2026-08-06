@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   ChevronDown,
@@ -27,6 +29,7 @@ import { router } from 'expo-router';
 
 import { Text } from '@/components/ui/text';
 import { useCurrentAddress, useUserDetails } from '@/api/user';
+import { type EventCartService, useCartStore } from '@/store/cartStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SIDE_PADDING = 10;
@@ -231,19 +234,125 @@ function Offer() {
   );
 }
 
-function FloatingEventPill({ bottom }: { bottom: number }) {
+function FloatingEventPill({
+  bottom,
+  service,
+  services,
+  serviceCount,
+}: {
+  bottom: number;
+  service: EventCartService;
+  services: EventCartService[];
+  serviceCount: number;
+}) {
   return (
-    <Pressable style={[styles.floatingEventPill, { bottom }]}>
-      <Image source={ASSETS.offerAvatar} style={styles.eventPillImage} />
-      <View style={styles.eventPillBody}>
-        <Text style={styles.eventPillTitle}>Birthday Celebration</Text>
-        <Text style={styles.eventPillSubtitle}>24 Jul 2026 · Jaipur</Text>
-      </View>
-      <View style={styles.eventPillNext}>
-        <ChevronRight size={22} color="#fff" strokeWidth={2.5} />
-      </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="View selected services"
+      onPress={() => router.push('/Cart' as never)}
+      style={[styles.floatingEventPill, { bottom }]}
+    >
+      <BlurView
+        pointerEvents="none"
+        tint="light"
+        intensity={30}
+        blurReductionFactor={3}
+        experimentalBlurMethod="dimezisBlurView"
+        style={styles.eventPillBlur}
+      />
+      <LinearGradient
+        colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0.06)', 'rgba(122,43,22,0.12)']}
+        locations={[0, 0.48, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.eventPillGlass}
+      >
+        <EventAvatarStack services={services} />
+        <View style={styles.eventPillBody}>
+          <Text style={styles.eventPillTitle} numberOfLines={1}>{service.title}</Text>
+          <Text style={styles.eventPillSubtitle} numberOfLines={1}>
+            {serviceCount === 1 ? '1 service added' : `${serviceCount} services in your cart`}
+          </Text>
+        </View>
+        <View style={styles.eventPillNext}>
+          <ChevronRight size={22} color="#fff" strokeWidth={2.5} />
+        </View>
+      </LinearGradient>
     </Pressable>
   );
+}
+
+function EventAvatarStack({ services }: { services: EventCartService[] }) {
+  const visibleServices = services.slice(-3).reverse();
+  const stackWidth = 46 + Math.max(0, visibleServices.length - 1) * 16;
+
+  return (
+    <View style={[styles.eventPillAvatarStack, { width: stackWidth }]}>
+      {visibleServices.map((item, index) => (
+        <Image
+          key={item.id}
+          source={{ uri: item.imageUri }}
+          style={[styles.eventPillImage, { left: index * 16, zIndex: visibleServices.length - index }]}
+        />
+      ))}
+    </View>
+  );
+}
+
+function cartDetailsForProduct(product: Product): Pick<EventCartService, 'packageName' | 'features'> {
+  const searchValue = `${product.id} ${product.name}`.toLowerCase();
+
+  if (searchValue.includes('photo')) {
+    return {
+      packageName: 'Photography Service',
+      features: [
+        { icon: 'person', label: 'Verified Photographer' },
+        { icon: 'clock', label: 'Flexible hours' },
+        { icon: 'camera', label: 'High-resolution photos' },
+      ],
+    };
+  }
+
+  if (searchValue.includes('tent') || searchValue.includes('canopy') || searchValue.includes('decor')) {
+    return {
+      packageName: 'Decoration & Setup',
+      features: [
+        { icon: 'balloon', label: 'Premium setup' },
+        { icon: 'sparkles', label: 'Custom styling' },
+        { icon: 'clock', label: 'Professional installation' },
+      ],
+    };
+  }
+
+  if (searchValue.includes('dj') || searchValue.includes('music') || searchValue.includes('band') || searchValue.includes('singer')) {
+    return {
+      packageName: 'Artist & Performer',
+      features: [
+        { icon: 'dj', label: 'Professional performer' },
+        { icon: 'music', label: 'Curated music set' },
+        { icon: 'sound', label: 'Sound system included' },
+      ],
+    };
+  }
+
+  return {
+    packageName: 'Event Entertainment Service',
+    features: [
+      { icon: 'star', label: 'Top-rated experience' },
+      { icon: 'fun', label: 'Tailored for your event' },
+      { icon: 'anchor', label: 'Expert event support' },
+    ],
+  };
+}
+
+function eventCartServiceFromProduct(product: Product): EventCartService {
+  return {
+    id: product.id,
+    title: product.name,
+    price: Number(product.price.replace(/[^0-9]/g, '')),
+    imageUri: Image.resolveAssetSource(product.image).uri,
+    ...cartDetailsForProduct(product),
+  };
 }
 
 function PortraitCard({ image, title }: { image: ImageSourcePropType; title: string }) {
@@ -267,6 +376,10 @@ function ServiceTypeCard({ image, title }: { image: ImageSourcePropType; title: 
 }
 
 function ProductCard({ product }: { product: Product }) {
+  const addEventService = useCartStore((state) => state.addEventService);
+  const removeEventService = useCartStore((state) => state.removeEventService);
+  const isAdded = useCartStore((state) => state.eventServices.some((service) => service.id === product.id));
+
   return (
     <Pressable style={styles.productCard}>
       <Image source={product.image} resizeMode="cover" style={styles.productImage} />
@@ -280,8 +393,20 @@ function ProductCard({ product }: { product: Product }) {
           <Text style={styles.startsAt}>Starts at</Text>
           <Text style={styles.price}>{product.price}</Text>
         </View>
-        <Pressable style={styles.addButton}>
-          <Text style={styles.addLabel}>Add</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Add ${product.name} to cart`}
+          onPress={() => {
+            if (isAdded) {
+              removeEventService(product.id);
+              return;
+            }
+
+            addEventService(eventCartServiceFromProduct(product));
+          }}
+          style={[styles.addButton, isAdded && styles.addButtonAdded]}
+        >
+          <Text style={[styles.addLabel, isAdded && styles.addLabelAdded]}>{isAdded ? 'Added' : 'Add'}</Text>
         </Pressable>
       </View>
     </Pressable>
@@ -350,6 +475,9 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { data: userResponse, refetch: refetchUser } = useUserDetails();
   const { data: addressResponse, refetch: refetchAddress } = useCurrentAddress(userResponse?.data?.currentAddressId);
+  const eventServices = useCartStore((state) => state.eventServices);
+  const lastAddedEventServiceId = useCartStore((state) => state.lastAddedEventServiceId);
+  const latestEventService = eventServices.find((service) => service.id === lastAddedEventServiceId) ?? eventServices[eventServices.length - 1];
   const curatedExperiences = useMemo(
     () => [
       { title: 'Tent & Canopy', image: ASSETS.curatedTent },
@@ -367,28 +495,33 @@ export default function HomeScreen() {
     [],
   );
   const stickySearchOpacity = scrollY.interpolate({
-    inputRange: [48, 82],
-    outputRange: [0, 1],
+    inputRange: [24, 72, 116],
+    outputRange: [0, 0.72, 1],
     extrapolate: 'clamp',
   });
   const stickySearchTranslateY = scrollY.interpolate({
-    inputRange: [48, 82],
-    outputRange: [-4, 0],
+    inputRange: [24, 72, 116],
+    outputRange: [-11, -3, 0],
     extrapolate: 'clamp',
   });
   const stickySearchScale = scrollY.interpolate({
-    inputRange: [48, 82],
-    outputRange: [0.985, 1],
+    inputRange: [24, 72, 116],
+    outputRange: [0.96, 0.987, 1],
     extrapolate: 'clamp',
   });
   const headerSearchOpacity = scrollY.interpolate({
-    inputRange: [0, 42, 72],
-    outputRange: [1, 1, 0],
+    inputRange: [0, 34, 86, 120],
+    outputRange: [1, 1, 0.45, 0],
     extrapolate: 'clamp',
   });
   const headerSearchScale = scrollY.interpolate({
-    inputRange: [0, 42, 72],
-    outputRange: [1, 1, 0.985],
+    inputRange: [0, 34, 86, 120],
+    outputRange: [1, 1, 0.993, 0.98],
+    extrapolate: 'clamp',
+  });
+  const headerSearchTranslateY = scrollY.interpolate({
+    inputRange: [0, 34, 86, 120],
+    outputRange: [0, 0, -4, -8],
     extrapolate: 'clamp',
   });
 
@@ -446,7 +579,7 @@ export default function HomeScreen() {
             address={addressResponse?.data}
             searchStyle={{
               opacity: headerSearchOpacity,
-              transform: [{ scale: headerSearchScale }],
+              transform: [{ translateY: headerSearchTranslateY }, { scale: headerSearchScale }],
             }}
           />
           <View style={styles.eventHeaderWrapper}>
@@ -518,9 +651,24 @@ export default function HomeScreen() {
           },
         ]}
       >
+        <BlurView
+          pointerEvents="none"
+          tint="light"
+          intensity={28}
+          blurReductionFactor={3}
+          experimentalBlurMethod="dimezisBlurView"
+          style={styles.stickySearchBlur}
+        />
         <SearchBar sticky />
       </Animated.View>
-      <FloatingEventPill bottom={insets.bottom + 81} />
+      {latestEventService ? (
+        <FloatingEventPill
+          bottom={insets.bottom + 81}
+          service={latestEventService}
+          services={eventServices}
+          serviceCount={eventServices.length}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -537,13 +685,14 @@ const styles = StyleSheet.create({
   street: { color: '#a4a4a4', fontSize: 15, lineHeight: 18, marginTop: 2 },
   profileAction: { width: 34, height: 36, alignItems: 'center', justifyContent: 'center' },
   searchAction: { height: 46, marginTop: 12, borderRadius: 10, backgroundColor: '#fff', paddingHorizontal: 15, alignItems: 'center', flexDirection: 'row' },
-  stickySearchAction: { marginTop: 0, borderWidth: 1, borderColor: '#e7e7e9', backgroundColor: '#f8f8f9', borderRadius: 12 },
+  stickySearchAction: { marginTop: 0, borderWidth: 1, borderColor: 'rgba(218,222,229,0.8)', backgroundColor: 'rgba(255,255,255,0.64)', borderRadius: 12 },
   searchCopy: { marginLeft: 12, color: '#65656a', fontSize: 14 },
   screen: { flex: 1, backgroundColor: '#050505' },
   scrollContent: { paddingBottom: 10, backgroundColor: '#fff' },
   eventHeaderWrapper: { position: 'relative' },
   eventHeaderImage: { width: '100%', height: Math.round((SCREEN_WIDTH * 124) / 394) },
-  stickySearch: { position: 'absolute', zIndex: 15, elevation: 10, left: 0, right: 0, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eeeeee', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 3 },
+  stickySearch: { position: 'absolute', zIndex: 15, elevation: 10, left: 0, right: 0, overflow: 'hidden', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.74)', borderBottomWidth: 1, borderBottomColor: 'rgba(221,224,229,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 3 },
+  stickySearchBlur: { ...StyleSheet.absoluteFillObject },
   categoryGrid: { paddingTop: 32, paddingHorizontal: CATEGORY_SIDE_PADDING, gap: CATEGORY_GAP, flexDirection: 'row', flexWrap: 'wrap' },
   categoryCard: { width: CATEGORY_WIDTH, height: 114, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 8, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 2.5, elevation: 3 },
   categoryIconFrame: { height: 65, alignItems: 'center', justifyContent: 'center' },
@@ -558,12 +707,15 @@ const styles = StyleSheet.create({
   viewAll: { color: '#ff5037', fontSize: 14, lineHeight: 18, fontWeight: '500' },
   offerWrapper: { height: Math.round((SCREEN_WIDTH - 32) * (186 / 348)), marginHorizontal: 16, marginTop: 11, borderRadius: 6, overflow: 'hidden' },
   offerImage: { width: '100%', height: '100%' },
-  floatingEventPill: { position: 'absolute', zIndex: 20, elevation: 12, width: Math.min(294, SCREEN_WIDTH - 64), alignSelf: 'center', height: 58, backgroundColor: '#f4774c', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', borderRadius: 29, flexDirection: 'row', alignItems: 'center', paddingLeft: 6, shadowColor: '#3b160d', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.2, shadowRadius: 9 },
-  eventPillImage: { width: 46, height: 46, borderRadius: 23, borderWidth: 1, borderColor: 'rgba(255,255,255,0.5)' },
-  eventPillBody: { flex: 1, marginLeft: 11 },
+  floatingEventPill: { position: 'absolute', zIndex: 20, elevation: 12, width: Math.min(294, SCREEN_WIDTH - 64), alignSelf: 'center', height: 58, overflow: 'hidden', backgroundColor: 'rgba(244,119,76,0.78)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.48)', borderRadius: 29, shadowColor: '#3b160d', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.22, shadowRadius: 10 },
+  eventPillBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 29 },
+  eventPillGlass: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: 6 },
+  eventPillAvatarStack: { height: 46, position: 'relative' },
+  eventPillImage: { position: 'absolute', top: 0, width: 46, height: 46, borderRadius: 23, borderWidth: 2, borderColor: '#f4774c' },
+  eventPillBody: { flex: 1, marginLeft: 10 },
   eventPillTitle: { color: '#fff', fontSize: 15, lineHeight: 18, fontWeight: '700' },
   eventPillSubtitle: { color: 'rgba(255,255,255,0.9)', fontSize: 11, lineHeight: 14, marginTop: 1 },
-  eventPillNext: { width: 36, height: 36, marginRight: 8, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(151,66,39,0.36)' },
+  eventPillNext: { width: 36, height: 36, marginRight: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(151,66,39,0.31)' },
   portraitRail: { gap: RAIL_GAP, paddingHorizontal: SIDE_PADDING, marginTop: RAIL_TOP_GAP },
   portraitCard: { width: 151, height: 266, overflow: 'hidden', borderRadius: 6, justifyContent: 'flex-end' },
   portraitImage: { width: '100%', height: '100%' },
@@ -585,6 +737,8 @@ const styles = StyleSheet.create({
   price: { color: '#131313', fontSize: 16, lineHeight: 19, fontWeight: '700' },
   addButton: { width: 67, height: 30, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#ff553a', borderRadius: 4 },
   addLabel: { color: '#ff553a', fontSize: 14, fontWeight: '600' },
+  addButtonAdded: { backgroundColor: '#ff553a' },
+  addLabelAdded: { color: '#ffffff' },
   promoSection: { marginTop: SECTION_GAP, paddingHorizontal: 16 },
   promoBanner: { width: '100%', aspectRatio: 1, borderRadius: 9, overflow: 'hidden' },
   promoImage: { width: '100%', height: '100%' },
