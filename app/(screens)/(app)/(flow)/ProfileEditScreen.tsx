@@ -274,33 +274,37 @@ export default function ProfileEditScreen() {
         </View>
       </KeyboardAwareScrollView>
 
-      <Modal transparent visible={honorificOpen} animationType="fade" onRequestClose={() => setHonorificOpen(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setHonorificOpen(false)}>
-          <View style={styles.selectSheet}>
-            <Text style={styles.selectTitle}>Select title</Text>
-            {HONORIFICS.map((honorific) => (
-              <Pressable key={honorific} style={styles.selectRow} onPress={() => { updateField('honorific', honorific); setHonorificOpen(false); }}>
-                <Text style={styles.selectLabel}>{honorific}</Text>
-                {form.honorific === honorific ? <Feather name="check" size={19} color="#ff5a2a" /> : null}
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
+      {honorificOpen && (
+        <Modal transparent visible={honorificOpen} animationType="fade" onRequestClose={() => setHonorificOpen(false)}>
+          <Pressable style={styles.modalOverlay} onPress={() => setHonorificOpen(false)}>
+            <View style={styles.selectSheet}>
+              <Text style={styles.selectTitle}>Select title</Text>
+              {HONORIFICS.map((honorific) => (
+                <Pressable key={honorific} style={styles.selectRow} onPress={() => { updateField('honorific', honorific); setHonorificOpen(false); }}>
+                  <Text style={styles.selectLabel}>{honorific}</Text>
+                  {form.honorific === honorific ? <Feather name="check" size={19} color="#ff5a2a" /> : null}
+                </Pressable>
+              ))}
+            </View>
+          </Pressable>
+        </Modal>
+      )}
 
-      <Modal transparent visible={countryOpen} animationType="fade" onRequestClose={() => setCountryOpen(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setCountryOpen(false)}>
-          <View style={styles.selectSheet}>
-            <Text style={styles.selectTitle}>Select country code</Text>
-            {COUNTRY_OPTIONS.map((country) => (
-              <Pressable key={country.dialCode} style={styles.selectRow} onPress={() => { updateField('countryDialCode', country.dialCode); setCountryOpen(false); }}>
-                <Text style={styles.selectLabel}>{country.name}</Text>
-                <Text style={styles.countryCode}>{country.dialCode}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
+      {countryOpen && (
+        <Modal transparent visible={countryOpen} animationType="fade" onRequestClose={() => setCountryOpen(false)}>
+          <Pressable style={styles.modalOverlay} onPress={() => setCountryOpen(false)}>
+            <View style={styles.selectSheet}>
+              <Text style={styles.selectTitle}>Select country code</Text>
+              {COUNTRY_OPTIONS.map((country) => (
+                <Pressable key={country.dialCode} style={styles.selectRow} onPress={() => { updateField('countryDialCode', country.dialCode); setCountryOpen(false); }}>
+                  <Text style={styles.selectLabel}>{country.name}</Text>
+                  <Text style={styles.countryCode}>{country.dialCode}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </Pressable>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }

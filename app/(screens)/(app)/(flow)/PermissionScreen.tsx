@@ -1,16 +1,18 @@
-import { useState } from 'react';
-import { Pressable, Switch, View } from 'react-native';
+import { useState, useEffect } from 'react';
+import { Pressable, Switch, View, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
-import {
-  Bell,
-  Mail,
-} from 'lucide-react-native';
+import { Bell, Mail } from 'lucide-react-native';
 import Feather from '@expo/vector-icons/Feather';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
+import { toast } from '@/components/common/ToastManager';
+import { useUserDetails, saveFcmToken } from '@/api/user';
 
 type ReminderKey = 'push' | 'email';
 
@@ -25,15 +27,135 @@ const REMINDERS: ReminderItem[] = [
   { key: 'email', title: 'Email', icon: Mail },
 ];
 
+async function registerForPushNotificationsAsync() {
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+  
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+  
+  if (finalStatus !== 'granted') {
+    return null;
+  }
+
+  const projectId =
+    Constants?.expoConfig?.extra?.eas?.projectId ??
+    Constants?.easConfig?.projectId;
+
+  try {
+    const tokenData = await Notifications.getDevicePushTokenAsync();
+    return tokenData.data;
+  } catch (error) {
+    console.error('Error getting device push token, trying expo token:', error);
+    try {
+      const expoTokenData = await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
+      return expoTokenData.data;
+    } catch (expoError) {
+      console.error('Error getting expo push token:', expoError);
+      return null;
+    }
+  }
+}
+
 export default function PermissionScreen() {
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+
+  const { data: userDetailsResponse } = useUserDetails();
+  const user = userDetailsResponse?.data;
+
   const [enabled, setEnabled] = useState<Record<ReminderKey, boolean>>({
-    push: true,
+    push: false,
     email: true,
   });
 
-  const toggle = (key: ReminderKey) => {
-    setEnabled((prev) => ({ ...prev, [key]: !prev[key] }));
+  // Sync state with backend token value on load
+  useEffect(() => {
+    if (user) {
+      setEnabled((prev) => ({
+        ...prev,
+        push: !!user.firebaseToken,
+      }));
+    }
+  }, [user]);
+
+  // Sync state with actual OS permissions on mount/change
+  useEffect(() => {
+    const checkPermission = async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted' && enabled.push) {
+        setEnabled((prev) => ({ ...prev, push: false }));
+      }
+    };
+    checkPermission();
+  }, [enabled.push]);
+
+  const saveTokenMutation = useMutation({
+    mutationFn: saveFcmToken,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-details'] });
+    },
+  });
+
+  const toggle = async (key: ReminderKey) => {
+    if (key === 'email') {
+      setEnabled((prev) => ({ ...prev, email: !prev.email }));
+      return;
+    }
+
+    if (key === 'push') {
+      const nextVal = !enabled.push;
+      
+      if (nextVal) {
+        try {
+          const token = await registerForPushNotificationsAsync();
+          if (token && user?.userId) {
+            await saveTokenMutation.mutateAsync({
+              userId: user.userId,
+              fcmToken: token,
+              platform: Platform.OS.toUpperCase(),
+            });
+            setEnabled((prev) => ({ ...prev, push: true }));
+            toast.success('Push notifications enabled successfully!');
+          } else {
+            setEnabled((prev) => ({ ...prev, push: false }));
+            toast.error('Could not enable push notifications. Check permissions.');
+          }
+        } catch (err) {
+          console.error(err);
+          setEnabled((prev) => ({ ...prev, push: false }));
+          toast.error('Unable to enable push notifications.');
+        }
+      } else {
+        try {
+          if (user?.userId) {
+            await saveTokenMutation.mutateAsync({
+              userId: user.userId,
+              fcmToken: null,
+              platform: Platform.OS.toUpperCase(),
+            });
+          }
+          setEnabled((prev) => ({ ...prev, push: false }));
+          toast.success('Push notifications disabled.');
+        } catch (err) {
+          console.error(err);
+          toast.error('Failed to disable push notifications.');
+        }
+      }
+    }
   };
 
   return (
@@ -94,7 +216,7 @@ export default function PermissionScreen() {
             Order related message
           </Text>
           <Text className="mt-2 text-[12px] font-medium leading-[17px] text-[#7b7b7b]">
-            Order related messages can’t be turnes off as they are important for service
+            Order related messages can’t be turned off as they are important for service
             experience
           </Text>
         </View>

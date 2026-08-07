@@ -110,7 +110,19 @@ function ServiceCard({ service, onRemove }: { service: EventCartService; onRemov
           ))}
         </View>
 
-        <Pressable style={styles.detailsButton} accessibilityRole="button">
+        <Pressable
+          style={styles.detailsButton}
+          accessibilityRole="button"
+          onPress={() =>
+            router.push({
+              pathname: '/PhotographyPackageDetails' as never,
+              params: {
+                packageId: service.id.replace('package-', '').replace('db-service-', ''),
+                packageName: service.title,
+              },
+            })
+          }
+        >
           <Text style={styles.detailsLabel}>View Details</Text>
         </Pressable>
       </View>

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect, type ReactNode } from 'react';
 import {
   Animated,
   Dimensions,
@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -116,72 +115,72 @@ const STATIC_PRODUCT_SECTIONS: HomeSection[] = [
     id: 'most-booked',
     title: 'Most Booked Services',
     products: [
-      { id: 'premium-photographer', name: 'Premium Photographer', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.photographer },
-      { id: 'luxury-tent-works', name: 'Luxury Tent Works', rating: '4.76 (2.8M)', price: '₹75,000', image: ASSETS.luxuryTent },
-      { id: 'wedding-decor', name: 'Wedding Decor', rating: '4.76 (2.8M)', price: '₹35,000', image: ASSETS.weddingDecor },
+      { id: 'premium-photographer', name: 'Premium Photographer', rating: '4.76 (1.2k)', price: '₹25,000', image: ASSETS.photographer },
+      { id: 'luxury-tent-works', name: 'Luxury Tent Works', rating: '4.76 (1.2k)', price: '₹75,000', image: ASSETS.luxuryTent },
+      { id: 'wedding-decor', name: 'Wedding Decor', rating: '4.76 (1.2k)', price: '₹35,000', image: ASSETS.weddingDecor },
     ],
   },
   {
     id: 'featured-packages',
     title: 'Featured Packages',
     products: [
-      { id: 'royal-wedding-package', name: 'Royal Wedding Package', rating: '4.76 (2.8M)', price: '₹1,50,000', image: ASSETS.royalPackage },
-      { id: 'birthday-package', name: 'Birthday Celebration Package', rating: '4.76 (2.8M)', price: '₹1,25,000', image: ASSETS.birthdayPackage },
-      { id: 'decor-package', name: 'Premium Decor Package', rating: '4.76 (2.8M)', price: '₹95,000', image: ASSETS.weddingDecor },
+      { id: 'royal-wedding-package', name: 'Royal Wedding Package', rating: '4.76 (1.2k)', price: '₹1,50,000', image: ASSETS.royalPackage },
+      { id: 'birthday-package', name: 'Birthday Celebration Package', rating: '4.76 (1.2k)', price: '₹1,25,000', image: ASSETS.birthdayPackage },
+      { id: 'decor-package', name: 'Premium Decor Package', rating: '4.76 (1.2k)', price: '₹95,000', image: ASSETS.weddingDecor },
     ],
   },
   {
     id: 'photography-services',
     title: 'Photography Services',
     products: [
-      { id: 'wedding-photography', name: 'Wedding Photography', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.weddingPhotography },
-      { id: 'studio-photoshoot', name: 'Studio Photoshoot', rating: '4.76 (2.8M)', price: '₹599', image: ASSETS.studioPhoto },
-      { id: 'portrait-photography', name: 'Portrait Photography', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.photographer },
+      { id: 'wedding-photography', name: 'Wedding Photography', rating: '4.76 (1.2k)', price: '₹25,000', image: ASSETS.weddingPhotography },
+      { id: 'studio-photoshoot', name: 'Studio Photoshoot', rating: '4.76 (1.2k)', price: '₹599', image: ASSETS.studioPhoto },
+      { id: 'portrait-photography', name: 'Portrait Photography', rating: '4.76 (1.2k)', price: '₹4,999', image: ASSETS.photographer },
     ],
   },
   {
     id: 'tent-canopy-services',
     title: 'Tent & Canopy Services',
     products: [
-      { id: 'wedding-tent', name: 'Wedding Tent', rating: '4.76 (2.8M)', price: '₹6,999', image: ASSETS.weddingTent },
-      { id: 'haldi-mehndi-canopy', name: 'Haldi/Mehndi Canopy', rating: '4.76 (2.8M)', price: '₹2,499', image: ASSETS.haldiTent },
-      { id: 'cocktail-canopy', name: 'Cocktail Canopy', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.cocktailTent },
+      { id: 'wedding-tent', name: 'Wedding Tent', rating: '4.76 (1.2k)', price: '₹6,999', image: ASSETS.weddingTent },
+      { id: 'haldi-mehndi-canopy', name: 'Haldi/Mehndi Canopy', rating: '4.76 (1.2k)', price: '₹2,499', image: ASSETS.haldiTent },
+      { id: 'cocktail-canopy', name: 'Cocktail Canopy', rating: '4.76 (1.2k)', price: '₹4,999', image: ASSETS.cocktailTent },
     ],
   },
   {
     id: 'decoration-packages',
     title: 'Decoration Packages',
     products: [
-      { id: 'luxury-wedding-stage', name: 'Luxury Wedding Stage', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.decorationStage },
-      { id: 'floral-entrance-decoration', name: 'Floral Entrance Decoration', rating: '4.76 (2.8M)', price: '₹599', image: ASSETS.floralEntrance },
-      { id: 'premium-decoration', name: 'Premium Decoration', rating: '4.76 (2.8M)', price: '₹15,999', image: ASSETS.premiumDecoration },
+      { id: 'luxury-wedding-stage', name: 'Luxury Wedding Stage', rating: '4.76 (1.2k)', price: '₹25,000', image: ASSETS.decorationStage },
+      { id: 'floral-entrance-decoration', name: 'Floral Entrance Decoration', rating: '4.76 (1.2k)', price: '₹599', image: ASSETS.floralEntrance },
+      { id: 'premium-decoration', name: 'Premium Decoration', rating: '4.76 (1.2k)', price: '₹15,999', image: ASSETS.premiumDecoration },
     ],
   },
   {
     id: 'artist-performer',
     title: 'Artist & Performer',
     products: [
-      { id: 'live-singer', name: 'Live Singer', rating: '4.76 (2.8M)', price: '₹5,999', image: ASSETS.liveSinger },
-      { id: 'live-band', name: 'Live Band', rating: '4.76 (2.8M)', price: '₹12,999', image: ASSETS.liveBand },
-      { id: 'cultural-dance', name: 'Cultural Dance', rating: '4.76 (2.8M)', price: '₹7,999', image: ASSETS.culturalDance },
+      { id: 'live-singer', name: 'Live Singer', rating: '4.76 (1.2k)', price: '₹5,999', image: ASSETS.liveSinger },
+      { id: 'live-band', name: 'Live Band', rating: '4.76 (1.2k)', price: '₹12,999', image: ASSETS.liveBand },
+      { id: 'cultural-dance', name: 'Cultural Dance', rating: '4.76 (1.2k)', price: '₹7,999', image: ASSETS.culturalDance },
     ],
   },
   {
     id: 'kids-entertainment',
     title: "Kid's Entertainment Services",
     products: [
-      { id: 'kids-magician', name: 'Kids Magician & Clown', rating: '4.76 (2.8M)', price: '₹3,999', image: ASSETS.kidsMagician },
-      { id: 'kids-dance-party', name: 'Kids Dance Party', rating: '4.76 (2.8M)', price: '₹5,499', image: ASSETS.kidsDance },
-      { id: 'kids-party', name: 'Kids Party Fun', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.kidsParty },
+      { id: 'kids-magician', name: 'Kids Magician & Clown', rating: '4.76 (1.2k)', price: '₹3,999', image: ASSETS.kidsMagician },
+      { id: 'kids-dance-party', name: 'Kids Dance Party', rating: '4.76 (1.2k)', price: '₹5,499', image: ASSETS.kidsDance },
+      { id: 'kids-party', name: 'Kids Party Fun', rating: '4.76 (1.2k)', price: '₹4,999', image: ASSETS.kidsParty },
     ],
   },
   {
     id: 'dj-music-services',
     title: 'DJ & Music Services',
     products: [
-      { id: 'wedding-dj', name: 'Wedding DJ', rating: '4.76 (2.8M)', price: '₹11,999', image: ASSETS.weddingDj },
-      { id: 'live-music-band', name: 'Live Music & Band', rating: '4.76 (2.8M)', price: '₹8,999', image: ASSETS.liveMusic },
-      { id: 'party-dj', name: 'Party DJ', rating: '4.76 (2.8M)', price: '₹9,999', image: ASSETS.partyDj },
+      { id: 'wedding-dj', name: 'Wedding DJ', rating: '4.76 (1.2k)', price: '₹11,999', image: ASSETS.weddingDj },
+      { id: 'live-music-band', name: 'Live Music & Band', rating: '4.76 (1.2k)', price: '₹8,999', image: ASSETS.liveMusic },
+      { id: 'party-dj', name: 'Party DJ', rating: '4.76 (1.2k)', price: '₹9,999', image: ASSETS.partyDj },
     ],
   },
 ];
@@ -204,17 +203,7 @@ const EXPERTS: MediaCard[] = [
   { id: 'expert-photographer', title: 'Photographer', image: ASSETS.planner },
 ];
 
-function firstProductPrice(value: unknown) {
-  if (typeof value === 'number') return value;
-  if (!Array.isArray(value)) return 0;
-  const firstPrice = value[0];
-  return Number(firstPrice?.salePrice ?? firstPrice?.listPrice ?? firstPrice?.price ?? 0);
-}
 
-const formatDynamicPrice = (value: unknown) => {
-  const price = firstProductPrice(value);
-  return price > 0 ? `₹${price.toLocaleString('en-IN')}` : '₹0';
-};
 
 const toImageSource = (path?: string | null, fallback?: ImageSourcePropType): ImageSourcePropType => {
   const uri = getMediaUrl(path);
@@ -239,6 +228,32 @@ const categoryIconForName = (name: string) => {
   return require('@/assets/images/home/category-icons/wedding.png');
 };
 
+const formatDynamicPrice = (rawPrice: any, fallback?: string): string => {
+  if (Array.isArray(rawPrice) && rawPrice.length > 0) {
+    const validPrices = rawPrice
+      .map((p) => Number(p.salePrice ?? p.regularPrice ?? p.price ?? 0))
+      .filter((val) => val > 0);
+
+    if (validPrices.length > 0) {
+      const minPrice = Math.min(...validPrices);
+      return `₹${minPrice.toLocaleString('en-IN')}`;
+    }
+  }
+
+  if (typeof rawPrice === 'number' && rawPrice > 0) {
+    return `₹${rawPrice.toLocaleString('en-IN')}`;
+  }
+
+  if (typeof rawPrice === 'string' && rawPrice.trim()) {
+    const cleaned = Number(rawPrice.replace(/[^0-9]/g, ''));
+    if (cleaned > 0) return `₹${cleaned.toLocaleString('en-IN')}`;
+    if (rawPrice.includes('₹')) return rawPrice.replace(/Starts at\s*/i, '');
+  }
+
+  const fallbackCleaned = fallback ? fallback.replace(/Starts at\s*/i, '') : '₹4,999';
+  return fallbackCleaned.includes('₹') ? fallbackCleaned : `₹${fallbackCleaned}`;
+};
+
 const applyBackendProducts = (fallbackSections: HomeSection[], backendSections: any[]): HomeSection[] => {
   if (!Array.isArray(backendSections) || backendSections.length === 0) return fallbackSections;
 
@@ -259,8 +274,8 @@ const applyBackendProducts = (fallbackSections: HomeSection[], backendSections: 
         return {
           id: normalizeId(fallbackSection.id, backendProduct.productId ?? backendProduct.id, productIndex),
           name: backendProduct.title || backendProduct.name || fallbackProduct.name,
-          rating: backendProduct.rating ? `${Number(backendProduct.rating).toFixed(1)} (2.8M)` : fallbackProduct.rating,
-          price: formatDynamicPrice(backendProduct.price) || fallbackProduct.price,
+          rating: backendProduct.rating ? `${Number(backendProduct.rating).toFixed(1)} (${backendProduct.reviewCount || '1.2k'})` : fallbackProduct.rating,
+          price: formatDynamicPrice(backendProduct.price, fallbackProduct.price),
           image: toImageSource(backendProduct.bannerImage || backendProduct.mediaURL || backendProduct.image, fallbackProduct.image),
         };
       }),
@@ -286,7 +301,7 @@ function Header({ address, user, searchStyle }: { address?: any; user?: any; sea
     <View style={styles.header}>
       <View style={styles.headerTopRow}>
         <Pressable
-          onPress={() => router.navigate('/AddressManagementScreen' as never)}
+          onPress={() => router.push('/AddressManagementScreen' as never)}
           style={styles.locationAction}
         >
           <MapPin size={22} color="#ffffff" strokeWidth={1.9} />
@@ -298,7 +313,7 @@ function Header({ address, user, searchStyle }: { address?: any; user?: any; sea
             <Text style={styles.street} numberOfLines={1}>{street}</Text>
           </View>
         </Pressable>
-        <Pressable onPress={() => router.navigate('/Profile' as never)} style={styles.profileAction}>
+        <Pressable onPress={() => router.push('/Profile' as never)} style={styles.profileAction}>
           {profileImage ? <Image source={{ uri: profileImage }} style={styles.headerAvatar} /> : <UserRound size={25} color="#ffffff" strokeWidth={1.9} />}
         </Pressable>
       </View>
@@ -313,9 +328,9 @@ function CategoryCard({ category }: { category: Category }) {
   return (
     <Pressable
       onPress={() =>
-        router.navigate({
+        router.push({
           pathname: '/EventServices' as never,
-          params: { eventTypeId: category.id, eventName: category.name },
+          params: { eventName: category.name },
         })
       }
       style={styles.categoryCard}
@@ -323,7 +338,14 @@ function CategoryCard({ category }: { category: Category }) {
       <View style={styles.categoryIconFrame}>
         <Image source={category.image} resizeMode="contain" style={styles.categoryIcon} />
       </View>
-      <Text style={styles.categoryLabel} numberOfLines={1}>{category.name}</Text>
+      <Text
+        style={styles.categoryLabel}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+      >
+        {category.name}
+      </Text>
       <View style={styles.categoryUnderline} />
     </Pressable>
   );
@@ -336,7 +358,18 @@ function SectionHeader({ title, description, viewAll = false }: { title: string;
         <Text style={styles.sectionTitle}>{title}</Text>
         {description ? <Text style={styles.sectionDescription}>{description}</Text> : null}
       </View>
-      {viewAll ? <Text style={styles.viewAll}>View All</Text> : null}
+      {viewAll ? (
+        <Pressable
+          onPress={() =>
+            router.push({
+              pathname: '/ServiceDetails' as never,
+              params: { serviceName: title },
+            })
+          }
+        >
+          <Text style={styles.viewAll}>View All</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -367,20 +400,12 @@ function FloatingEventPill({
       onPress={() => router.push('/Cart' as never)}
       style={[styles.floatingEventPill, { bottom }]}
     >
-      <BlurView
-        pointerEvents="none"
-        tint="light"
-        intensity={30}
-        blurReductionFactor={3}
-        experimentalBlurMethod="dimezisBlurView"
-        style={styles.eventPillBlur}
-      />
       <LinearGradient
-        colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0.06)', 'rgba(122,43,22,0.12)']}
-        locations={[0, 0.48, 1]}
+        colors={['rgba(255,140,80,0.96)', 'rgba(240,100,55,0.98)', 'rgba(200,70,30,0.96)']}
+        locations={[0, 0.5, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.eventPillGlass}
+        style={[styles.eventPillGlass, { borderRadius: 29 }]}
       >
         <EventAvatarStack services={services} />
         <View style={styles.eventPillBody}>
@@ -428,6 +453,17 @@ function cartDetailsForProduct(product: Product): Pick<EventCartService, 'packag
     };
   }
 
+  if (searchValue.includes('package') || searchValue.includes('royal') || searchValue.includes('bundle')) {
+    return {
+      packageName: 'All-Inclusive Event Combo',
+      features: [
+        { icon: 'camera', label: 'Full Photography & Video' },
+        { icon: 'balloon', label: 'Luxury Stage & Floral Decor' },
+        { icon: 'dj', label: 'DJ & Music Sound System' },
+      ],
+    };
+  }
+
   if (searchValue.includes('tent') || searchValue.includes('canopy') || searchValue.includes('decor')) {
     return {
       packageName: 'Decoration & Setup',
@@ -470,9 +506,17 @@ function eventCartServiceFromProduct(product: Product): EventCartService {
   };
 }
 
-function PortraitCard({ image, title }: MediaCard) {
+function PortraitCard({ id, image, title }: MediaCard) {
   return (
-    <Pressable style={styles.portraitCard}>
+    <Pressable
+      onPress={() =>
+        router.push({
+          pathname: '/PhotographyPackageDetails' as never,
+          params: { packageId: id, packageName: title },
+        })
+      }
+      style={styles.portraitCard}
+    >
       <Image source={image} resizeMode="cover" style={styles.portraitImage} />
       <View style={styles.portraitShade} />
       <Text style={styles.portraitLabel} numberOfLines={1}>{title}</Text>
@@ -480,9 +524,17 @@ function PortraitCard({ image, title }: MediaCard) {
   );
 }
 
-function ServiceTypeCard({ image, title }: MediaCard) {
+function ServiceTypeCard({ id, image, title }: MediaCard) {
   return (
-    <Pressable style={styles.typeCard}>
+    <Pressable
+      onPress={() =>
+        router.push({
+          pathname: '/PhotographyPackageDetails' as never,
+          params: { packageId: id, packageName: title },
+        })
+      }
+      style={styles.typeCard}
+    >
       <Image source={image} resizeMode="cover" style={styles.typeImage} />
       <View style={styles.typeShade} />
       <Text style={styles.typeLabel} numberOfLines={1}>{title}</Text>
@@ -496,7 +548,15 @@ function ProductCard({ product }: { product: Product }) {
   const isAdded = useCartStore((state) => state.eventServices.some((service) => service.id === product.id));
 
   return (
-    <Pressable style={styles.productCard}>
+    <Pressable
+      onPress={() =>
+        router.push({
+          pathname: '/PhotographyPackageDetails' as never,
+          params: { packageId: product.id, packageName: product.name },
+        })
+      }
+      style={styles.productCard}
+    >
       <Image source={product.image} resizeMode="cover" style={styles.productImage} />
       <Text style={styles.productName} numberOfLines={1}>{product.name}</Text>
       <View style={styles.ratingRow}>
@@ -504,14 +564,15 @@ function ProductCard({ product }: { product: Product }) {
         <Text style={styles.rating}>{product.rating}</Text>
       </View>
       <View style={styles.productFooter}>
-        <View>
+        <View style={{ flex: 1, paddingRight: 4 }}>
           <Text style={styles.startsAt}>Starts at</Text>
-          <Text style={styles.price}>{product.price}</Text>
+          <Text style={styles.price} numberOfLines={1}>{product.price.replace(/Starts at\s*/i, '')}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Add ${product.name} to cart`}
-          onPress={() => {
+          onPress={(e) => {
+            e.stopPropagation();
             if (isAdded) {
               removeEventService(product.id);
               return;
@@ -579,7 +640,17 @@ function PromoBanner({ kind }: { kind: 'photo' | 'tent' | 'dj' }) {
           <Text style={[styles.promoCrossedPrice, dj && styles.promoCrossedPriceOnDark]}>₹7,499</Text>
         </View>
       </View>
-      <Pressable style={styles.bookNow}><Text style={styles.bookNowLabel}>Book Now</Text></Pressable>
+      <Pressable
+        onPress={() =>
+          router.push({
+            pathname: '/ServiceDetails' as never,
+            params: { serviceName: title.replace(/\n/g, ' ') },
+          })
+        }
+        style={styles.bookNow}
+      >
+        <Text style={styles.bookNowLabel}>Book Now</Text>
+      </Pressable>
     </View>
   );
 }
@@ -588,6 +659,18 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const scrollY = useRef(new Animated.Value(0)).current;
   const [refreshing, setRefreshing] = useState(false);
+  const [isStickyVisible, setIsStickyVisible] = useState(false);
+
+  useEffect(() => {
+    const id = scrollY.addListener(({ value }) => {
+      const show = value >= 50;
+      if (show !== isStickyVisible) {
+        setIsStickyVisible(show);
+      }
+    });
+    return () => scrollY.removeListener(id);
+  }, [isStickyVisible]);
+
   const { data: userResponse, refetch: refetchUser } = useUserDetails();
   const { data: addressResponse, refetch: refetchAddress } = useCurrentAddress(userResponse?.data?.currentAddressId);
   const homeBannersQuery = useQuery({ queryKey: ['home-banners'], queryFn: getHomeBanners, staleTime: 60_000 });
@@ -630,42 +713,52 @@ export default function HomeScreen() {
     return mapped.length > 1 ? mapped : [...mapped, { id: 'offers-discounts', title: 'Offers & Discounts', image: ASSETS.offer }];
   }, [homeBannersQuery.data]);
   const curatedExperiences = useMemo<MediaCard[]>(() => {
-    const apiExperiences = homeExperiencesQuery.data?.data;
-    if (!Array.isArray(apiExperiences) || apiExperiences.length === 0) return CURATED_EXPERIENCES;
-
-    return apiExperiences.slice(0, 6).map((item: any, index: number) => ({
-      id: normalizeId('experience', item.id, index),
-      title: item.name || item.altText || CURATED_EXPERIENCES[index % CURATED_EXPERIENCES.length].title,
-      image: toImageSource(item.mediaURL || item.image, CURATED_EXPERIENCES[index % CURATED_EXPERIENCES.length].image),
-    }));
-  }, [homeExperiencesQuery.data]);
+    return CURATED_EXPERIENCES;
+  }, []);
   const serviceTypes = useMemo<MediaCard[]>(() => {
-    const apiTypes = homeProductTypesQuery.data?.data;
-    if (!Array.isArray(apiTypes) || apiTypes.length === 0) return SERVICE_TYPES;
+    const backendCategories = homeProductsQuery.data?.data;
+    if (Array.isArray(backendCategories) && backendCategories.length > 0) {
+      const allProducts: MediaCard[] = [];
+      backendCategories.forEach((cat: any) => {
+        if (Array.isArray(cat?.products)) {
+          cat.products.forEach((p: any, idx: number) => {
+            if (p && (p.title || p.name)) {
+              allProducts.push({
+                id: String(p.productId || p.id || idx),
+                title: (p.title || p.name).trim(),
+                image: toImageSource(p.bannerImage || p.mediaURL || p.image, SERVICE_TYPES[idx % SERVICE_TYPES.length].image),
+              });
+            }
+          });
+        }
+      });
 
-    return apiTypes.slice(0, 8).map((item: any, index: number) => ({
-      id: normalizeId('service-type', item.id, index),
-      title: item.name || SERVICE_TYPES[index % SERVICE_TYPES.length].title,
-      image: toImageSource(item.mediaURL || item.image, SERVICE_TYPES[index % SERVICE_TYPES.length].image),
-    }));
-  }, [homeProductTypesQuery.data]);
+      const uniqueMap = new Map();
+      allProducts.forEach((item) => uniqueMap.set(item.title.toLowerCase(), item));
+      const uniqueProducts = Array.from(uniqueMap.values());
+
+      if (uniqueProducts.length > 0) return uniqueProducts;
+    }
+
+    return SERVICE_TYPES;
+  }, [homeProductsQuery.data]);
   const productSections = useMemo<HomeSection[]>(
     () => applyBackendProducts(STATIC_PRODUCT_SECTIONS, homeProductsQuery.data?.data ?? []),
     [homeProductsQuery.data],
   );
   const stickySearchOpacity = scrollY.interpolate({
-    inputRange: [24, 72, 116],
-    outputRange: [0, 0.72, 1],
+    inputRange: [0, 24, 72, 116],
+    outputRange: [0, 0, 0.72, 1],
     extrapolate: 'clamp',
   });
   const stickySearchTranslateY = scrollY.interpolate({
-    inputRange: [24, 72, 116],
-    outputRange: [-11, -3, 0],
+    inputRange: [0, 24, 72, 116],
+    outputRange: [-150, -150, -20, 0],
     extrapolate: 'clamp',
   });
   const stickySearchScale = scrollY.interpolate({
-    inputRange: [24, 72, 116],
-    outputRange: [0.96, 0.987, 1],
+    inputRange: [0, 24, 72, 116],
+    outputRange: [0.96, 0.96, 0.987, 1],
     extrapolate: 'clamp',
   });
   const headerSearchOpacity = scrollY.interpolate({
@@ -751,7 +844,7 @@ export default function HomeScreen() {
             }}
           />
           <View style={styles.eventHeaderWrapper}>
-            <Image source={banners[0]?.image || ASSETS.eventHeader} resizeMode="cover" style={styles.eventHeaderImage} />
+            <Image source={ASSETS.eventHeader} resizeMode="cover" style={styles.eventHeaderImage} />
           </View>
         </View>
 
@@ -759,7 +852,7 @@ export default function HomeScreen() {
 
         <View style={styles.firstSection}>
           <SectionHeader title="Offers & Discounts" />
-          {banners.slice(1, 2).map((banner) => <Offer key={banner.id} image={banner.image} />)}
+          <Offer image={ASSETS.offer} />
         </View>
 
         <ContentSection title="Curated Experiences" description="of our finest experiences">
@@ -800,27 +893,25 @@ export default function HomeScreen() {
         </View>
         <View style={styles.navClearance} />
       </Animated.ScrollView>
-      <Animated.View
-        pointerEvents="auto"
-        style={[
-          styles.stickySearch,
-          {
-            top: insets.top,
-            opacity: stickySearchOpacity,
-            transform: [{ translateY: stickySearchTranslateY }, { scale: stickySearchScale }],
-          },
-        ]}
-      >
-        <BlurView
-          pointerEvents="none"
-          tint="light"
-          intensity={28}
-          blurReductionFactor={3}
-          experimentalBlurMethod="dimezisBlurView"
-          style={styles.stickySearchBlur}
-        />
-        <SearchBar sticky />
-      </Animated.View>
+      {isStickyVisible && (
+        <Animated.View
+          pointerEvents="auto"
+          style={[
+            styles.stickySearch,
+            {
+              top: insets.top,
+              opacity: stickySearchOpacity,
+              transform: [{ translateY: stickySearchTranslateY }, { scale: stickySearchScale }],
+            },
+          ]}
+        >
+          <View
+            pointerEvents="none"
+            style={[styles.stickySearchBlur, { backgroundColor: 'rgba(255,255,255,0.92)' }]}
+          />
+          <SearchBar sticky />
+        </Animated.View>
+      )}
       {latestEventService ? (
         <FloatingEventPill
           bottom={insets.bottom + 81}
@@ -854,13 +945,13 @@ const styles = StyleSheet.create({
   eventHeaderImage: { width: '100%', height: Math.round((SCREEN_WIDTH * 124) / 394) },
   stickySearch: { position: 'absolute', zIndex: 15, elevation: 10, left: 0, right: 0, overflow: 'hidden', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: 'rgba(255,255,255,0.74)', borderBottomWidth: 1, borderBottomColor: 'rgba(221,224,229,0.72)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 3 },
   stickySearchBlur: { ...StyleSheet.absoluteFillObject },
-  categoryGrid: { paddingTop: 32, paddingHorizontal: CATEGORY_SIDE_PADDING, gap: CATEGORY_GAP, flexDirection: 'row', flexWrap: 'wrap' },
-  categoryCard: { width: CATEGORY_WIDTH, height: 114, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 8, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 2.5, elevation: 3 },
-  categoryIconFrame: { height: 65, alignItems: 'center', justifyContent: 'center' },
-  categoryIcon: { width: 78, height: 65 },
-  categoryInitial: { color: '#ff5b42', fontSize: 30, lineHeight: 36, fontWeight: '700' },
-  categoryLabel: { color: '#242424', fontSize: 16, lineHeight: 19, fontWeight: '600', paddingHorizontal: 3, textAlign: 'center' },
-  categoryUnderline: { width: 24, height: 3, borderRadius: 2, marginTop: 5, backgroundColor: '#ff5b42' },
+  categoryGrid: { paddingTop: 28, paddingHorizontal: CATEGORY_SIDE_PADDING, gap: CATEGORY_GAP, flexDirection: 'row', flexWrap: 'wrap' },
+  categoryCard: { width: CATEGORY_WIDTH, height: 114, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 8, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 2.5, elevation: 2, paddingHorizontal: 4 },
+  categoryIconFrame: { height: 52, alignItems: 'center', justifyContent: 'center' },
+  categoryIcon: { width: 62, height: 50 },
+  categoryInitial: { color: '#ff5b42', fontSize: 26, lineHeight: 32, fontWeight: '700' },
+  categoryLabel: { color: '#242424', fontSize: 13, lineHeight: 16, fontWeight: '600', paddingHorizontal: 2, textAlign: 'center' },
+  categoryUnderline: { width: 22, height: 3, borderRadius: 2, marginTop: 4, backgroundColor: '#ff5b42' },
   firstSection: { marginTop: SECTION_GAP },
   section: { marginTop: SECTION_GAP },
   sectionHeader: { minHeight: 18, paddingHorizontal: SIDE_PADDING, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -918,7 +1009,7 @@ const styles = StyleSheet.create({
   promoCrossedPriceOnDark: { color: '#bd91c9' },
   bookNow: { position: 'absolute', left: 16, bottom: 16, width: 109, height: 36, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
   bookNowLabel: { color: '#161619', fontSize: 16, fontWeight: '700' },
-  navClearance: { height: 92 },
+  navClearance: { height: 100 },
   couponSection: { marginTop: SECTION_GAP },
   coupon: { width: SCREEN_WIDTH - 28, height: Math.round((SCREEN_WIDTH - 28) * (157 / 364)), marginHorizontal: 14, borderRadius: 9 },
 });

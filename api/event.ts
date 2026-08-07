@@ -35,6 +35,8 @@ export const createEvent = async (eventData: any) => {
   return response.data;
 };
 
+export const createEventItem = createEvent;
+
 export const fetchEventType = async () => {
   const response = await privateApi.get('/event/event_type');
   return response.data;

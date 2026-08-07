@@ -53,7 +53,7 @@ export default function MyTabBar({ state, navigation }: BottomTabBarProps) {
   };
 
   return (
-    <View style={[styles.shell, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.shell, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.bar}>
         <TabItem label="Home" icon="home" active={isHome} onPress={() => navigateTo('home')} />
         <TabItem label="Event" icon="event" active={isEvent} onPress={() => navigateTo('Event')} />

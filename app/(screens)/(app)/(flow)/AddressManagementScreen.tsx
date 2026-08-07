@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, View } from 'react-native';
+import { Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -7,6 +8,7 @@ import * as Location from 'expo-location';
 import {
   ChevronLeft,
   Crosshair,
+  Edit3,
   LocateFixed,
   MapPin,
   MoreVertical,
@@ -92,21 +94,29 @@ function Header({
 }
 
 function StaticMapPreview({ latitude, longitude }: { latitude: number; longitude: number }) {
-  const mapUrl = hasGoogleMapsKey() ? googleStaticMapUrl(latitude, longitude) : null;
+  const lat = latitude || 26.9124;
+  const lng = longitude || 75.7873;
+  const googleMapUrl = hasGoogleMapsKey() ? googleStaticMapUrl(lat, lng) : null;
+  const fallbackMapUrl = `https://static-maps.yandex.ru/1.x/?lang=en-US&ll=${lng},${lat}&z=14&l=map&size=600,250`;
+  const mapUri = googleMapUrl || fallbackMapUrl;
 
   return (
-    <View className="h-[226px] overflow-hidden bg-[#dfe7ef]">
-      {mapUrl ? <Image source={{ uri: mapUrl }} className="h-full w-full" resizeMode="cover" /> : null}
+    <View className="h-[226px] overflow-hidden bg-[#e5ecef] justify-center items-center">
+      <Image
+        source={{ uri: mapUri }}
+        className="h-full w-full absolute inset-0"
+        resizeMode="cover"
+      />
 
-      <View className="absolute left-1/2 top-[74px] -ml-[65px] rounded bg-[#232323] px-3 py-2">
-        <Text className="text-[11px] font-semibold text-white">Place the pin accurately on map</Text>
+      <View className="absolute left-1/2 top-[60px] -ml-[90px] rounded-full bg-[#111111]/85 px-4 py-2 shadow-lg">
+        <Text className="text-[12px] font-semibold text-white text-center">📍 Place pin accurately on map</Text>
       </View>
 
-      <View className="absolute left-1/2 top-[116px] -ml-4 h-8 w-8 items-center justify-center rounded-full bg-[#ff5a2a] shadow">
-        <MapPin size={21} color="#ffffff" fill="#ffffff" strokeWidth={2} />
+      <View className="absolute left-1/2 top-[108px] -ml-5 h-10 w-10 items-center justify-center rounded-full bg-[#ff5a2a] shadow-lg">
+        <MapPin size={24} color="#ffffff" fill="#ffffff" strokeWidth={2} />
       </View>
 
-      <View className="absolute bottom-3 left-3">
+      <View className="absolute bottom-3 left-3 bg-white/80 px-2 py-1 rounded">
         <Text className="text-[12px] font-bold">
           <Text className="text-[#4285f4]">G</Text>
           <Text className="text-[#db4437]">o</Text>
@@ -335,28 +345,35 @@ export default function AddressManagementScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <StatusBar style="dark" />
-        <View className="flex-1" style={{ paddingTop: 34 }}>
-          <View className="px-4">
-            <View className="h-10 flex-row items-center rounded-md border border-[#d8d8d8] bg-white px-2">
-              <Pressable onPress={goBack} className="h-8 w-8 items-center justify-center">
-                <ChevronLeft size={22} color="#111111" />
-              </Pressable>
-              <Input
-                value={query}
-                onChangeText={setQuery}
-                placeholder="Search address"
-                placeholderTextColor="#98a2b3"
-                className="h-9 flex-1 border-0 bg-transparent px-1 text-[14px] shadow-none"
-              />
-            </View>
+        <View className="flex-1" style={{ paddingTop: 16 }}>
+          <View className="flex-row items-center border-b border-[#eeeeee] px-4 pb-3">
+            <Pressable onPress={goBack} className="-ml-2 h-9 w-9 items-center justify-center rounded-full active:bg-[#f2f2f2]">
+              <ChevronLeft size={24} color="#111111" strokeWidth={2.2} />
+            </Pressable>
+            <Text className="ml-2 text-[18px] font-bold text-[#111111]">Add Address</Text>
           </View>
 
           <Pressable
             onPress={handleUseCurrentLocation}
             className="mt-4 flex-row items-center border-b border-[#eeeeee] bg-[#f8f8f8] px-5 py-4"
           >
-            <Crosshair size={14} color="#ff5a2a" strokeWidth={2} />
-            <Text className="ml-3 text-[16px] font-medium text-[#ff5a2a]">Use current location</Text>
+            <Crosshair size={16} color="#ff5a2a" strokeWidth={2} />
+            <Text className="ml-3 text-[15px] font-medium text-[#ff5a2a]">Use current location</Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              setSelectedAddress(null);
+              setForm(emptyAddress);
+              setMode('form');
+            }}
+            className="flex-row items-center border-b border-[#eeeeee] bg-white px-5 py-4"
+          >
+            <Edit3 size={16} color="#ff5a2a" strokeWidth={2} />
+            <View className="ml-3 flex-1">
+              <Text className="text-[15px] font-semibold text-[#111111]">Enter address manually</Text>
+              <Text className="text-[12px] text-[#777777]">Fill house no, street, city & pin code directly</Text>
+            </View>
           </Pressable>
 
           <View className="px-4">
@@ -387,85 +404,115 @@ export default function AddressManagementScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top']}>
         <StatusBar style="dark" />
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 0) + 24 }}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View className="absolute left-4 right-4 top-[34px] z-10">
-            <Header title="Manage Addresses" onBack={goBack} onClose={() => setMode('list')} />
-          </View>
+          <KeyboardAwareScrollView
+            showsVerticalScrollIndicator={false}
+            enableOnAndroid
+            extraScrollHeight={60}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 0) + 40 }}
+          >
+            <View className="flex-row items-center px-4 py-3 border-b border-[#eeeeee]">
+              <Pressable onPress={goBack} className="h-9 w-9 items-center justify-center -ml-2 rounded-full active:bg-[#f2f2f2]">
+                <ChevronLeft size={24} color="#111111" strokeWidth={2.2} />
+              </Pressable>
+              <Text className="ml-2 text-[18px] font-bold text-[#111111]">
+                {selectedAddress ? 'Edit Address' : 'Enter Address Details'}
+              </Text>
+            </View>
 
-          <StaticMapPreview latitude={Number(form.latitude) || 26.9124} longitude={Number(form.longitude) || 75.7873} />
+            <StaticMapPreview latitude={Number(form.latitude) || 26.9124} longitude={Number(form.longitude) || 75.7873} />
 
-          <View className="-mt-5 rounded-t-[24px] bg-white px-4 pb-6 pt-3">
-            <View className="mb-3 h-1 w-10 self-center rounded-full bg-[#d9d9d9]" />
+            <View className="-mt-5 rounded-t-[24px] bg-white px-4 pb-6 pt-4">
+              <View className="mb-3 h-1 w-10 self-center rounded-full bg-[#d9d9d9]" />
 
-            <View className="mb-6 flex-row items-center justify-between">
-              <Text className="text-[20px] font-bold text-[#111111]">{form.city || 'Jaipur'}</Text>
-              <Button variant="outline" className="h-8 rounded-md border-[#ff5a2a] px-3" onPress={() => setMode('search')}>
-                <Text className="text-[12px] font-semibold text-[#ff5a2a]">Change</Text>
+              <View className="gap-3">
+                <Input
+                  value={form.addressLineOne}
+                  onChangeText={(text) => onChange('addressLineOne', text)}
+                  placeholder="House / Flat / Building No.*"
+                  placeholderTextColor="#909090"
+                  className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                />
+                <Input
+                  value={form.addressLineTwo}
+                  onChangeText={(text) => onChange('addressLineTwo', text)}
+                  placeholder="Street / Area / Landmark (Optional)"
+                  placeholderTextColor="#909090"
+                  className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                />
+                <View className="flex-row gap-3">
+                  <Input
+                    value={form.city}
+                    onChangeText={(text) => onChange('city', text)}
+                    placeholder="City*"
+                    placeholderTextColor="#909090"
+                    className="h-12 flex-1 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                  />
+                  <Input
+                    value={form.postalCode}
+                    onChangeText={(text) => onChange('postalCode', text)}
+                    placeholder="Pincode*"
+                    placeholderTextColor="#909090"
+                    keyboardType="number-pad"
+                    className="h-12 flex-1 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                  />
+                </View>
+                <Input
+                  value={form.state}
+                  onChangeText={(text) => onChange('state', text)}
+                  placeholder="State*"
+                  placeholderTextColor="#909090"
+                  className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                />
+                <Input
+                  value={form.reciverName}
+                  onChangeText={(text) => onChange('reciverName', text)}
+                  placeholder="Receiver Name*"
+                  placeholderTextColor="#909090"
+                  className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                />
+                <Input
+                  value={form.reciverNumber}
+                  onChangeText={(text) => onChange('reciverNumber', text)}
+                  placeholder="Receiver Phone Number*"
+                  placeholderTextColor="#909090"
+                  keyboardType="phone-pad"
+                  className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
+                />
+              </View>
+
+              <Text className="mt-5 text-[14px] font-medium text-[#4d4d4d]">Save as</Text>
+              <View className="mt-3 flex-row gap-2">
+                {['Home', 'Work', 'Other'].map((label) => {
+                  const active = form.title === label;
+                  return (
+                    <Button
+                      key={label}
+                      variant={active ? 'default' : 'outline'}
+                      className={`h-9 rounded-md px-5 ${active ? 'bg-[#ff6a2e]' : 'border-[#ff6a2e] bg-white'}`}
+                      onPress={() => onChange('title', label)}
+                    >
+                      <Text className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-[#ff6a2e]'}`}>
+                        {active ? '✓ ' : ''}
+                        {label}
+                      </Text>
+                    </Button>
+                  );
+                })}
+              </View>
+
+              <Button disabled={saving} className="mt-8 h-12 rounded-md bg-[#ff6a2e]" onPress={handleSubmit}>
+                <Text className="text-[15px] font-bold text-white">
+                  {saving ? 'Saving...' : selectedAddress ? 'Update address' : 'Save address'}
+                </Text>
               </Button>
             </View>
-
-            <View className="gap-4">
-              <Input
-                value={form.addressLineOne}
-                onChangeText={(text) => onChange('addressLineOne', text)}
-                placeholder="238"
-                placeholderTextColor="#4f4f4f"
-                className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
-              />
-              <Input
-                value={form.addressLineTwo}
-                onChangeText={(text) => onChange('addressLineTwo', text)}
-                placeholder="Landmark (Optional)"
-                placeholderTextColor="#a0a7b2"
-                className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
-              />
-              <Input
-                value={form.reciverName}
-                onChangeText={(text) => onChange('reciverName', text)}
-                placeholder="Receiver name"
-                placeholderTextColor="#a0a7b2"
-                className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
-              />
-              <Input
-                value={form.reciverNumber}
-                onChangeText={(text) => onChange('reciverNumber', text)}
-                placeholder="Receiver phone number"
-                placeholderTextColor="#a0a7b2"
-                keyboardType="phone-pad"
-                className="h-12 rounded-md border-[#d8d8d8] px-4 text-[15px] shadow-none"
-              />
-            </View>
-
-            <Text className="mt-5 text-[14px] font-medium text-[#4d4d4d]">Save as</Text>
-            <View className="mt-3 flex-row gap-2">
-              {['Home', 'Other'].map((label) => {
-                const active = form.title === label;
-                return (
-                  <Button
-                    key={label}
-                    variant={active ? 'default' : 'outline'}
-                    className={`h-9 rounded-md px-5 ${active ? 'bg-[#ff6a2e]' : 'border-[#ff6a2e] bg-white'}`}
-                    onPress={() => onChange('title', label)}
-                  >
-                    <Text className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-[#ff6a2e]'}`}>
-                      {active ? '✓ ' : ''}
-                      {label}
-                    </Text>
-                  </Button>
-                );
-              })}
-            </View>
-
-            <Button disabled={saving} className="mt-8 h-12 rounded-md bg-[#ff6a2e]" onPress={handleSubmit}>
-              <Text className="text-[15px] font-bold text-white">
-                {saving ? 'Saving...' : selectedAddress ? 'Update address' : 'Save address'}
-              </Text>
-            </Button>
-          </View>
-        </ScrollView>
+          </KeyboardAwareScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
@@ -496,62 +543,91 @@ export default function AddressManagementScreen() {
           </View>
         ) : (
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 }}>
-            {addresses.map((item) => (
-              <Pressable key={item.id} onPress={() => handleSetCurrent(item)} className="mb-3">
-                <Card className="border-[#e5e7eb] bg-white shadow-sm shadow-black/5">
-                  <CardContent className="p-4">
-                    <View className="flex-row items-start justify-between">
-                      <View className="flex-1 pr-4">
-                        <Text className="text-[20px] font-semibold text-[#111111]">{item.title || 'Home'}</Text>
-                        <Text className="mt-2 text-[16px] leading-[23px] text-[#777777]">
-                          {[item.addressLineOne, item.addressLineTwo, item.city].filter(Boolean).join(', ')}
-                        </Text>
-                        <Text className="mt-1 text-[16px] leading-[23px] text-[#777777]">
-                          {currentAddressId === item.id ? 'Verified Customer, ' : ''}
-                          {item.reciverNumber || item.phoneNumber || ''}
-                        </Text>
-                      </View>
+            {addresses.map((item, index) => {
+              const isDefault = currentAddressId === item.id || (!currentAddressId && index === 0);
+              return (
+                <Pressable key={item.id} onPress={() => handleSetCurrent(item)} className="mb-3">
+                  <Card
+                    className={`border ${
+                      isDefault
+                        ? 'border-[#ff5a2a] bg-[#fff8f5] shadow-md shadow-[#ff5a2a]/10'
+                        : 'border-[#e5e7eb] bg-white shadow-sm shadow-black/5'
+                    }`}
+                  >
+                    <CardContent className="p-4">
+                      <View className="flex-row items-start justify-between">
+                        <View className="flex-1 pr-4">
+                          <View className="flex-row items-center gap-2">
+                            <Text className="text-[20px] font-bold text-[#111111]">
+                              {item.title || 'Home'}
+                            </Text>
+                            {isDefault ? (
+                              <View className="rounded-full bg-[#ff5a2a] px-2.5 py-0.5">
+                                <Text className="text-[11px] font-extrabold uppercase text-white">
+                                  ✓ Default
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
 
-                      <Pressable onPress={() => setActiveMenuId(activeMenuId === item.id ? null : item.id ?? null)} className="h-9 w-9 items-end">
-                        <MoreVertical size={20} color="#555555" />
-                      </Pressable>
-                    </View>
-                  </CardContent>
-                </Card>
-              </Pressable>
-            ))}
+                          <Text className="mt-2 text-[15px] leading-[22px] text-[#555555]">
+                            {[item.addressLineOne, item.addressLineTwo, item.city, item.state, item.postalCode]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </Text>
+
+                          <Text className="mt-1.5 text-[14px] font-medium text-[#777777]">
+                            {item.reciverName ? `${item.reciverName} • ` : ''}
+                            {item.reciverNumber || item.phoneNumber || ''}
+                          </Text>
+                        </View>
+
+                        <Pressable
+                          onPress={() => setActiveMenuId(activeMenuId === item.id ? null : item.id ?? null)}
+                          className="h-9 w-9 items-end justify-center"
+                        >
+                          <MoreVertical size={20} color={isDefault ? '#ff5a2a' : '#555555'} />
+                        </Pressable>
+                      </View>
+                    </CardContent>
+                  </Card>
+                </Pressable>
+              );
+            })}
           </ScrollView>
         )}
 
-        <Modal
-          visible={!!activeMenuId}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setActiveMenuId(null)}
-        >
-          <Pressable className="flex-1" onPress={() => setActiveMenuId(null)}>
-            <View className="absolute right-9 top-[135px] w-[84px] rounded bg-white py-2 shadow">
-              <Pressable
-                className="px-4 py-2"
-                onPress={() => {
-                  const address = addresses.find((item) => item.id === activeMenuId);
-                  if (address) openEditAddress(address);
-                }}
-              >
-                <Text className="text-[13px] text-[#111111]">Edit</Text>
-              </Pressable>
-              <Pressable
-                className="px-4 py-2"
-                onPress={() => {
-                  const address = addresses.find((item) => item.id === activeMenuId);
-                  if (address) handleDelete(address);
-                }}
-              >
-                <Text className="text-[13px] text-[#111111]">Delete</Text>
-              </Pressable>
-            </View>
-          </Pressable>
-        </Modal>
+        {!!activeMenuId && (
+          <Modal
+            visible={!!activeMenuId}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setActiveMenuId(null)}
+          >
+            <Pressable className="flex-1" onPress={() => setActiveMenuId(null)}>
+              <View className="absolute right-9 top-[135px] w-[84px] rounded bg-white py-2 shadow">
+                <Pressable
+                  className="px-4 py-2"
+                  onPress={() => {
+                    const address = addresses.find((item) => item.id === activeMenuId);
+                    if (address) openEditAddress(address);
+                  }}
+                >
+                  <Text className="text-[13px] text-[#111111]">Edit</Text>
+                </Pressable>
+                <Pressable
+                  className="px-4 py-2"
+                  onPress={() => {
+                    const address = addresses.find((item) => item.id === activeMenuId);
+                    if (address) handleDelete(address);
+                  }}
+                >
+                  <Text className="text-[13px] text-[#111111]">Delete</Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </Modal>
+        )}
       </View>
     </SafeAreaView>
   );

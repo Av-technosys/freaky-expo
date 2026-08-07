@@ -41,6 +41,12 @@ export const updateUserProfile = async (
 };
 
 
+export const saveFcmToken = async (payload: { userId: number; fcmToken: string | null; platform: string }) => {
+  const response = await privateApi.post('/user/save_fcm_token', payload);
+  return response.data;
+};
+
+
 //upload on s3
 
 export const getBucketUrl = async (payload: any) => {
