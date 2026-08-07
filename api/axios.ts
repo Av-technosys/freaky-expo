@@ -1,7 +1,13 @@
 
 import axios from 'axios';
 
-const BASE_URL = `${process.env.EXPO_PUBLIC_BACKEND_URL}/v1` || ""
+const backendUrl = process.env.EXPO_PUBLIC_BACKEND_URL?.replace(/\/$/, '');
+
+if (!backendUrl) {
+  console.warn('EXPO_PUBLIC_BACKEND_URL is not configured. API requests cannot be made.');
+}
+
+const BASE_URL = backendUrl ? `${backendUrl}/v1` : '';
 
 export const publicApi = axios.create({
   baseURL: BASE_URL,

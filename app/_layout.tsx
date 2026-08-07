@@ -15,6 +15,7 @@ import { ToastProvider } from '@/components/common/ToastManager';
 import { AppState } from 'react-native'; // 👈 ADD THIS
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
+import '@/api/interceptors';
 export { ErrorBoundary } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 

@@ -29,7 +29,10 @@ import { router } from 'expo-router';
 
 import { Text } from '@/components/ui/text';
 import { useCurrentAddress, useUserDetails } from '@/api/user';
+import { getHomeBanners, getHomeEventTypes, getHomeFeaturedExperiences, getHomeFeaturedProducts, getHomeProductTypes } from '@/api/home';
 import { type EventCartService, useCartStore } from '@/store/cartStore';
+import { getMediaUrl } from '@/utils/image';
+import { useQuery } from '@tanstack/react-query';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SIDE_PADDING = 10;
@@ -45,7 +48,6 @@ const PRODUCT_HEIGHT = Math.round((PRODUCT_WIDTH * 184) / 173);
 const ASSETS = {
   eventHeader: require('@/assets/images/home/image 1634.png'),
   offer: require('@/assets/images/home/Frame 1984078343.png'),
-  offerAvatar: require('@/assets/images/home/image 1534.png'),
   curatedTent: require('@/assets/images/home/image 1735.png'),
   curatedArtist: require('@/assets/images/home/image 1736.png'),
   curatedBartender: require('@/assets/images/home/image 1737.png'),
@@ -97,6 +99,9 @@ type Product = {
   image: ImageSourcePropType;
 };
 
+type HomeSection = { id: string; title: string; description?: string | null; products: Product[] };
+type MediaCard = { id: string; title: string; image: ImageSourcePropType };
+
 const CATEGORIES: Category[] = [
   { id: 'wedding', name: 'Wedding', image: require('@/assets/images/home/category-icons/wedding.png') },
   { id: 'birthday', name: 'Birthday', image: require('@/assets/images/home/category-icons/birthday.png') },
@@ -106,53 +111,162 @@ const CATEGORIES: Category[] = [
   { id: 'engagement', name: 'Engagement', image: require('@/assets/images/home/category-icons/engagement.png') },
 ];
 
-const MOST_BOOKED: Product[] = [
-  { id: 'premium-photographer', name: 'Premium Photographer', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.photographer },
-  { id: 'luxury-tent-works', name: 'Luxury Tent Works', rating: '4.76 (2.8M)', price: '₹75,000', image: ASSETS.luxuryTent },
-  { id: 'wedding-decor', name: 'Wedding Decor', rating: '4.76 (2.8M)', price: '₹35,000', image: ASSETS.weddingDecor },
+const STATIC_PRODUCT_SECTIONS: HomeSection[] = [
+  {
+    id: 'most-booked',
+    title: 'Most Booked Services',
+    products: [
+      { id: 'premium-photographer', name: 'Premium Photographer', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.photographer },
+      { id: 'luxury-tent-works', name: 'Luxury Tent Works', rating: '4.76 (2.8M)', price: '₹75,000', image: ASSETS.luxuryTent },
+      { id: 'wedding-decor', name: 'Wedding Decor', rating: '4.76 (2.8M)', price: '₹35,000', image: ASSETS.weddingDecor },
+    ],
+  },
+  {
+    id: 'featured-packages',
+    title: 'Featured Packages',
+    products: [
+      { id: 'royal-wedding-package', name: 'Royal Wedding Package', rating: '4.76 (2.8M)', price: '₹1,50,000', image: ASSETS.royalPackage },
+      { id: 'birthday-package', name: 'Birthday Celebration Package', rating: '4.76 (2.8M)', price: '₹1,25,000', image: ASSETS.birthdayPackage },
+      { id: 'decor-package', name: 'Premium Decor Package', rating: '4.76 (2.8M)', price: '₹95,000', image: ASSETS.weddingDecor },
+    ],
+  },
+  {
+    id: 'photography-services',
+    title: 'Photography Services',
+    products: [
+      { id: 'wedding-photography', name: 'Wedding Photography', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.weddingPhotography },
+      { id: 'studio-photoshoot', name: 'Studio Photoshoot', rating: '4.76 (2.8M)', price: '₹599', image: ASSETS.studioPhoto },
+      { id: 'portrait-photography', name: 'Portrait Photography', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.photographer },
+    ],
+  },
+  {
+    id: 'tent-canopy-services',
+    title: 'Tent & Canopy Services',
+    products: [
+      { id: 'wedding-tent', name: 'Wedding Tent', rating: '4.76 (2.8M)', price: '₹6,999', image: ASSETS.weddingTent },
+      { id: 'haldi-mehndi-canopy', name: 'Haldi/Mehndi Canopy', rating: '4.76 (2.8M)', price: '₹2,499', image: ASSETS.haldiTent },
+      { id: 'cocktail-canopy', name: 'Cocktail Canopy', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.cocktailTent },
+    ],
+  },
+  {
+    id: 'decoration-packages',
+    title: 'Decoration Packages',
+    products: [
+      { id: 'luxury-wedding-stage', name: 'Luxury Wedding Stage', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.decorationStage },
+      { id: 'floral-entrance-decoration', name: 'Floral Entrance Decoration', rating: '4.76 (2.8M)', price: '₹599', image: ASSETS.floralEntrance },
+      { id: 'premium-decoration', name: 'Premium Decoration', rating: '4.76 (2.8M)', price: '₹15,999', image: ASSETS.premiumDecoration },
+    ],
+  },
+  {
+    id: 'artist-performer',
+    title: 'Artist & Performer',
+    products: [
+      { id: 'live-singer', name: 'Live Singer', rating: '4.76 (2.8M)', price: '₹5,999', image: ASSETS.liveSinger },
+      { id: 'live-band', name: 'Live Band', rating: '4.76 (2.8M)', price: '₹12,999', image: ASSETS.liveBand },
+      { id: 'cultural-dance', name: 'Cultural Dance', rating: '4.76 (2.8M)', price: '₹7,999', image: ASSETS.culturalDance },
+    ],
+  },
+  {
+    id: 'kids-entertainment',
+    title: "Kid's Entertainment Services",
+    products: [
+      { id: 'kids-magician', name: 'Kids Magician & Clown', rating: '4.76 (2.8M)', price: '₹3,999', image: ASSETS.kidsMagician },
+      { id: 'kids-dance-party', name: 'Kids Dance Party', rating: '4.76 (2.8M)', price: '₹5,499', image: ASSETS.kidsDance },
+      { id: 'kids-party', name: 'Kids Party Fun', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.kidsParty },
+    ],
+  },
+  {
+    id: 'dj-music-services',
+    title: 'DJ & Music Services',
+    products: [
+      { id: 'wedding-dj', name: 'Wedding DJ', rating: '4.76 (2.8M)', price: '₹11,999', image: ASSETS.weddingDj },
+      { id: 'live-music-band', name: 'Live Music & Band', rating: '4.76 (2.8M)', price: '₹8,999', image: ASSETS.liveMusic },
+      { id: 'party-dj', name: 'Party DJ', rating: '4.76 (2.8M)', price: '₹9,999', image: ASSETS.partyDj },
+    ],
+  },
 ];
 
-const FEATURED_PACKAGES: Product[] = [
-  { id: 'royal-wedding-package', name: 'Royal Wedding Package', rating: '4.76 (2.8M)', price: '₹1,50,000', image: ASSETS.royalPackage },
-  { id: 'birthday-package', name: 'Birthday Celebration Package', rating: '4.76 (2.8M)', price: '₹1,25,000', image: ASSETS.birthdayPackage },
-  { id: 'decor-package', name: 'Premium Decor Package', rating: '4.76 (2.8M)', price: '₹95,000', image: ASSETS.weddingDecor },
+const CURATED_EXPERIENCES: MediaCard[] = [
+  { id: 'curated-tent', title: 'Tent & Canopy', image: ASSETS.curatedTent },
+  { id: 'curated-artist', title: 'Artist & Performer', image: ASSETS.curatedArtist },
+  { id: 'curated-bartender', title: 'Bartender', image: ASSETS.curatedBartender },
 ];
 
-const PHOTOGRAPHY_PRODUCTS: Product[] = [
-  { id: 'wedding-photography', name: 'Wedding Photography', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.weddingPhotography },
-  { id: 'studio-photoshoot', name: 'Studio Photoshoot', rating: '4.76 (2.8M)', price: '₹599', image: ASSETS.studioPhoto },
-  { id: 'portrait-photography', name: 'Portrait Photography', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.photographer },
+const SERVICE_TYPES: MediaCard[] = [
+  { id: 'photography-type', title: 'Photography', image: ASSETS.photographyType },
+  { id: 'bartender-type', title: 'Bar Tender', image: ASSETS.bartenderType },
+  { id: 'tent-type', title: 'Tent & Canopy', image: ASSETS.tentType },
 ];
 
-const TENT_PRODUCTS: Product[] = [
-  { id: 'wedding-tent', name: 'Wedding Tent', rating: '4.76 (2.8M)', price: '₹6,999', image: ASSETS.weddingTent },
-  { id: 'haldi-mehndi-canopy', name: 'Haldi/Mehndi Canopy', rating: '4.76 (2.8M)', price: '₹2,499', image: ASSETS.haldiTent },
-  { id: 'cocktail-canopy', name: 'Cocktail Canopy', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.cocktailTent },
+const EXPERTS: MediaCard[] = [
+  { id: 'expert-florist', title: 'Florist', image: ASSETS.florist },
+  { id: 'expert-dj', title: 'DJ', image: ASSETS.dj },
+  { id: 'expert-photographer', title: 'Photographer', image: ASSETS.planner },
 ];
 
-const DECORATION_PACKAGES: Product[] = [
-  { id: 'luxury-wedding-stage', name: 'Luxury Wedding Stage', rating: '4.76 (2.8M)', price: '₹25,000', image: ASSETS.decorationStage },
-  { id: 'floral-entrance-decoration', name: 'Floral Entrance Decoration', rating: '4.76 (2.8M)', price: '₹599', image: ASSETS.floralEntrance },
-  { id: 'premium-decoration', name: 'Premium Decoration', rating: '4.76 (2.8M)', price: '₹15,999', image: ASSETS.premiumDecoration },
-];
+function firstProductPrice(value: unknown) {
+  if (typeof value === 'number') return value;
+  if (!Array.isArray(value)) return 0;
+  const firstPrice = value[0];
+  return Number(firstPrice?.salePrice ?? firstPrice?.listPrice ?? firstPrice?.price ?? 0);
+}
 
-const ARTIST_PRODUCTS: Product[] = [
-  { id: 'live-singer', name: 'Live Singer', rating: '4.76 (2.8M)', price: '₹5,999', image: ASSETS.liveSinger },
-  { id: 'live-band', name: 'Live Band', rating: '4.76 (2.8M)', price: '₹12,999', image: ASSETS.liveBand },
-  { id: 'cultural-dance', name: 'Cultural Dance', rating: '4.76 (2.8M)', price: '₹7,999', image: ASSETS.culturalDance },
-];
+const formatDynamicPrice = (value: unknown) => {
+  const price = firstProductPrice(value);
+  return price > 0 ? `₹${price.toLocaleString('en-IN')}` : '₹0';
+};
 
-const KIDS_PRODUCTS: Product[] = [
-  { id: 'kids-magician', name: 'Kids Magician & Clown', rating: '4.76 (2.8M)', price: '₹3,999', image: ASSETS.kidsMagician },
-  { id: 'kids-dance-party', name: 'Kids Dance Party', rating: '4.76 (2.8M)', price: '₹5,499', image: ASSETS.kidsDance },
-  { id: 'kids-party', name: 'Kids Party Fun', rating: '4.76 (2.8M)', price: '₹4,999', image: ASSETS.kidsParty },
-];
+const toImageSource = (path?: string | null, fallback?: ImageSourcePropType): ImageSourcePropType => {
+  const uri = getMediaUrl(path);
+  return uri ? { uri } : fallback || ASSETS.photographer;
+};
 
-const DJ_PRODUCTS: Product[] = [
-  { id: 'wedding-dj', name: 'Wedding DJ', rating: '4.76 (2.8M)', price: '₹11,999', image: ASSETS.weddingDj },
-  { id: 'live-music-band', name: 'Live Music & Band', rating: '4.76 (2.8M)', price: '₹8,999', image: ASSETS.liveMusic },
-  { id: 'party-dj', name: 'Party DJ', rating: '4.76 (2.8M)', price: '₹9,999', image: ASSETS.partyDj },
-];
+const imageUriFromSource = (source: ImageSourcePropType) => {
+  if (typeof source === 'number') return Image.resolveAssetSource(source).uri;
+  if (Array.isArray(source)) return Image.resolveAssetSource(source[0]).uri;
+  return source.uri || '';
+};
+
+const normalizeId = (prefix: string, rawId: unknown, index: number) => `${prefix}-${rawId ?? index}`;
+
+const categoryIconForName = (name: string) => {
+  const value = name.toLowerCase();
+  if (value.includes('birthday')) return require('@/assets/images/home/category-icons/birthday.png');
+  if (value.includes('house')) return require('@/assets/images/home/category-icons/house-party.png');
+  if (value.includes('baby')) return require('@/assets/images/home/category-icons/baby-shower.png');
+  if (value.includes('festive') || value.includes('celebration')) return require('@/assets/images/home/category-icons/festive-celebration.png');
+  if (value.includes('engagement')) return require('@/assets/images/home/category-icons/engagement.png');
+  return require('@/assets/images/home/category-icons/wedding.png');
+};
+
+const applyBackendProducts = (fallbackSections: HomeSection[], backendSections: any[]): HomeSection[] => {
+  if (!Array.isArray(backendSections) || backendSections.length === 0) return fallbackSections;
+
+  return fallbackSections.map((fallbackSection, sectionIndex) => {
+    const backendSection = backendSections[sectionIndex];
+    const backendProducts = Array.isArray(backendSection?.products) ? backendSection.products : [];
+
+    if (!backendProducts.length) return fallbackSection;
+
+    return {
+      ...fallbackSection,
+      title: backendSection?.name || fallbackSection.title,
+      description: backendSection?.description || fallbackSection.description,
+      products: fallbackSection.products.map((fallbackProduct, productIndex) => {
+        const backendProduct = backendProducts[productIndex];
+        if (!backendProduct) return fallbackProduct;
+
+        return {
+          id: normalizeId(fallbackSection.id, backendProduct.productId ?? backendProduct.id, productIndex),
+          name: backendProduct.title || backendProduct.name || fallbackProduct.name,
+          rating: backendProduct.rating ? `${Number(backendProduct.rating).toFixed(1)} (2.8M)` : fallbackProduct.rating,
+          price: formatDynamicPrice(backendProduct.price) || fallbackProduct.price,
+          image: toImageSource(backendProduct.bannerImage || backendProduct.mediaURL || backendProduct.image, fallbackProduct.image),
+        };
+      }),
+    };
+  });
+};
 
 function SearchBar({ sticky = false }: { sticky?: boolean }) {
   return (
@@ -163,9 +277,10 @@ function SearchBar({ sticky = false }: { sticky?: boolean }) {
   );
 }
 
-function Header({ address, searchStyle }: { address?: any; searchStyle?: any }) {
-  const city = address?.city ? `${address.city}, ${address.state || 'Rajasthan'}` : 'Jaipur, Rajasthan';
-  const street = address?.addressLineOne || '333, Street 8, Sector 8, Mansarovar';
+function Header({ address, user, searchStyle }: { address?: any; user?: any; searchStyle?: any }) {
+  const city = address?.city ? `${address.city}, ${address.state || ''}`.replace(/,\s*$/, '') : 'Add your location';
+  const street = address?.addressLineOne || 'Choose a saved address';
+  const profileImage = getMediaUrl(user?.profileImage);
 
   return (
     <View style={styles.header}>
@@ -184,7 +299,7 @@ function Header({ address, searchStyle }: { address?: any; searchStyle?: any }) 
           </View>
         </Pressable>
         <Pressable onPress={() => router.navigate('/Profile' as never)} style={styles.profileAction}>
-          <UserRound size={25} color="#ffffff" strokeWidth={1.9} />
+          {profileImage ? <Image source={{ uri: profileImage }} style={styles.headerAvatar} /> : <UserRound size={25} color="#ffffff" strokeWidth={1.9} />}
         </Pressable>
       </View>
       <Animated.View style={searchStyle}>
@@ -226,10 +341,10 @@ function SectionHeader({ title, description, viewAll = false }: { title: string;
   );
 }
 
-function Offer() {
+function Offer({ image }: { image: ImageSourcePropType }) {
   return (
     <View style={styles.offerWrapper}>
-      <Image source={ASSETS.offer} resizeMode="cover" style={styles.offerImage} />
+      <Image source={image} resizeMode="cover" style={styles.offerImage} />
     </View>
   );
 }
@@ -283,18 +398,18 @@ function FloatingEventPill({
 }
 
 function EventAvatarStack({ services }: { services: EventCartService[] }) {
-  const visibleServices = services.slice(-3).reverse();
+  const visibleServices = services.filter((service) => Boolean(service.imageUri)).slice(-3).reverse();
   const stackWidth = 46 + Math.max(0, visibleServices.length - 1) * 16;
 
   return (
     <View style={[styles.eventPillAvatarStack, { width: stackWidth }]}>
-      {visibleServices.map((item, index) => (
-        <Image
-          key={item.id}
-          source={{ uri: item.imageUri }}
-          style={[styles.eventPillImage, { left: index * 16, zIndex: visibleServices.length - index }]}
-        />
-      ))}
+      {visibleServices.length ? visibleServices.map((item, index) => (
+          <Image
+            key={item.id}
+            source={{ uri: item.imageUri }}
+            style={[styles.eventPillImage, { left: index * 16, zIndex: visibleServices.length - index }]}
+          />
+        )) : <View style={[styles.eventPillImage, styles.eventPillFallback]}><Star size={18} color="#ffffff" fill="#ffffff" strokeWidth={1.6} /></View>}
     </View>
   );
 }
@@ -350,12 +465,12 @@ function eventCartServiceFromProduct(product: Product): EventCartService {
     id: product.id,
     title: product.name,
     price: Number(product.price.replace(/[^0-9]/g, '')),
-    imageUri: Image.resolveAssetSource(product.image).uri,
+    imageUri: imageUriFromSource(product.image),
     ...cartDetailsForProduct(product),
   };
 }
 
-function PortraitCard({ image, title }: { image: ImageSourcePropType; title: string }) {
+function PortraitCard({ image, title }: MediaCard) {
   return (
     <Pressable style={styles.portraitCard}>
       <Image source={image} resizeMode="cover" style={styles.portraitImage} />
@@ -365,7 +480,7 @@ function PortraitCard({ image, title }: { image: ImageSourcePropType; title: str
   );
 }
 
-function ServiceTypeCard({ image, title }: { image: ImageSourcePropType; title: string }) {
+function ServiceTypeCard({ image, title }: MediaCard) {
   return (
     <Pressable style={styles.typeCard}>
       <Image source={image} resizeMode="cover" style={styles.typeImage} />
@@ -475,24 +590,68 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { data: userResponse, refetch: refetchUser } = useUserDetails();
   const { data: addressResponse, refetch: refetchAddress } = useCurrentAddress(userResponse?.data?.currentAddressId);
+  const homeBannersQuery = useQuery({ queryKey: ['home-banners'], queryFn: getHomeBanners, staleTime: 60_000 });
+  const homeEventTypesQuery = useQuery({ queryKey: ['home-event-types'], queryFn: getHomeEventTypes, staleTime: 60_000 });
+  const homeExperiencesQuery = useQuery({ queryKey: ['home-featured-experiences'], queryFn: getHomeFeaturedExperiences, staleTime: 60_000 });
+  const homeProductTypesQuery = useQuery({ queryKey: ['home-product-types'], queryFn: getHomeProductTypes, staleTime: 60_000 });
+  const homeProductsQuery = useQuery({ queryKey: ['home-featured-products'], queryFn: getHomeFeaturedProducts, staleTime: 60_000 });
   const eventServices = useCartStore((state) => state.eventServices);
   const lastAddedEventServiceId = useCartStore((state) => state.lastAddedEventServiceId);
   const latestEventService = eventServices.find((service) => service.id === lastAddedEventServiceId) ?? eventServices[eventServices.length - 1];
-  const curatedExperiences = useMemo(
-    () => [
-      { title: 'Tent & Canopy', image: ASSETS.curatedTent },
-      { title: 'Artist & Performer', image: ASSETS.curatedArtist },
-      { title: 'Bartender', image: ASSETS.curatedBartender },
-    ],
-    [],
-  );
-  const experts = useMemo(
-    () => [
-      { title: 'Florist', image: ASSETS.florist },
-      { title: 'DJ', image: ASSETS.dj },
-      { title: 'Photographer', image: ASSETS.planner },
-    ],
-    [],
+  const categories = useMemo<Category[]>(() => {
+    const apiCategories = homeEventTypesQuery.data?.data;
+    if (!Array.isArray(apiCategories) || apiCategories.length === 0) return CATEGORIES;
+
+    return apiCategories.slice(0, 6).map((item: any, index: number) => {
+      const name = item.name || CATEGORIES[index]?.name || 'Event';
+      return {
+        id: normalizeId('event-type', item.id, index),
+        name,
+        image: toImageSource(item.image || item.mediaURL, CATEGORIES[index]?.image || categoryIconForName(name)),
+      };
+    });
+  }, [homeEventTypesQuery.data]);
+  const banners = useMemo<MediaCard[]>(() => {
+    const apiBanners = homeBannersQuery.data?.data;
+    if (!Array.isArray(apiBanners) || apiBanners.length === 0) {
+      return [
+        { id: 'event-header', title: 'Events Simplified', image: ASSETS.eventHeader },
+        { id: 'offers-discounts', title: 'Offers & Discounts', image: ASSETS.offer },
+      ];
+    }
+
+    const mapped = apiBanners
+      .map((item: any, index: number) => ({
+        id: normalizeId('banner', item.id, index),
+        title: item.name || item.altText || 'Featured offer',
+        image: toImageSource(item.mediaURL || item.image, index === 0 ? ASSETS.eventHeader : ASSETS.offer),
+      }));
+
+    return mapped.length > 1 ? mapped : [...mapped, { id: 'offers-discounts', title: 'Offers & Discounts', image: ASSETS.offer }];
+  }, [homeBannersQuery.data]);
+  const curatedExperiences = useMemo<MediaCard[]>(() => {
+    const apiExperiences = homeExperiencesQuery.data?.data;
+    if (!Array.isArray(apiExperiences) || apiExperiences.length === 0) return CURATED_EXPERIENCES;
+
+    return apiExperiences.slice(0, 6).map((item: any, index: number) => ({
+      id: normalizeId('experience', item.id, index),
+      title: item.name || item.altText || CURATED_EXPERIENCES[index % CURATED_EXPERIENCES.length].title,
+      image: toImageSource(item.mediaURL || item.image, CURATED_EXPERIENCES[index % CURATED_EXPERIENCES.length].image),
+    }));
+  }, [homeExperiencesQuery.data]);
+  const serviceTypes = useMemo<MediaCard[]>(() => {
+    const apiTypes = homeProductTypesQuery.data?.data;
+    if (!Array.isArray(apiTypes) || apiTypes.length === 0) return SERVICE_TYPES;
+
+    return apiTypes.slice(0, 8).map((item: any, index: number) => ({
+      id: normalizeId('service-type', item.id, index),
+      title: item.name || SERVICE_TYPES[index % SERVICE_TYPES.length].title,
+      image: toImageSource(item.mediaURL || item.image, SERVICE_TYPES[index % SERVICE_TYPES.length].image),
+    }));
+  }, [homeProductTypesQuery.data]);
+  const productSections = useMemo<HomeSection[]>(
+    () => applyBackendProducts(STATIC_PRODUCT_SECTIONS, homeProductsQuery.data?.data ?? []),
+    [homeProductsQuery.data],
   );
   const stickySearchOpacity = scrollY.interpolate({
     inputRange: [24, 72, 116],
@@ -548,7 +707,15 @@ export default function HomeScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refetchUser(), refetchAddress()]);
+      await Promise.all([
+        refetchUser(),
+        refetchAddress(),
+        homeBannersQuery.refetch(),
+        homeEventTypesQuery.refetch(),
+        homeExperiencesQuery.refetch(),
+        homeProductTypesQuery.refetch(),
+        homeProductsQuery.refetch(),
+      ]);
     } finally {
       setRefreshing(false);
     }
@@ -577,63 +744,56 @@ export default function HomeScreen() {
         <View style={styles.topStack}>
           <Header
             address={addressResponse?.data}
+            user={userResponse?.data}
             searchStyle={{
               opacity: headerSearchOpacity,
               transform: [{ translateY: headerSearchTranslateY }, { scale: headerSearchScale }],
             }}
           />
           <View style={styles.eventHeaderWrapper}>
-            <Image source={ASSETS.eventHeader} resizeMode="cover" style={styles.eventHeaderImage} />
+            <Image source={banners[0]?.image || ASSETS.eventHeader} resizeMode="cover" style={styles.eventHeaderImage} />
           </View>
         </View>
 
-        <View style={styles.categoryGrid}>
-          {CATEGORIES.map((category) => <CategoryCard key={category.id} category={category} />)}
-        </View>
+        <View style={styles.categoryGrid}>{categories.map((category) => <CategoryCard key={category.id} category={category} />)}</View>
 
         <View style={styles.firstSection}>
           <SectionHeader title="Offers & Discounts" />
-          <Offer />
+          {banners.slice(1, 2).map((banner) => <Offer key={banner.id} image={banner.image} />)}
         </View>
 
         <ContentSection title="Curated Experiences" description="of our finest experiences">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.portraitRail}>
-            {curatedExperiences.map((item) => <PortraitCard key={item.title} {...item} />)}
+            {curatedExperiences.map((item) => <PortraitCard key={item.id} {...item} />)}
           </ScrollView>
         </ContentSection>
 
         <ContentSection title="Explore Our Services">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.typeRail}>
-            <ServiceTypeCard image={ASSETS.photographyType} title="Photography" />
-            <ServiceTypeCard image={ASSETS.bartenderType} title="Bar Tender" />
-            <ServiceTypeCard image={ASSETS.tentType} title="Tent & Canopy" />
+            {serviceTypes.map((item) => <ServiceTypeCard key={item.id} {...item} />)}
           </ScrollView>
         </ContentSection>
 
-        <ProductSection title="Most Booked Services" products={MOST_BOOKED} />
+        <ProductSection title={productSections[0].title} products={productSections[0].products} />
 
         <ContentSection title="Meet Our Event Experts" description="Verified professionals who make every celebration">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.portraitRail}>
-            {experts.map((item) => <PortraitCard key={item.title} {...item} />)}
+            {EXPERTS.map((item) => <PortraitCard key={item.id} {...item} />)}
           </ScrollView>
         </ContentSection>
 
-        <ProductSection title="Featured Packages" products={FEATURED_PACKAGES} />
+        <ProductSection title={productSections[1].title} products={productSections[1].products} />
 
         <View style={styles.promoSection}><PromoBanner kind="photo" /></View>
-        <ProductSection title="Photography Services" products={PHOTOGRAPHY_PRODUCTS} viewAll />
+        <ProductSection title={productSections[2].title} products={productSections[2].products} viewAll />
 
         <View style={styles.promoSection}><PromoBanner kind="tent" /></View>
-        <ProductSection title="Tent & Canopy Services" products={TENT_PRODUCTS} viewAll />
+        <ProductSection title={productSections[3].title} products={productSections[3].products} viewAll />
 
-        <ProductSection title="Decoration Packages" products={DECORATION_PACKAGES} viewAll />
-
-        <ProductSection title="Artist & Performer" products={ARTIST_PRODUCTS} viewAll />
-
-        <ProductSection title="Kid's Entertainment Services" products={KIDS_PRODUCTS} viewAll />
+        {productSections.slice(4, 7).map((section) => <ProductSection key={section.id} title={section.title} products={section.products} viewAll />)}
 
         <View style={styles.promoSection}><PromoBanner kind="dj" /></View>
-        <ProductSection title="DJ & Music Services" products={DJ_PRODUCTS} viewAll />
+        <ProductSection title={productSections[7].title} products={productSections[7].products} viewAll />
 
         <View style={styles.couponSection}>
           <Image source={ASSETS.coupon} resizeMode="cover" style={styles.coupon} />
@@ -684,6 +844,7 @@ const styles = StyleSheet.create({
   city: { color: '#fff', fontSize: 19, lineHeight: 23, fontWeight: '700' },
   street: { color: '#a4a4a4', fontSize: 15, lineHeight: 18, marginTop: 2 },
   profileAction: { width: 34, height: 36, alignItems: 'center', justifyContent: 'center' },
+  headerAvatar: { width: 32, height: 32, borderRadius: 16 },
   searchAction: { height: 46, marginTop: 12, borderRadius: 10, backgroundColor: '#fff', paddingHorizontal: 15, alignItems: 'center', flexDirection: 'row' },
   stickySearchAction: { marginTop: 0, borderWidth: 1, borderColor: 'rgba(218,222,229,0.8)', backgroundColor: 'rgba(255,255,255,0.64)', borderRadius: 12 },
   searchCopy: { marginLeft: 12, color: '#65656a', fontSize: 14 },
@@ -697,6 +858,7 @@ const styles = StyleSheet.create({
   categoryCard: { width: CATEGORY_WIDTH, height: 114, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 8, backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.15, shadowRadius: 2.5, elevation: 3 },
   categoryIconFrame: { height: 65, alignItems: 'center', justifyContent: 'center' },
   categoryIcon: { width: 78, height: 65 },
+  categoryInitial: { color: '#ff5b42', fontSize: 30, lineHeight: 36, fontWeight: '700' },
   categoryLabel: { color: '#242424', fontSize: 16, lineHeight: 19, fontWeight: '600', paddingHorizontal: 3, textAlign: 'center' },
   categoryUnderline: { width: 24, height: 3, borderRadius: 2, marginTop: 5, backgroundColor: '#ff5b42' },
   firstSection: { marginTop: SECTION_GAP },
@@ -712,6 +874,7 @@ const styles = StyleSheet.create({
   eventPillGlass: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingLeft: 6 },
   eventPillAvatarStack: { height: 46, position: 'relative' },
   eventPillImage: { position: 'absolute', top: 0, width: 46, height: 46, borderRadius: 23, borderWidth: 2, borderColor: '#f4774c' },
+  eventPillFallback: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#d85d38' },
   eventPillBody: { flex: 1, marginLeft: 10 },
   eventPillTitle: { color: '#fff', fontSize: 15, lineHeight: 18, fontWeight: '700' },
   eventPillSubtitle: { color: 'rgba(255,255,255,0.9)', fontSize: 11, lineHeight: 14, marginTop: 1 },
@@ -729,6 +892,7 @@ const styles = StyleSheet.create({
   productRail: { gap: RAIL_GAP, paddingHorizontal: SIDE_PADDING, marginTop: RAIL_TOP_GAP },
   productCard: { width: PRODUCT_WIDTH },
   productImage: { width: PRODUCT_WIDTH, height: PRODUCT_HEIGHT, borderRadius: 6, backgroundColor: '#f0f0f0' },
+  mediaPlaceholder: { width: '100%', height: '100%', backgroundColor: '#eef0f3' },
   productName: { marginTop: 8, color: '#242424', fontSize: 16, lineHeight: 19, fontWeight: '600' },
   ratingRow: { marginTop: 4, flexDirection: 'row', alignItems: 'center' },
   rating: { marginLeft: 4, color: '#707070', fontSize: 13, lineHeight: 16 },
